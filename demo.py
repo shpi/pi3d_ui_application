@@ -37,8 +37,8 @@ ADDR_SHT = 0x44
 PIR = 18
 BACKLIGHT = 19 #single wire backlight control needs almost realtime -> moved to atmega  (not on prototypes, needs bit soldering, ask lh@shpi.de)
 
-infrared_vals = np.zeros(100)     # save 500seconds of infrared temperature for calculating room temp
-                                  # we see 0°C the first 500 seconds, we could insert 50degree
+infrared_vals = np.full(100, 50.0)    # save 500seconds of infrared temperature for calculating room temp
+                                  
 
 
 slide = 1                    #startslide
@@ -94,7 +94,7 @@ def get_touch():  #i2c connection to i2ctouch, read raw values,  two touch point
        return 0,0;     
 
 
-
+ 
 def touch_debounce(channel):  #try to catch bounce effects, stretch clock errors and bit flips, easiest: we need to have two identical measurements
  global lastx, lasty, touch_pressed, controls_alpha
  not_ready = True
@@ -234,6 +234,21 @@ class EgClass(object):
   ssid = " "
   uhrzeit = "00:00"
   atmega_ram = 0
+  humidity = 0.0
+  pressure = 0.0
+  relais1 = 0
+  relais2 = 0
+  relais3 = 0
+  d13 = 0
+  hwb = 0
+  a0 = 0
+  a2 = 0
+  a3 = 0
+  a4 = 0
+  a5 = 0
+  a7 = 0
+  buzzer = 0
+  a1 = 0
     
 eg_object = EgClass()
 
@@ -482,8 +497,7 @@ str4.sprite.position(320, 50, 0.0)
 
 text = pi3d.PointText(pointFont, CAMERA, max_chars=220, point_size=128)    #slide 1
 text2 = pi3d.PointText(pointFontbig, CAMERA, max_chars=20, point_size=256)   #slide 2
-text3 = pi3d.PointText(pointFont, CAMERA, max_chars=500, point_size=64)   #slide 2
-
+text3 = pi3d.PointText(pointFont, CAMERA, max_chars=800, point_size=64)   #slide 3
 
 #slider1
 
@@ -519,75 +533,102 @@ text2.add_text_block(uhrzeit_block)
 
 #slider3: still needs to be formated, but chars uses different width, need to change font or split strings in vars and identifiers
 
-newtxt = pi3d.TextBlock(-380, 190, 0.1, 0.0, 22, data_obj=eg_object,text_format= "HDD USED:   {:s}", attr="useddisk",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, 210, 0.1, 0.0, 22, data_obj=eg_object,text_format= "HDD USED:   {:s}", attr="useddisk",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(-380, 160, 0.1, 0.0, 25, data_obj=eg_object,text_format="FREE: {:2.1f}MB", attr="freespace",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, 180, 0.1, 0.0, 25, data_obj=eg_object,text_format="FREE: {:2.1f}MB", attr="freespace",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(-380, 130, 0.1, 0.0, 22, data_obj=eg_object,text_format="LOAD:       {:2.1f}", attr="load",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, 150, 0.1, 0.0, 22, data_obj=eg_object,text_format="LOAD:       {:2.1f}", attr="load",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(-380, 100, 0.1, 0.0, 22, data_obj=eg_object,text_format="WIFI SIG:{:s}dbm", attr="wifistrength",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, 120, 0.1, 0.0, 22, data_obj=eg_object,text_format="WIFI SIG:{:s}dbm", attr="wifistrength",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(-380, 70, 0.1, 0.0, 25, data_obj=eg_object,text_format="IP:        {:s}", attr="ipaddress",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, 90, 0.1, 0.0, 25, data_obj=eg_object,text_format="IP:        {:s}", attr="ipaddress",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt)   
-newtxt = pi3d.TextBlock(-380, 40, 0.1, 0.0, 22, data_obj=eg_object,text_format="SSID:      {:s}", attr="ssid",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, 60, 0.1, 0.0, 22, data_obj=eg_object,text_format="SSID:      {:s}", attr="ssid",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(-380, 10, 0.1, 0.0, 22, data_obj=eg_object,text_format="GPU TEMP:  {:2.1f}", attr="gputemp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, 30, 0.1, 0.0, 22, data_obj=eg_object,text_format="GPU TEMP:  {:2.1f}", attr="gputemp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(-380, -20, 0.1, 0.0, 22, data_obj=eg_object,text_format="CPU TEMP:  {:2.1f}", attr="cputemp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, 0, 0.1, 0.0, 22, data_obj=eg_object,text_format="CPU TEMP:  {:2.1f}", attr="cputemp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(-380, -50, 0.1, 0.0, 22, data_obj=eg_object,text_format="Voltage:      {:3d}mV", attr="atmega_volt",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, -30, 0.1, 0.0, 22, data_obj=eg_object,text_format="Voltage:      {:3d}mV", attr="atmega_volt",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt)
-newtxt = pi3d.TextBlock(-380, -80, 0.1, 0.0, 22, data_obj=eg_object,text_format="Backlight:      {:3d}", attr="backlight_level",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390, -60, 0.1, 0.0, 22, data_obj=eg_object,text_format="Backlight:      {:3d}", attr="backlight_level",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt)
-newtxt = pi3d.TextBlock(-380,-110, 0.1, 0.0, 22, data_obj=eg_object,text_format="Vent RPM:      {:3d}", attr="vent_rpm",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390,-90, 0.1, 0.0, 22, data_obj=eg_object,text_format="Vent RPM:      {:3d}", attr="vent_rpm",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt)
-newtxt = pi3d.TextBlock(-380,-140, 0.1, 0.0, 22, data_obj=eg_object,text_format="Vent PWM:      {:3d}", attr="vent_pwm",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390,-120, 0.1, 0.0, 22, data_obj=eg_object,text_format="Vent PWM:      {:3d}", attr="vent_pwm",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt)
-newtxt = pi3d.TextBlock(-380,-170, 0.1, 0.0, 22, data_obj=eg_object,text_format="ATmega RAM:      {:3d}", attr="atmega_ram",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-390,-150, 0.1, 0.0, 22, data_obj=eg_object,text_format="ATmega RAM:      {:3d}", attr="atmega_ram",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt)
 
-newtxt = pi3d.TextBlock(0, 190, 0.1, 0.0, 20, data_obj=eg_object,text_format="SHT30:      {:2.1f}", attr="sht_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+
+newtxt = pi3d.TextBlock(-390,-180, 0.1, 0.0, 22, data_obj=eg_object,text_format="Humidity:      {:2.1f}", attr="humidity",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+newtxt = pi3d.TextBlock(-390,-210, 0.1, 0.0, 22, data_obj=eg_object,text_format="Pressure:      {:2.1f}", attr="pressure",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+
+
+newtxt = pi3d.TextBlock(-50, 190, 0.1, 0.0, 20, data_obj=eg_object,text_format="SHT30:      {:2.1f}", attr="sht_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(0, 160, 0.1, 0.0, 20, data_obj=eg_object,text_format="BMP280:      {:2.1f}", attr="bmp280_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-50, 160, 0.1, 0.0, 20, data_obj=eg_object,text_format="BMP280:      {:2.1f}", attr="bmp280_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(0, 130, 0.1, 0.0, 20, data_obj=eg_object,text_format="ATmega:      {:2.1f}", attr="atmega_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-50, 130, 0.1, 0.0, 20, data_obj=eg_object,text_format="ATmega:      {:2.1f}", attr="atmega_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
-newtxt = pi3d.TextBlock(0, 100, 0.1, 0.0, 20, data_obj=eg_object,text_format="MLX A:      {:2.1f}", attr="mlxamb",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-50, 100, 0.1, 0.0, 20, data_obj=eg_object,text_format="MLX A:      {:2.1f}", attr="mlxamb",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt)
-newtxt = pi3d.TextBlock(0, 70, 0.1, 0.0, 20, data_obj=eg_object,text_format="MLX O:      {:2.1f}", attr="mlxobj",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-50, 70, 0.1, 0.0, 20, data_obj=eg_object,text_format="MLX O:      {:2.1f}", attr="mlxobj",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
 
 
 
 
 
-newtxt = pi3d.TextBlock(0, 40, 0.1, 0.0, 20, text_format="LED:",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-50, 40, 0.1, 0.0, 20, text_format="LED:",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt)
-newtxt = pi3d.TextBlock(50, 40, 0.1, 0.0, 20, data_obj=eg_object,text_format="{:3d}", attr="led_red",size=0.5, spacing="F", space=0.05, colour=(1.0, 0.0, 0.0, 1.0))
+newtxt = pi3d.TextBlock(0, 40, 0.1, 0.0, 20, data_obj=eg_object,text_format="{:3d}", attr="led_red",size=0.5, spacing="F", space=0.05, colour=(1.0, 0.0, 0.0, 1.0))
 text3.add_text_block(newtxt)
-newtxt = pi3d.TextBlock(100, 40, 0.1, 0.0, 20, data_obj=eg_object,text_format="{:3d}", attr="led_green",size=0.5, spacing="F", space=0.05, colour=(0.0, 1.0, 0.0, 1.0))
+newtxt = pi3d.TextBlock(50, 40, 0.1, 0.0, 20, data_obj=eg_object,text_format="{:3d}", attr="led_green",size=0.5, spacing="F", space=0.05, colour=(0.0, 1.0, 0.0, 1.0))
 text3.add_text_block(newtxt)
-newtxt = pi3d.TextBlock(150, 40, 0.1, 0.0, 20, data_obj=eg_object,text_format="{:3d}", attr="led_blue",size=0.5, spacing="F", space=0.05, colour=(0.0, 0.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(100, 40, 0.1, 0.0, 20, data_obj=eg_object,text_format="{:3d}", attr="led_blue",size=0.5, spacing="F", space=0.05, colour=(0.0, 0.0, 1.0, 1.0))
 text3.add_text_block(newtxt)
 
-'''
-  to include:         
-  eg_object.relais1
-  eg_object.relais2
-  eg_object.relais3
-  eg_object.d13
-  eg_object.hwb
-  eg_object.buzzer 
-  eg_object.a0
-  eg_object.a1 
-  eg_object.a2
-  eg_object.a3
-  eg_object.a4  
-  eg_object.a5
-  eg_object.a7
-  eg_object.humidity
-  eg_object.pressure
-'''
+
+
+
+newtxt = pi3d.TextBlock(-50, 10, 0.1, 0.0, 20, data_obj=eg_object,text_format="R1:   {:1d}", attr="relais1",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+
+newtxt = pi3d.TextBlock(-50, -20, 0.1, 0.0, 20, data_obj=eg_object,text_format="R2:  {:1d}", attr="relais2",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+
+newtxt = pi3d.TextBlock(-50, -50, 0.1, 0.0, 20, data_obj=eg_object,text_format="R3:   {:1d}", attr="relais3",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+
+newtxt = pi3d.TextBlock(-50, -80, 0.1, 0.0, 20, data_obj=eg_object,text_format="D13:      {:1d}", attr="d13",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+
+newtxt = pi3d.TextBlock(-50, -110, 0.1, 0.0, 20, data_obj=eg_object,text_format="HWB:      {:1d}", attr="hwb",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+
+newtxt = pi3d.TextBlock(-50, -140, 0.1, 0.0, 20, data_obj=eg_object,text_format="Buzzer:    {:1d}", attr="buzzer",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+newtxt = pi3d.TextBlock(-50, -170, 0.1, 0.0, 20, data_obj=eg_object,text_format="A0:    {:3d}", attr="a0",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+
+
+newtxt = pi3d.TextBlock(120, 10, 0.1, 0.0, 20, data_obj=eg_object,text_format="A1:    {:3d}", attr="a1",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+newtxt = pi3d.TextBlock(120, -20, 0.1, 0.0, 20, data_obj=eg_object,text_format="A2:    {:3d}", attr="a2",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+newtxt = pi3d.TextBlock(120, -50, 0.1, 0.0, 20, data_obj=eg_object,text_format="A3:    {:3d}", attr="a3",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+newtxt = pi3d.TextBlock(120, -80, 0.1, 0.0, 20, data_obj=eg_object,text_format="A4:    {:3d}", attr="a4",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+newtxt = pi3d.TextBlock(120, -110, 0.1, 0.0, 20, data_obj=eg_object,text_format="A5:    {:3d}", attr="a5",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+
+newtxt = pi3d.TextBlock(120, -140, 0.1, 0.0, 20, data_obj=eg_object,text_format="A7:    {:3d}", attr="a7",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text3.add_text_block(newtxt)
+
 
 
 
@@ -617,9 +658,6 @@ ball.set_material((1, 1,  1)) # uses actual loaded background :-) how to smooth 
   
 while DISPLAY.loop_running():
 
-   if (time.time() > nextsensorcheck):
-     get_sensors()
-     
    if (time.time() > everysecond):
       
      everysecond = time.time() + 5
@@ -635,7 +673,9 @@ while DISPLAY.loop_running():
      except:
       pass
      
-
+   if (time.time() > nextsensorcheck):
+      get_sensors()
+     
    if slide > 0:
    
    
