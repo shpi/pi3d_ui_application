@@ -38,21 +38,21 @@ PIR = 18
 BACKLIGHT = 19 #single wire backlight control needs almost realtime -> moved to atmega  (not on prototypes, needs bit soldering, ask lh@shpi.de)
 
 infrared_vals = np.zeros(100)     # save 500seconds of infrared temperature for calculating room temp
-                   
+                                  # we see 0°C the first 500 seconds, we could insert 50degree
 
 
 slide = 1                    #startslide
-lastmovex = 0
+lastmovex = 0           #not needed for fakesliding. we still try to slide all text elements
 
-touch_pressed = False
+touch_pressed = False  #will be set in interrupt routine
 lastx = 0
 lasty = 0
 lastmotion = 0
 graphupdated = 0
 nextsensorcheck = 0
 everysecond = 0
-nexttm = 0
-user_temp_change = False  #if user change temp on touchscreen, save it in databank, otherwise load temp set from databank
+nexttm = 0 
+user_temp_change = False  #for future use: if user change temp on touchscreen, save it in databank, otherwise load temp set from databank
 motion = False
 
 gpio.setmode(gpio.BCM)
@@ -71,7 +71,7 @@ def motion_detected(channel):  #try to catch bounce effects, stretch clock error
   lastmotion = time.time()
   
   
-def get_touch():
+def get_touch():  #i2c connection to i2ctouch, read raw values,  two touch points possible, we use actual only one
     
    try:
         data = bus.read_i2c_block_data(TOUCHADDR, 0x40, 8)
@@ -84,12 +84,12 @@ def get_touch():
 #       x2 = data[2] | (data[6] << 8)
 #       y2 = data[3] | (data[7] << 8)
 
-        return (400 - x1),(y1 - 240);
+        return (400 - x1),(y1 - 240);  #compensate position to match with PI3D
 
 
 
    except:
-       time.sleep(0.05)  #wait on  I2C error
+       time.sleep(0.05)  #wait on  I2C error (clock stretching problems)
        pass
        return 0,0;     
 
@@ -113,7 +113,7 @@ def touch_debounce(channel):  #try to catch bounce effects, stretch clock errors
 
 
 gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce, bouncetime=100)                                  #touch interrupt
-gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected, bouncetime=500)  
+gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected, bouncetime=500)  #motion detector interrupt  
 
 
 ## init touchscreen
@@ -183,8 +183,8 @@ except:
 
 
 
-PIC_DIR = '/home/pi/backgrounds'
-TMDELAY = 30 
+PIC_DIR = './backgrounds'
+TMDELAY = 30  #delay for changing backgrounds
 
 
 
@@ -209,8 +209,6 @@ pic_num = nFi - 1
 
 
 class EgClass(object):
-
-
 
   set_temp = 23.0
   atmega_volt = 0
@@ -243,7 +241,7 @@ eg_object = EgClass()
          
 
 
-def get_sensors():
+def get_sensors(): #readout all sensor values, system, and atmega vars
  global nextsensorcheck,slide,infrared_vals
  try:
   eg_object.useddisk = os.popen("df | grep root  | awk '{print $5}'").readline().strip() 
@@ -341,6 +339,7 @@ def get_sensors():
 
 
   '''
+
 [-c|--color COLORTAG#rrggbb[aa]]
 
 Override the default colors for the standard elements of the graph. 
@@ -389,7 +388,7 @@ A green arrow is made by: --color ARROW#00FF00 A A
 
 
 
-
+# chars and symbols for GUI
 
 
 mytext = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZüöäÜÖÄ,.%:° -'
@@ -469,7 +468,7 @@ sfg = tex_load(iFiles[pic_num])
 pointFont = pi3d.Font("opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=5,grid_size=11, codepoints=mytext)
 pointFontbig = pi3d.Font("opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=4,grid_size=5, codepoints='0123456789:')
 
-#slide 0 (off for camera)
+#slide 0 (backgrounds off for camera)
 str1 = pi3d.FixedString('opensans.ttf', 'Loading stream', font_size=32,background_color=(0,0,0,0),camera=CAMERA, shader=shader)
 str1.sprite.position(0, 0, 0.1)
 str2 = pi3d.FixedString('opensans.ttf', 'Touch to close stream.', font_size=22,background_color=(0,0,0,0), camera=CAMERA, shader=shader)
@@ -486,11 +485,10 @@ text2 = pi3d.PointText(pointFontbig, CAMERA, max_chars=20, point_size=256)   #sl
 text3 = pi3d.PointText(pointFont, CAMERA, max_chars=500, point_size=64)   #slide 2
 
 
+#slider1
 
 temp_block = pi3d.TextBlock(-350, 130, 0.1, 0.0, 15, data_obj=eg_object,attr="act_temp",text_format= chr(0xE021) +"{:2.1f}°C", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(temp_block)
-
-
 set_temp_block= pi3d.TextBlock(-330, 50, 0.1, 0.0, 15, data_obj=eg_object,text_format= chr(0xE005) + " {:2.1f}°C", attr="set_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(set_temp_block)
 increaseTemp = pi3d.TextBlock(300, 150, 0.1, 180.0, 1, text_format= chr(0xE000),size=0.99, spacing="C", space=0.6, colour=(1, 0, 0, 0.8))
@@ -514,15 +512,12 @@ text.add_text_block(newtxt)
 newtxt = pi3d.TextBlock(-275, -180, 0.1, 0.0, 15, text_format = chr(0xE031), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
 text.add_text_block(newtxt)
 
-
+# slider2
 uhrzeit_block = pi3d.TextBlock(-280, 0, 0.1, 0.0, 15, data_obj=eg_object,attr="uhrzeit", text_format= "{:s}", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text2.add_text_block(uhrzeit_block) 
 
 
-
-
-
-
+#slider3: still needs to be formated, but chars uses different width, need to change font or split strings in vars and identifiers
 
 newtxt = pi3d.TextBlock(-380, 190, 0.1, 0.0, 22, data_obj=eg_object,text_format= "HDD USED:   {:s}", attr="useddisk",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text3.add_text_block(newtxt) 
@@ -613,10 +608,10 @@ text3.add_text_block(newtxt)
 
 
 
-
-ball = pi3d.Disk(radius=50, sides=36, z=1, rx=90, camera=CAMERA) # default orientated in x,z plane so rotate
+# fake slider  ball
+ball = pi3d.Disk(radius=80, sides=36, z=1, rx=90, camera=CAMERA) # default orientated in x,z plane so rotate
 ball.set_shader(shader)
-ball.set_material((1, 1,  1))
+ball.set_material((1, 1,  1)) # uses actual loaded background :-) how to smooth borders?
 
 
   
@@ -632,7 +627,7 @@ while DISPLAY.loop_running():
       eg_object.mlxamb = float((bus.read_word_data(0x5b, 0x26) *0.02)  - 273.15)
       eg_object.mlxobj = float((bus.read_word_data(0x5b, 0x27) *0.02)  - 273.15)
       
-      if (eg_object.mlxamb > eg_object.mlxobj):                                   # compensate own temperature
+      if (eg_object.mlxamb > eg_object.mlxobj):                                   # compensate own self heating
        eg_object.mlxobj -= ((eg_object.mlxamb - eg_object.mlxobj) / 7)
       infrared_vals= np.roll(infrared_vals, -1)
       infrared_vals[99] = eg_object.mlxobj
@@ -653,7 +648,7 @@ while DISPLAY.loop_running():
       sfg = tex_load(iFiles[pic_num]) 
          
     if a < 1.0:                                              # fade to new background
-        activity = True
+        activity = True  #we calculate   more frames, when there is activity, otherwise we add sleep.time at end
         a += 0.02 
         sbg.draw() 
         sfg.set_alpha(a)
@@ -670,14 +665,14 @@ while DISPLAY.loop_running():
         movex = (lastx - x)
         movey = (lasty - x)
         if (abs(movex) > 50):                              #calculate slider movement
-         ball.positionX(x) # obviously you would set this to something meaningful
+         ball.positionX(x)   # draw ball to show sliding, maybe we should add background like on phone-switch.sliders
          ball.positionY(0)
          ball.draw()
          activity = True
    else:
     movex = 0
     
-   if (movex < -200):
+   if (movex < -200):          #start sliding when there is enough touchmovement
        if (slide > 1):
         lastx = 0
         movex = 0 
@@ -736,6 +731,8 @@ while DISPLAY.loop_running():
       checky = -150
       if ((checkx-100) < x < (checkx+100)) and ((checky-100) < y < (checky+100)):
          str5.draw()
+   
+         #we deactivate speaker, while talking, to avaoid feedback and increase privacy for door intercoms
          #os.popen('amixer set Master 0%')
          #os.popen('amixer set Capture 100%') 
 
@@ -765,7 +762,7 @@ while DISPLAY.loop_running():
      if  touch_pressed:
       touch_pressed = False 
       activity = True
-      checkx = 300
+      checkx = 300      #we describe touch areas manually, in future we could use object position values
       checky = 150
       if ((checkx-50) < lastx < (checkx+50)) and ((checky-50) < lasty < (checky+50)):
            eg_object.set_temp += 0.5
@@ -798,8 +795,11 @@ while DISPLAY.loop_running():
             pass
          os.popen('omxplayer --threshold 0.5  --display 4 rtsp://username:pass@192.168.1.5:554/mpeg4cif --win "0 0 640 480"')       # loading time depends on keyframes in stream, only h264 recommended!
          os.popen('raspivid  -t 0 -w 640 -h 480 -g 10 -if both -ih -fps 5 -l -p \'640,0,160,120\' -o  tcp://0.0.0.0:5001') 
-         os.popen('arecord -D plughw:1,0 -r 8000 -f S16_LE -c1 -N -B 100 -t wav | nc -l 5002')                     
-         os.popen('nc [ownip] 5002 | aplay -f S16_LE -c1 -r 8000')
+         
+
+         #intercom between 2 SHPIs,  just a test concept,  master access slave and start necessary applications
+         #os.popen('arecord -D plughw:1,0 -r 8000 -f S16_LE -c1 -N -B 100 -t wav | nc -l 5002')                     
+         #os.popen('nc [ownip] 5002 | aplay -f S16_LE -c1 -r 8000')
          #sshpass -p 'password' ssh -o StrictHostKeyChecking=no  user@server "raspivid  -t 0 -w 640 -h 480 -g 10 -if both -ih -fps 25 -l -p \'640,0,160,120\' -o  tcp://0.0.0.0:5001";
          #sshpass -p 'password' ssh -o StrictHostKeyChecking=no  user@server "arecord -D plughw:1,0 -r 8000 -f S16_LE -c1 -N -B 100 -t wav | nc -l 5002";
          #sshpass -p 'password' ssh -o StrictHostKeyChecking=no  user@server "nc [ownip] 5002 | aplay -f S16_LE -c1 -r 8000";
