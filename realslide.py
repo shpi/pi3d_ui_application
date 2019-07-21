@@ -121,7 +121,7 @@ mytext = mytext + chr(0xE002) #cloud
 mytext = mytext + chr(0xE003) #raindrop
 mytext = mytext + chr(0xE004) #fire
 mytext = mytext + chr(0xE005) #house
-#mytext = mytext + chr(0xE006) #filledcircle
+mytext = mytext + chr(0xE006) #filledcircle
 #mytext = mytext + chr(0xE007) #raining
 #mytext = mytext + chr(0xE008) #timer
 mytext = mytext + chr(0xE009) #clock
@@ -195,6 +195,14 @@ pointFont = pi3d.Font("opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=4,gri
 
 text = pi3d.PointText(pointFont, CAMERA, max_chars=220, point_size=128)  #for slide 1, from 0 - 800px
 text2 = pi3d.PointText(pointFont, CAMERA, max_chars=220, point_size=128) #for slide 2, from 800 - 1600px
+fixed = pi3d.PointText(pointFont, CAMERAFIXED, max_chars=20, point_size=128) #for slide 2, from 800 - 1600px
+
+
+circle_block = pi3d.TextBlock(-60,-220,0.1,0.0,6,text_format = chr(0xE006) + chr(0xE006) + chr(0xE006) + chr(0xE006)+chr(0xE006)+chr(0xE006), size= 0.25, spacing="F",space=0.3,colour=(1.0,1.0,1.0,0.2))
+circle_active = pi3d.TextBlock(-60,-220,0.1,0.0,1,text_format = chr(0xE006), size= 0.3, spacing="F",space=0.3,colour=(1.0,1.0,1.0,1.0))
+fixed.add_text_block(circle_active)
+fixed.add_text_block(circle_block)
+
 
 
 
@@ -257,7 +265,9 @@ while DISPLAY.loop_running():
      CAMERA.offset(((actpos-100),0,0))
      actpos = 100
       
-    
+    circle_active.set_position(x=(int)(-60-(actpos/38)))
+    fixed.regen()
+ 
    if (True):  
        
 
@@ -265,7 +275,7 @@ while DISPLAY.loop_running():
       #text.regen()               
       text2.draw() 
       text.draw()
-    
+      fixed.draw()
 
 
 
