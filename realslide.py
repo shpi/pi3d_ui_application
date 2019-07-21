@@ -20,6 +20,7 @@ movex = 0
 touch_pressed = False
 lastx = 0
 lasty = 0
+actpos = 0
 gpio.setmode(gpio.BCM)
 gpio.setwarnings(False)
 gpio.setup(TOUCHINT, gpio.IN)
@@ -202,10 +203,7 @@ text.add_text_block(temp_block)
 uhrzeit_block = pi3d.TextBlock(400, 130, 0.1, 0.0, 15, data_obj=eg_object,attr="uhrzeit", text_format= chr(0xE009) +"{:s}", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text2.add_text_block(uhrzeit_block) 
 
-circle1= pi3d.TextBlock(0, -225, 0.1, 0.0, 15, text_format= chr(0xE025), size=0.49,  colour=(1.0, 1.0, 1.0, 1.0))
-circles.add_text_block(circle1) 
-circle2= pi3d.TextBlock(50, -225, 0.1, 0.0, 15, text_format= chr(0xE025), size=0.49,  colour=(1.0, 1.0, 1.0, 0.5))
-circles.add_text_block(circle2) 
+
 
 
   
