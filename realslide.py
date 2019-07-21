@@ -176,10 +176,11 @@ mytext = mytext + chr(0xE031) #phone
 DISPLAY = pi3d.Display.create(layer=0,w=800, h=480,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=24, tk=False)     
 shader = pi3d.Shader("uv_flat")  
 CAMERA = pi3d.Camera(is_3d=False) 
+CAMERAFIXED = pi3d.Camera(is_3d=False)
 
 def tex_load(fname):
 
-  slide = pi3d.ImageSprite(fname,shader=shader,camera=CAMERA,w=800,h=480,z=2)  #we need to use different camera later 
+  slide = pi3d.ImageSprite(fname,shader=shader,camera=CAMERAFIXED,w=800,h=480,z=2)  #we need to use different camera later 
   slide.set_alpha(0)
 
   return slide
@@ -231,19 +232,33 @@ while DISPLAY.loop_running():
        x,y = touch_debounce(0);
        if ((x != 0) and lastx):
         movex = (lastx - x)                              #calculate slider movement
-        CAMERA.position((lastmovex-movex, 0, 0))
+        CAMERA.offset((lastmovex-movex, 0, 0))
+
+        #CAMERA.offset also works? 
+
+
         lastmovex = movex
  
    else:
-    actpos += lastmovex  # save for identifying which slide..    
-    lastmovex = 0
-    
+    if lastmovex:
+     actpos += lastmovex  # save for identifying which slide..    
+     lastmovex = 0
+    print(actpos)    
+    if  0 < (actpos % 800) < 400:
+     CAMERA.offset((1,0,0))
+     actpos -= 1
+      
+    if  400 < (actpos % 800) < 800:
+     CAMERA.offset((-1,0,0))
+     actpos += 1
+
+
     
    if (True):  
        
 
-      text2.regen()
-      text.regen()               
+      #text2.regen()
+      #text.regen()               
       text2.draw() 
       text.draw()
     
