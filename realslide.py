@@ -173,7 +173,7 @@ mytext = mytext + chr(0xE031) #phone
 
 
 
-DISPLAY = pi3d.Display.create(layer=0,w=800, h=480,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=24, tk=False)     
+DISPLAY = pi3d.Display.create(layer=0,w=800, h=480,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=60, tk=False)     
 shader = pi3d.Shader("uv_flat")  
 CAMERA = pi3d.Camera(is_3d=False) 
 CAMERAFIXED = pi3d.Camera(is_3d=False)
@@ -252,7 +252,11 @@ while DISPLAY.loop_running():
      CAMERA.offset((-1,0,0))
      actpos += 1
 
+    if (actpos > 500):
 
+     CAMERA.offset(((actpos-100),0,0))
+     actpos = 100
+      
     
    if (True):  
        
