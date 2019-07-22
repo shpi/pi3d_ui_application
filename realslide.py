@@ -8,9 +8,6 @@ import subprocess
 from random import randint
 PIR = 18
 BACKLIGHT = 19 #single wire backlight control needs almost realtime, keep that in mind, run python as root
-
-
-
 TOUCHINT = 26
 ADDR = 0x5c
 tm = 0
@@ -20,45 +17,56 @@ movex = 0
 touch_pressed = False
 lastx = 0
 lasty = 0
+yc = 0
+xc = 0
 actpos = 0
 gpio.setmode(gpio.BCM)
 gpio.setwarnings(False)
 gpio.setup(TOUCHINT, gpio.IN)
-
 bus = smbus.SMBus(2)
 
 
 
 def get_touch():
-    
+   global xc,yc    
    try:
-        data = bus.read_i2c_block_data(ADDR, 0x40, 8)
-        if (0 <  (data[0] | (data[4] << 8)) < 800):
+         data = bus.read_i2c_block_data(ADDR, 0x40, 8)
          x1 = data[0] | (data[4] << 8)
-
-        if (0 <  (data[1] | (data[5] << 8)) < 480):
          y1 = data[1] | (data[5] << 8)
- 
-#       x2 = data[2] | (data[6] << 8)
-#       y2 = data[3] | (data[7] << 8)
-        return x1,y1;
+
+         if ((-1 < x1  < 801) & (-1 < y1  < 481)):
+          if ((-20 < (xc-x1) < 20) & (-20 < (yc-y1) < 20)):  #catch bounches 
+           xc = x1
+           yc = y1
+           #print(x1,y1)
+           return x1,y1;
+          else:
+           xc = x1
+           yc = y1
+           
+           #print('not identical')
+           return get_touch()
+         else:
+          return get_touch()
+  
 
 
 
    except:
-       time.sleep(0.05)  #wait on  I2C error
-       pass
-       return 0,0;     
+       time.sleep(0.03)  #wait on  I2C error
+       #print('i2cerror')
+       return get_touch() 
+       pass    
 
 
 
-def touch_debounce(channel):  #try to catch bounce effects, stretch clock errors and bit flips, easiest: we need to have two identical measurements
+
+
+
+
+def touch_debounce(channel):  
  global lastx, lasty, touch_pressed
- not_ready = True
- while(not_ready):
-  x,y = get_touch()
-  if ((x,y) == get_touch()):
-   not_ready = False
+ x,y = get_touch()
  if (channel == TOUCHINT):
   touch_pressed = True  
   lastx = x
@@ -180,7 +188,7 @@ CAMERAFIXED = pi3d.Camera(is_3d=False)
 
 def tex_load(fname):
 
-  slide = pi3d.ImageSprite(fname,shader=shader,camera=CAMERAFIXED,w=800,h=480,z=2)  #we need to use different camera later 
+  slide = pi3d.ImageSprite(fname,shader=shader,camera=CAMERAFIXED,w=800,h=480,z=2)   
   slide.set_alpha(0)
 
   return slide
@@ -195,7 +203,7 @@ pointFont = pi3d.Font("opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=4,gri
 
 text = pi3d.PointText(pointFont, CAMERA, max_chars=220, point_size=128)  #for slide 1, from 0 - 800px
 text2 = pi3d.PointText(pointFont, CAMERA, max_chars=220, point_size=128) #for slide 2, from 800 - 1600px
-fixed = pi3d.PointText(pointFont, CAMERAFIXED, max_chars=20, point_size=128) #for slide 2, from 800 - 1600px
+fixed = pi3d.PointText(pointFont, CAMERAFIXED, max_chars=20, point_size=128) #always fixed
 
 
 circle_block = pi3d.TextBlock(-60,-220,0.1,0.0,6,text_format = chr(0xE006) + chr(0xE006) + chr(0xE006) + chr(0xE006)+chr(0xE006)+chr(0xE006), size= 0.25, spacing="F",space=0.3,colour=(1.0,1.0,1.0,0.2))
@@ -215,74 +223,80 @@ text2.add_text_block(uhrzeit_block)
 
 
 
-  
 while DISPLAY.loop_running():
 
 
 
+  if gpio.input(TOUCHINT):                              # check if touch is pressed, to detect sliding
+       x,y = get_touch();
+       if ((x != 0) and lastx):
+        movex = (lastx - x)                              #calculate slider movement
+        CAMERA.offset((lastmovex-movex, 0, 0))
+        lastmovex = movex
+        time.sleep(0.01)
+ 
+  else:
 
-   if time.time() > nexttm:                                     # change background
+    if lastmovex:
+     actpos += lastmovex  # save for identifying which slide..    
+     lastmovex = 0
+     if (actpos > 0):
+      CAMERA.offset(((actpos),0,0))
+      actpos = 0
+    
+    diffpos = actpos % 800   
+
+   
+    if  0 < (diffpos) < 400:
+
+     if diffpos < 5:
+      CAMERA.offset((diffpos,0,0))
+      actpos -= diffpos
+     else:
+      CAMERA.offset((5,0,0))
+      actpos -= 5
+      
+    if  399 < (diffpos) < 800:
+
+     if diffpos > 795:
+      CAMERA.offset((-(800-diffpos),0,0))
+      actpos += (800-diffpos)
+     else:
+      CAMERA.offset((-5,0,0))
+      actpos += 5
+     
+
+    
+    
+
+    if ((actpos % 800) == 0): #just for now, we need to implement a variable to do this only one time after slide
+     circle_active.set_position(x=(int)(-60-(actpos/38)))
+     fixed.regen()
+ 
+     
+       
+
+      #text2.regen()
+      #text.regen()               
+     
+
+    if time.time() > nexttm:                                     # change background
       nexttm = time.time() + TMDELAY
       a = 0.0 
       sbg = sfg
       sbg.positionZ(3)
       pic_num = (pic_num + 1) % nFi
       sfg = tex_load(iFiles[pic_num]) 
-         
-   if a < 1.0:                                              # fade to new background
+
+    if a < 1.0:                                              # fade to new background
         activity = True
         a += 0.01 
         sbg.draw() 
         sfg.set_alpha(a)
-   sfg.draw()
-
-   if gpio.input(TOUCHINT):                              # check if touch is pressed, to detect sliding
-       x,y = touch_debounce(0);
-       if ((x != 0) and lastx):
-        movex = (lastx - x)                              #calculate slider movement
-        CAMERA.offset((lastmovex-movex, 0, 0))
-
-        #CAMERA.offset also works? 
-
-
-        lastmovex = movex
- 
-   else:
-    if lastmovex:
-     actpos += lastmovex  # save for identifying which slide..    
-     lastmovex = 0
-    print(actpos)    
-    if  0 < (actpos % 800) < 400:
-     CAMERA.offset((1,0,0))
-     actpos -= 1
-      
-    if  400 < (actpos % 800) < 800:
-     CAMERA.offset((-1,0,0))
-     actpos += 1
-
-    if (actpos > 500):
-
-     CAMERA.offset(((actpos-100),0,0))
-     actpos = 100
-      
-    circle_active.set_position(x=(int)(-60-(actpos/38)))
-    fixed.regen()
- 
-   if (True):  
-       
-
-      #text2.regen()
-      #text.regen()               
-      text2.draw() 
-      text.draw()
-      fixed.draw()
-
-
-
-
-
-
-
+  sfg.draw()
+  text.draw()
+  text2.draw()
+  fixed.draw()
 
 
 DISPLAY.destroy()
