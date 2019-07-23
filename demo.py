@@ -39,7 +39,7 @@ BACKLIGHT = 19 #single wire backlight control needs almost realtime -> moved to 
 infrared_vals = np.full(100, 50.0)    # save 500seconds of infrared temperature for calculating room temp
                                   
 
-
+show_airquality = 1 # show airquality over LED
 slide = 1                    #startslide
 lastmovex = 0           #not needed for fakesliding. we still try to slide all text elements
 
@@ -269,10 +269,7 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
   eg_object.hwb =  (bus.read_byte(ADDR_32U4))
   bus.write_byte(ADDR_32U4, 0x12)
   eg_object.buzzer =  (bus.read_byte(ADDR_32U4)) 
-  bus.write_byte(ADDR_32U4, 0x0C)
-  eg_object.led_red   = bus.read_byte(ADDR_32U4)
-  eg_object.led_green = bus.read_byte(ADDR_32U4)
-  eg_object.led_blue  = bus.read_byte(ADDR_32U4)  
+
   bus.write_byte(ADDR_32U4, 0x08)
   eg_object.vent_rpm =  (bus.read_byte(ADDR_32U4) | (bus.read_byte(ADDR_32U4)<<8 ))                               
   bus.write_byte(ADDR_32U4, 0x0A) 
@@ -291,6 +288,20 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
   eg_object.a3 = (bus.read_byte(ADDR_32U4) | (bus.read_byte(ADDR_32U4) << 8))  
   bus.write_byte(ADDR_32U4, 0x04)
   eg_object.a4 =  (bus.read_byte(ADDR_32U4) | (bus.read_byte(ADDR_32U4) << 8))   
+
+  if show_airquality:
+       redvalue = int(0.03 * eg_object.a4)
+       if (eg_object.a4 > 400):
+        greenvalue = 0
+       else:
+        greenvalue = int(0.02*(400 - eg_object.a4))
+       bus.write_i2c_block_data(ADDR_32U4, 0x8C, [redvalue,greenvalue,0])
+
+  bus.write_byte(ADDR_32U4, 0x0C)
+  eg_object.led_red   = bus.read_byte(ADDR_32U4)
+  eg_object.led_green = bus.read_byte(ADDR_32U4)
+  eg_object.led_blue  = bus.read_byte(ADDR_32U4)
+
   bus.write_byte(ADDR_32U4, 0x05)
   eg_object.a5 = (bus.read_byte(ADDR_32U4) | (bus.read_byte(ADDR_32U4) << 8))   
   bus.write_byte(ADDR_32U4, 0x06)
@@ -858,7 +869,7 @@ while DISPLAY.loop_running():
    if activity:
     activity = False  
    else:
-      time.sleep(0.0000001) 
+      time.sleep(0.1) 
         
      
 
