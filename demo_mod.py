@@ -10,6 +10,9 @@ import rrdtool
 import numpy as np
 import math
 
+INFRARED_TM = 5
+SENSOR_TM = 60
+
 if not os.path.isfile('temperatures.rrd'):
   rrdtool.create(
     "temperatures.rrd",
@@ -282,7 +285,7 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
 
     eg_object.act_temp = np.nanmedian(infrared_vals)
 
-    nextsensorcheck = (time.time() + 60)
+    nextsensorcheck = (time.time() + SENSOR_TM)
     activity = True
     temperatures_str = 'N:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}'.format(
       eg_object.act_temp, eg_object.gputemp, eg_object.cputemp, eg_object.atmega_temp,
@@ -506,15 +509,15 @@ ball.set_alpha(0.2) # make the disk see-through
 
 while DISPLAY.loop_running():
   if (time.time() > everysecond):
-    everysecond = time.time() + 5
+    everysecond = time.time() + INFRARED_TM
     try:
       eg_object.mlxamb = float((bus.read_word_data(0x5b, 0x26) *0.02)  - 273.15)
       eg_object.mlxobj = float((bus.read_word_data(0x5b, 0x27) *0.02)  - 273.15)
-      infrared_vals= np.roll(infrared_vals, -1)
+      infrared_vals [:-1] = infrared_vals[1:]
       if (eg_object.mlxamb > eg_object.mlxobj):                                   # compensate own self heating
-        infrared_vals[99] = eg_object.mlxobj -  ((eg_object.mlxamb - eg_object.mlxobj) / 6)
+        infrared_vals[-1] = eg_object.mlxobj -  ((eg_object.mlxamb - eg_object.mlxobj) / 6)
       else:
-        infrared_vals[99] = eg_object.mlxobj
+        infrared_vals[-1] = eg_object.mlxobj
 
     except:
       pass
