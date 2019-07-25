@@ -10,8 +10,21 @@ import rrdtool
 import numpy as np
 import math
 
+
+PIC_DIR = './backgrounds'
+TMDELAY = 30  #delay for changing backgrounds
 INFRARED_TM = 5
 SENSOR_TM = 60
+TOUCHINT = 26
+TOUCHADDR = 0x5c
+ADDR_32U4 = 0x2A
+ADDR_BMP = 0x77
+ADDR_SHT = 0x44
+ADDR_MLX = 0x5B
+ADDR_BH1750 = 0x23
+PIR = 18
+BACKLIGHT = 19 #single wire backlight control needs almost realtime -> moved to atmega  (not on prototypes, needs bit soldering, ask lh@shpi.de)
+show_airquality = 1 # show airquality over LED
 
 if not os.path.isfile('temperatures.rrd'):
   rrdtool.create(
@@ -35,22 +48,11 @@ os.popen('sudo mkdir /media/ramdisk')
 os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
 
 controls_alpha = 1.0              # hide controls if there is no touch action
-TOUCHINT = 26
-TOUCHADDR = 0x5c
-ADDR_32U4 = 0x2A
-ADDR_BMP = 0x77
-ADDR_SHT = 0x44
-ADDR_MLX = 0x5B
-ADDR_BH1750 = 0x23
-PIR = 18
-BACKLIGHT = 19 #single wire backlight control needs almost realtime -> moved to atmega  (not on prototypes, needs bit soldering, ask lh@shpi.de)
-
 infrared_vals = np.full(100, np.nan)    # save 500seconds of infrared temperature for calculating room temp init to NaN
 
-show_airquality = 1 # show airquality over LED
+
 slide = 1                    #startslide
 lastmovex = 0           #not needed for fakesliding. we still try to slide all text elements
-
 touch_pressed = False  #will be set in interrupt routine
 xc = 0  #last touchvars for integritychecks due to clockstretch errors and bitflips in i2c communication
 yc = 0
@@ -128,6 +130,8 @@ gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce, bouncetime
 gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected, bouncetime=500)  #motion detector interrupt
 
 
+
+
 try:
  bus.write_byte_data(TOUCHADDR,0x6e,0b00001110)                                              # interrupt configuration i2c
  bus.write_byte_data(TOUCHADDR,0x70,0b00000000)
@@ -136,6 +140,8 @@ except:
  TOUCHADDR = False
  pass
 
+
+#check for atmega  -> future: lite or std SHPI
 try:
   bus.write_byte(ADDR_32U4, 0x00)
 except:
@@ -143,25 +149,24 @@ except:
   print('no ATmega found, seems to be a SHPI.zero lite?')
   pass
 
+
+#check for SHT3x
 try:
- bus.write_byte(ADDR_SHT, 0x00)
-
-
+ bus.write_byte(ADDR_SHT, 0x00)                    
 except:
  ADDR_SHT = False
  print('no SHT found')
  pass
 
+#check for light sensor BH1750
 try:
  bus.write_byte(ADDR_BH1750, 0x00)
-
-
 except:
  ADDR_BH1750 = False
  print('no BH1750 found')
  pass
 
-
+#check for MLX90615
 try:
  bus.write_byte(ADDR_MLX, 0x00)
 except:
@@ -169,7 +174,7 @@ except:
  print('no MLX90615 found')
  pass
 
-# correction values for BMP280
+#correction values for BMP280
 try:
   b1 = bus.read_i2c_block_data(ADDR_BMP, 0x88, 24)
   dig_T = [b1[i+1] * 256 + b1[i] for i in range(0, 6, 2)]
@@ -186,8 +191,7 @@ except:
   ADDR_BMP = 0
   pass
 
-PIC_DIR = './backgrounds'
-TMDELAY = 30  #delay for changing backgrounds
+
 
 
 def get_files():
@@ -351,20 +355,7 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
     rrdtool.update('temperatures.rrd', temperatures_str)
     print(temperatures_str)
 
-    '''
-  [-c|--color COLORTAG#rrggbb[aa]]
-  Override the default colors for the standard elements of the graph.
-  BACK background,
-  CANVAS for the background of the actual graph,
-  SHADEA for the left and top border,
-  SHADEB for the right and bottom border,
-  GRID, MGRID for the major grid,
-  FONT for the color of the font,
-  AXIS for the axis of the graph,
-  FRAME for the line around the color spots
-  ARROW for the arrow head pointing up and forward.
-  A green arrow is made by: --color ARROW#00FF00 A A
-    '''
+
   except:
     pass
 
