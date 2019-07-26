@@ -802,10 +802,11 @@ while DISPLAY.loop_running():
       text2.regen()
     text2.draw()
 
-
-  if ((activity == 0) & starthttpserver):
+  
+  if ((activity == False) & starthttpserver):
    littleserver.handle_request()
-
+   
+  activity = False
 
 
 DISPLAY.destroy()
