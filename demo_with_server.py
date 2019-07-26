@@ -60,6 +60,10 @@ slide = 1                    #startslide
 touch_pressed = False  #will be set in interrupt routine
 lastx = 0
 lasty = 0
+xc = 0
+yc = 0
+
+
 lastmotion = 0
 graphupdated = 0
 nextsensorcheck = 0
@@ -84,26 +88,26 @@ def motion_detected(channel):  #try to catch bounce effects, stretch clock error
     lastmotion = time.time()
 
 def get_touch():
-  global  lastx,lasty
+  global  xc,yc
   if TOUCHADDR:     
    try:
          data = bus.read_i2c_block_data(TOUCHADDR, 0x40, 8)
          x1 = 400 - (data[0] | (data[4] << 8))
          y1 = (data[1] | (data[5] << 8)) - 240
 
-         if ((-1 < x1  < 801) & (-1 < y1  < 481)):
-          if ((-20 < (lastx-x1) < 20) & (-20 < (lasty-y1) < 20)):  #catch bounches 
-           lastx = x1
-           lasty = y1
+         if ((-400 < x1  < 400) & (-240 < y1  < 240)):
+          if ((-20 < (xc-x1) < 20) & (-20 < (yc-y1) < 20)):  #catch bounches 
+           xc = x1
+           yc = y1
            #print(x1,y1)
            return x1,y1  #compensate position to match with PI3D
           else:
-           lastx = x1
-           lasty = y1
+           xc = x1
+           yc = y1
            
            #print('not identical')
            return get_touch()
-         else:
+         else: 
           return get_touch()
 
 
