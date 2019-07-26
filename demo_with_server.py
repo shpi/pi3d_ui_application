@@ -88,15 +88,15 @@ def get_touch():
   if TOUCHADDR:     
    try:
          data = bus.read_i2c_block_data(TOUCHADDR, 0x40, 8)
-         x1 = data[0] | (data[4] << 8)
-         y1 = data[1] | (data[5] << 8)
+         x1 = 400 - (data[0] | (data[4] << 8))
+         y1 = (data[1] | (data[5] << 8)) - 240
 
          if ((-1 < x1  < 801) & (-1 < y1  < 481)):
-          if ((-20 < (xc-x1) < 20) & (-20 < (yc-y1) < 20)):  #catch bounches 
+          if ((-20 < (lastx-x1) < 20) & (-20 < (lasty-y1) < 20)):  #catch bounches 
            lastx = x1
            lasty = y1
            #print(x1,y1)
-           return (400 - x1),(y1 - 240)  #compensate position to match with PI3D
+           return x1,y1  #compensate position to match with PI3D
           else:
            lastx = x1
            lasty = y1
