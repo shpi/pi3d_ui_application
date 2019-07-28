@@ -78,14 +78,13 @@ gpio.setup(TOUCHINT, gpio.IN)
 gpio.setup(PIR, gpio.IN)
 bus = smbus.SMBus(2)
 
-def motion_detected(channel):  #try to catch bounce effects, stretch clock errors and bit flips, easiest: we need to have two identical measurements
+def motion_detected(channel): 
   global motion
   if gpio.input(PIR):
     motion = True
-    lastmotion = time.time()
   else:
     motion = False
-    lastmotion = time.time()
+  eg_object.lastmotion = time.time()
 
 def get_touch():
   global  xc,yc
@@ -95,7 +94,7 @@ def get_touch():
          x1 = 400 - (data[0] | (data[4] << 8))
          y1 = (data[1] | (data[5] << 8)) - 240
 
-         if ((-400 < x1  < 400) & (-240 < y1  < 240)):
+         if ((-401 < x1  < 401) & (-241 < y1  < 241)):
           if ((-20 < (xc-x1) < 20) & (-20 < (yc-y1) < 20)):  #catch bounches 
            xc = x1
            yc = y1
@@ -105,15 +104,15 @@ def get_touch():
            xc = x1
            yc = y1
            
-           #print('not identical')
+           print('not identical')
            return get_touch()
          else: 
           return get_touch()
 
 
    except:
-       time.sleep(0.03)  #wait on  I2C error
-       #print('i2cerror')
+       time.sleep(0.06)  #wait on  I2C error
+       print('i2cerror')
        return get_touch() 
        pass    
        
@@ -126,6 +125,8 @@ def touch_debounce(channel):
  global lastx, lasty, touch_pressed
  x,y = get_touch()
  if (channel == TOUCHINT):
+  if ADDR_32U4:
+   bus.write_byte_data(ADDR_32U4, 0x92, 0x01)
   touch_pressed = True  
   lastx = x
   lasty = y
@@ -166,11 +167,13 @@ except:
 
 #check for light sensor BH1750
 try:
- bus.write_byte(ADDR_BH1750, 0x00)
+ bus.write_byte(ADDR_BH1750,0x01) #power on BH1750
 except:
+ print('no BH1750')
  ADDR_BH1750 = False
- print('no BH1750 found')
  pass
+
+
 
 #check for MLX90615
 try:
@@ -182,9 +185,13 @@ except:
 
 #correction values for BMP280
 try:
-  b1 = bus.read_i2c_block_data(ADDR_BMP, 0x88, 24)
-  dig_T = [b1[i+1] * 256 + b1[i] for i in range(0, 6, 2)]
-  dig_P = [b1[i+1] * 256 + b1[i] for i in range(6, 23, 2)]
+
+  b1 = bytes(bus.read_i2c_block_data(ADDR_BMP, 0x88, 24))
+  dig_T = struct.unpack_from('<Hhh', b1, 0)
+  dig_P = struct.unpack_from('<Hhhhhhhhh', b1, 6)
+  #b1 = bus.read_i2c_block_data(ADDR_BMP, 0x88, 24)
+  #dig_T = [b1[i+1] * 256 + b1[i] for i in range(0, 6, 2)]
+  #dig_P = [b1[i+1] * 256 + b1[i] for i in range(6, 23, 2)]
   for i in range(1, len(dig_T)):
     if dig_T[i] > 32767:
       dig_T[i] -= 65536
@@ -255,44 +262,173 @@ class EgClass(object):
   a4 = 0
   a5 = 0
   a7 = 0
+  lightlevel = 0
   buzzer = 0
   a1 = 0
+  lastmotion = time.time()
+  relais1current = 0.0
 
 eg_object = EgClass()
 
 
 if starthttpserver:
- from http.server import BaseHTTPRequestHandler, HTTPServer
+ from http.server import BaseHTTPRequestHandler, HTTPServer              #ThreadingHTTPServer for python 3.7
  import urllib.parse as urlparse
 
 
  class ServerHandler(BaseHTTPRequestHandler):
     
+
     def do_GET(self):
-        global eg_object
-        self.send_response(200)
-        message = ''
-        command = 'get' #we can add an set command later
+       global eg_object 
+       try:
+                
         if "?" in self.path:
+            start_time = time.time()
+            message = ''
+            self.send_response(200)
+            self.send_header('Content-type','text')
+            self.end_headers()              
             print(self.client_address[0],end=': ')
             
             for key,value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
-                
+                                
                 if hasattr(eg_object,key): 
                    message += key +':'+ (str)(getattr(eg_object,key)) + ';' 
-  
-                print(key + "(" + value + ")", end='')
-        self.send_response(200)
-        self.send_header('Content-type','text/html')
-        self.end_headers()
-        self.wfile.write(bytes(message, "utf8"))
-        return
+                   
 
+                                     
+                   if (value != ''):
+                   
+                    if ((key == 'backlight_level')):
+                     try:
+                      intvalue = (int)(value)
+                      if (-1 < intvalue < 32):
+                       bus.write_byte_data(ADDR_32U4,0x87,intvalue)
+                      else:
+                       message += key + '>seterror;'
+                     except:
+                      message += key + '>valerror;'
+                     finally:
+                      message += key + '>' + (value) + ';'  #we should update eg_object here?
+
+                   
+                    elif ((key == 'vent_pwm')):
+                     try:
+                      intvalue = (int)(value)
+                      if (-1 < intvalue < 256):
+                       bus.write_byte_data(ADDR_32U4,0x93,intvalue)
+                      else:
+                       message += key + '>seterror;'
+                     except:
+                      message += key + '>valerror;'
+                     finally:
+                      message += key + '>' + (value) + ';'  #we should update eg_object here?
+
+                   
+                    elif ((key == 'relais1')):
+                     try:
+                      if (value == '0'):
+                       bus.write_byte_data(ADDR_32U4,0x8D,0x00)
+                      elif (value == '1'):
+                       bus.write_byte_data(ADDR_32U4,0x8D,0xFF)
+                      else:
+                       message += key + '>seterror;'
+                     except:
+                      message += key + '>valerror;'
+                     finally:
+                      message += key + '>' + (value) + ';'  #we should update eg_object here?
+
+                   
+                    elif ((key == 'relais2')):
+                     try:
+                      if (value == '0'):
+                       bus.write_byte_data(ADDR_32U4,0x8E,0x00)
+                      elif (value == '1'):
+                       bus.write_byte_data(ADDR_32U4,0x8E,0xFF)
+                      else:
+                       message += key + '>seterror;'
+                     except:
+                      message += key + '>valerror;'
+                     finally:
+                      message += key + '>' + (value) + ';'  #we should update eg_object here?
+
+                   
+                    elif ((key == 'relais3')):
+                     try:
+                      if (value == '0'):
+                       bus.write_byte_data(ADDR_32U4,0x8F,0x00)
+                      elif (value == '1'):
+                       bus.write_byte_data(ADDR_32U4,0x8F,0xFF)
+                      else:
+                       message += key + '>seterror;'
+                     except:
+                      message += key + '>valerror;'
+                     finally:
+                      message += key + '>' + (value) + ';'  #we should update eg_object here?
+                   
+                    elif ((key == 'd13')):
+                     try:
+                      if (value == '0'):
+                       bus.write_byte_data(ADDR_32U4,0x90,0x00)
+                      elif (value == '1'):
+                       bus.write_byte_data(ADDR_32U4,0x90,0xFF)
+                      else:
+                       message += key + '>seterror;'
+                     except:
+                      message += key + '>valerror;'
+                     finally:
+                      message += key + '>' + (value) + ';'  #we should update eg_object here?
+                   
+                    elif ((key == 'buzzer')):
+                     try:
+                       if (value == '0'):
+                        bus.write_byte_data(ADDR_32U4,0x92,0x00)
+                       elif (value == '1'):
+                        bus.write_byte_data(ADDR_32U4,0x92,0xFF)
+                       elif (value == 'CLICK'):
+                        bus.write_byte_data(ADDR_32U4,0x92,0x01)
+                       else:
+                        message += key + '>seterror;'
+                     except:
+                      message += key + '>valerror;'
+                     finally:
+                      message += key + '>' + (value) + ';'  #we should update eg_object here?
+
+                  
+            print(message)
+            print("--- %s seconds ---" % (time.time() - start_time))
+            self.wfile.write(bytes(message, "utf8")) 
+            self.connection.close()       
+        else:
+         self.send_response(404)
+         self.connection.close()  
+       except Exception as e:
+        print(e)
+        self.send_response(400) 
+        self.connection.close()  
+             
+       return
+    #def log_request(self, code): 
+    #    pass           
+    def do_POST(self):
+        do_GET(self)
+   
+  
+   
+   
+    def end_headers(self):
+     try:
+      super().end_headers()
+     except BrokenPipeError as e:
+       self.connection.close()
+       pass
 
 
  try:
   littleserver = HTTPServer(("0.0.0.0", 9000), ServerHandler)
-  littleserver.timeout = 0.1
+  #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
+  littleserver.timeout = 0.05
 
  except:
   print('server error')
@@ -325,6 +461,9 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
     eg_object.cputemp = float(os.popen("cat /sys/class/thermal/thermal_zone0/temp").readline()) / 1000
     eg_object.ssid = (os.popen("/sbin/iwconfig wlan0 | grep \"SSID:\" | awk \"{print $4}\" | cut -d'\"' -f2").readline()).strip()
     if ADDR_32U4:
+
+
+     eg_object.relais1current = (((5000/1024) * (read_one_byte(0x14) - 2)) / 185)
      eg_object.backlight_level = read_one_byte(0x07)
      eg_object.vent_pwm = read_one_byte(0x13)
      eg_object.relais1 = read_one_byte(0x0D)
@@ -368,7 +507,11 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
      eg_object.sht_temp = float(((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45)
      eg_object.humidity = 100 * (data[3] * 256 + data[4]) / 65535.0
      
-     
+    if ADDR_BH1750:
+     data = bus.read_i2c_block_data(ADDR_BH1750,0x23)   #0x20 highres 1 lux prec.,  0x21 highres2 0.5lux prec., 0x23 4 lux prec. fast!
+     eg_object.lightlevel = format((data[1] + (256 * data[0])) / 1.2,'.2f')
+        
+ 
     if ADDR_BMP:
       bus.write_byte_data(ADDR_BMP, 0xF4, 0x27)
       bus.write_byte_data(ADDR_BMP, 0xF5, 0xA0)
@@ -554,6 +697,7 @@ add_to_text3(-390,-120, 22, text_format="Vent PWM: {:3d}", attr="vent_pwm")
 add_to_text3(-390,-150, 22, text_format="AVR RAM:  {:3d}", attr="atmega_ram")
 add_to_text3(-390,-180, 22, text_format="Humidity: {:2.1f}", attr="humidity")
 add_to_text3(-390,-210, 22, text_format="Pressure: {:2.1f}", attr="pressure")
+add_to_text3(-50, 190, 20, text_format="LightLevel:  {:2.1f}", attr="lightlevel")
 
 add_to_text3(-50, 190, 20, text_format="SHT30:    {:2.1f}", attr="sht_temp")
 add_to_text3(-50, 160, 20, text_format="BMP280:   {:2.1f}", attr="bmp280_temp")
