@@ -27,7 +27,7 @@ PIR = 18
 BACKLIGHT = 19 #single wire backlight control needs almost realtime -> moved to atmega  (not on prototypes, needs bit soldering, ask lh@shpi.de)
 show_airquality = 1 # show airquality over LED
 starthttpserver = 1 #activate simple GET/POST server in python, be aware of  security issues
-
+backlight_auto = 60  # timer for backlight auto off, 0 for always on
 allowedips = list('192.168.1.31') #for check in server , not implemented so far
 
 
@@ -179,8 +179,8 @@ def touch_debounce(channel):
  else:
   return x,y;
 
-gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce, bouncetime=100)                                  #touch interrupt
-gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected, bouncetime=500)  #motion detector interrupt
+gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce, bouncetime=100)    #touch interrupt
+gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected, bouncetime=100)  #motion detector interrupt
 
 
 
@@ -625,8 +625,6 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
      eg_object.a5 = read_two_bytes(0x05)
      eg_object.a7 = read_two_bytes(0x06)
 
-  
-
 
   except:
     pass
@@ -719,7 +717,7 @@ str4.sprite.position(320, 50, 0.0)
 
 text = pi3d.PointText(pointFont, CAMERA, max_chars=220, point_size=128)    #slide 1
 text2 = pi3d.PointText(pointFontbig, CAMERA, max_chars=35, point_size=256)   #slide 2
-text3 = pi3d.PointText(pointFont, CAMERA, max_chars=800, point_size=64)   #slide 3
+text3 = pi3d.PointText(pointFont, CAMERA, max_chars=820, point_size=64)   #slide 3
 
 slide_offset = 0 # change by touch and slide
 
@@ -830,6 +828,8 @@ add_to_text3(120, -120, 20, text_format="A4:    {:3d}", attr="a4")
 add_to_text3(120, -150, 20, text_format="A5:    {:3d}", attr="a5")
 add_to_text3(120, -180, 20, text_format="A7:    {:3d}", attr="a7")
 
+add_to_text3(50, -210, 20, text_format="Current R1:{:2.1f}A", attr="relais1current")
+
 
 
 
@@ -855,6 +855,16 @@ background.set_shader(matsh)
 background.set_material((0.0, 0.0, 0.0))
 background.set_alpha(0.7)
 
+
+amperemeter = pi3d.ImageSprite('amperemeter.png',shader=shader, camera=CAMERA,w=400, h=400, x=0, y=0, z=2.0)
+ampereneedle = pi3d.Lines(camera=CAMERA, vertices=((0,0,0),(0,160,0)), material=(1.0, 0.3, 0.0), line_width=5, x=0.0, y=-70.0, z=1.0)
+ampereneedle.set_shader(matsh)
+
+
+
+
+
+
 def clicked(x,y):
    global lastx, lasty
 
@@ -867,6 +877,21 @@ def clicked(x,y):
 
 
 while DISPLAY.loop_running():
+
+
+  if backlight_auto and eg_object.backlight_level and (eg_object.lastmotion + backlight_auto  < time.time()):
+        if int(31 - (-eg_object.lastmotion - backlight_auto + time.time())) < eg_object.backlight_level:
+         eg_object.backlight_level = eg_object.backlight_level - 1
+         os.popen('sudo ./backlight ' + (str)(eg_object.backlight_level) ) #needs sudo because of timing
+         bus.write_byte_data(ADDR_32U4,0x87,eg_object.backlight_level)
+          
+  elif backlight_auto and eg_object.backlight_level < 31 and (eg_object.lastmotion + backlight_auto > time.time()):
+             bus.write_byte_data(ADDR_32U4,0x87,31)
+             os.popen('sudo ./backlight 31')
+             eg_object.backlight_level = 31 
+
+
+
   
   if (time.time() > everysecond):
     everysecond = time.time() + INFRARED_TM
@@ -930,7 +955,7 @@ while DISPLAY.loop_running():
     slide_offset += 400
     
 
-  if movex > 300 and slide < 4:
+  if movex > 300 and slide < 5:
     lastx = 0
     movex = 0
     slide = slide + 1
@@ -946,6 +971,16 @@ while DISPLAY.loop_running():
       touch_pressed = False
       os.popen('killall omxplayer.bin')
       slide = 1
+
+  if slide == 5:
+     amperemeter.draw()
+     ampereneedle.rotateToZ(-50 + (eg_object.relais1current * 20))
+     ampereneedle.draw()
+     try:
+      eg_object.relais1current = (((5000/1024) * (read_one_byte(0x14) - 2)) / 185)
+      time.sleep(0.02)
+     except:
+      pass
 
   if slide == 4:
     if graphupdated < time.time():
