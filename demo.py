@@ -718,8 +718,14 @@ str4.sprite.position(320, 50, 0.0)
 text = pi3d.PointText(pointFont, CAMERA, max_chars=220, point_size=128)    #slide 1
 text2 = pi3d.PointText(pointFontbig, CAMERA, max_chars=35, point_size=256)   #slide 2
 text3 = pi3d.PointText(pointFont, CAMERA, max_chars=820, point_size=64)   #slide 3
+text5 = pi3d.PointText(pointFont, CAMERA, max_chars=20, point_size=64)   #slide 3
 
 slide_offset = 0 # change by touch and slide
+matsh = pi3d.Shader("mat_flat")
+
+currents = pi3d.TextBlock(-350, 100, 0.1, 0.0, 15, data_obj=eg_object,attr="relais1current",text_format="{:2.1f}A", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text5.add_text_block(currents)
+
 
 #slider1
 
@@ -727,12 +733,29 @@ temp_block = pi3d.TextBlock(-350, 50, 0.1, 0.0, 15, data_obj=eg_object,attr="act
 text.add_text_block(temp_block)
 
 if heatingrelay or coolingrelay:
- set_temp_block= pi3d.TextBlock(-330, -30, 0.1, 0.0, 15, data_obj=eg_object,text_format= chr(0xE005) + " {:2.1f}°C", attr="set_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+ set_temp_block= pi3d.TextBlock(-340, -30, 0.1, 0.0, 15, data_obj=eg_object,text_format= chr(0xE005) + " {:2.1f}°C", attr="set_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
  text.add_text_block(set_temp_block)
  increaseTemp = pi3d.TextBlock(300, 150, 0.1, 180.0, 1, text_format= chr(0xE000),size=0.99, spacing="C", space=0.6, colour=(1, 0, 0, 0.8))
  text.add_text_block(increaseTemp)
  decreaseTemp = pi3d.TextBlock(300, -50, 0.1, 0.0, 1, text_format= chr(0xE000),size=0.99, spacing="C", space=0.6, colour=(0, 0, 1, 0.8))
  text.add_text_block(decreaseTemp)
+
+cloud = pi3d.TextBlock(-30, -30, 0.1, 0.0, 1  , text_format = chr(0xE002), size=0.5, spacing="C", space=0.6, colour=(1,1,1,0.9))
+text.add_text_block(cloud)
+
+
+
+if ADDR_BMP:
+  barometer = pi3d.TextBlock(20, -25, 0.1, 0.0, 2, text_format= chr(0xE00B), size=0.6, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0,0.9))
+  text.add_text_block(barometer)
+
+  baroneedle = pi3d.Triangle(camera=CAMERA, corners=((-3,0,0),(0,15,0),(3,0,0)), x=barometer.x+32, y=barometer.y - 12, z=0.1)
+  baroneedle.set_shader(matsh)
+
+
+
+
+
 
 newtxt = pi3d.TextBlock(270, -180, 0.1, 0.0, 15, text_format = chr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
 text.add_text_block(newtxt)
@@ -758,6 +781,8 @@ newtxt = pi3d.TextBlock(-300, -180, 0.1, 0.0, 15, text_format = chr(0xE001), siz
 text.add_text_block(newtxt)
 newtxt = pi3d.TextBlock(-275, -180, 0.1, 0.0, 15, text_format = chr(0xE031), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
 text.add_text_block(newtxt)
+
+
 
 # slider2
 
@@ -850,7 +875,6 @@ textchange = True
 
 
 background = pi3d.Sprite(camera=CAMERA,w=780,h=460,z=2, x = 0, y = 0)
-matsh = pi3d.Shader("mat_flat")
 background.set_shader(matsh)
 background.set_material((0.0, 0.0, 0.0))
 background.set_alpha(0.7)
@@ -911,6 +935,28 @@ while DISPLAY.loop_running():
   if (time.time() > nextsensorcheck):
 
     get_sensors()
+    red = (0.01 * (eg_object.a4/4))
+    if (red > 1): red = 1
+    
+    green = (0.01 * (120 - eg_object.a4/4))
+    if green < 0: green = 0
+    if green > 1: green = 1
+        
+    cloud.colouring.set_colour([red, green , 0, 1.0])
+    
+    if ADDR_BMP:
+        normalizedpressure = (eg_object.pressure - 950) 
+        if normalizedpressure < 0: normalizedpressure = 0
+        if normalizedpressure >  100: normalizedpressure = 100 
+        green = 0.02 * (normalizedpressure)
+        if green > 1: green = 1
+        red = 0.02 * (100 - normalizedpressure)
+        if red > 1: red = 1
+        barometer.colouring.set_colour([red, green , 0, 1.0])
+        baroneedle.set_material([red,green,0])
+        baroneedle.rotateToZ(100 - (normalizedpressure*2))
+
+
     textchange = True
 
      
@@ -973,11 +1019,18 @@ while DISPLAY.loop_running():
       slide = 1
 
   if slide == 5:
+     if slide_offset != 0:
+      slide_offset = slider_change(amperemeter, slide_offset)
+     else:
+        ampereneedle.rotateToZ(50 - (eg_object.relais1current * 20))
+        ampereneedle.draw()
+   
      amperemeter.draw()
-     ampereneedle.rotateToZ(-50 + (eg_object.relais1current * 20))
-     ampereneedle.draw()
+     text5.draw()
+   
      try:
       eg_object.relais1current = (((5000/1024) * (read_one_byte(0x14) - 2)) / 185)
+      text5.regen()
       time.sleep(0.02)
      except:
       pass
@@ -1092,6 +1145,10 @@ while DISPLAY.loop_running():
 
 
   if slide == 1:
+
+    if ADDR_BMP and slide_offset == 0 :
+      baroneedle.draw()
+
     if (motion):
       motiondetection.colouring.set_colour([1,0,0])
     else:
