@@ -4,18 +4,18 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import random,time, os , sys
 import pi3d
 
-import subprocess
 from random import randint
 
 import numpy as np
 import math
-import struct
 
 PIC_DIR = './backgrounds'
 TMDELAY = 30  #delay for changing backgrounds
 nexttm = time.time()
 
 
+
+#get all background files
 def get_files():
   global PIC_DIR
   file_list = []
@@ -32,52 +32,6 @@ def get_files():
 iFiles, nFi = get_files()
 pic_num = nFi - 1
 
-
-class EgClass(object):
-  set_temp = 23.0
-  atmega_volt = 0
-  backlight_level = 0
-  mlxamb = 0.0
-  mlxobj = 0.0
-  bmp280_temp = 0.0
-  sht_temp = 0.0
-  gputemp =  0
-  cputemp =  0
-  atmega_temp = 0
-  act_temp = 23.0
-  useddisk = "0%"
-  load = 0.0
-  freespace = 0.0
-  wifistrength = " "
-  ipaddress = " "
-  led_red = 0
-  led_green = 0
-  led_blue = 0
-  vent_rpm = 0
-  vent_pwm = 0
-  ssid = " "
-  uhrzeit = "00:00"
-  atmega_ram = 0
-  humidity = 0.0
-  pressure = 0.0
-  relais1 = 0
-  relais2 = 0
-  relais3 = 0
-  d13 = 0
-  hwb = 0
-  a0 = 0
-  a2 = 0
-  a3 = 0
-  a4 = 0
-  a5 = 0
-  a7 = 0
-  lightlevel = 0
-  buzzer = 0
-  a1 = 0
-  lastmotion = time.time()
-  relais1current = 0.0
-
-eg_object = EgClass()
 
 
 # chars and symbols for GUI
@@ -160,10 +114,10 @@ matsh = pi3d.Shader("mat_flat")
 
 #slider1
 
-temp_block = pi3d.TextBlock(-60, 50, 0.1, 0.0, 15, data_obj=eg_object,attr="act_temp",text_format= chr(0xE021) +"{:2.1f}°C", size=0.39, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
+temp_block = pi3d.TextBlock(-60, 50, 0.1, 0.0, 15,text_format= chr(0xE021) +"23°C", size=0.39, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(temp_block)
 
-temp_block2 = pi3d.TextBlock(-200, -100, 0.1, 0.0, 15, data_obj=eg_object,attr="act_temp",text_format= chr(0xE021) +"{:2.1f}°C", size=0.39, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
+temp_block2 = pi3d.TextBlock(-200, -100, 0.1, 0.0, 15, attr="act_temp",text_format= chr(0xE021) +"23°C", size=0.39, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(temp_block2)
 officearea = pi3d.Sprite(camera=CAMERA,w=380,h=220,z=2, x = -70, y = 110)
 officearea.set_shader(matsh)
