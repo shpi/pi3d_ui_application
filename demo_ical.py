@@ -108,6 +108,9 @@ sfg = tex_load(iFiles[pic_num])
 pointFont = pi3d.Font("opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=5, grid_size=11,
                        codepoints=mytext, add_codepoints=additional)
 
+
+
+
 text = pi3d.PointText(pointFont, CAMERA, max_chars=1000, point_size=128)    #slide 1
 
 matsh = pi3d.Shader("mat_flat")
@@ -146,15 +149,32 @@ for e in list(gcal.timeline.start_after(arrow.now().floor('day'))):
   actualy -= date.size * text.point_size
   size = 0.4
   
-  for subtext in  textwrap.wrap(e.name, width= 20):  
-  
-   
-   size = 0.4
-   event = pi3d.TextBlock(-350, (displayheight/2) + actualy  - (text.point_size * size * 0.5), 0.1, 0.0, 50 ,text_format= subtext, size=0.4,spacing="F",space = 0.02,colour=(1,1,1,1))
+  #for subtext in  textwrap.wrap(e.name, width= 20):  
+
+  width = 0
+  subtext = ''
+  actualword = ''
+  for c in e.name:
+    width += pointFont.glyph_table[c][0]*size
+    actualword +=  c
+    if (c == ' ') or (c == '-'):
+     subtext += actualword 
+     actualword = ''
+    
+    if width > 450:
+     event = pi3d.TextBlock(-350, (displayheight/2) + actualy  - (text.point_size * size * 0.5), 0.1, 0.0, 70, text_format = subtext, size=0.4,spacing="F",space =0.02,colour=(1,1,1,1))
+     text.add_text_block(event)
+     subtext = ''
+     width = 0
+     actualy -= event.size * text.point_size
+  if (subtext != '') or (actualword != ''):
+   event = pi3d.TextBlock(-350, (displayheight/2) + actualy  - (text.point_size * size * 0.5), 0.1, 0.0, 70,text_format = subtext + actualword, size=0.4,spacing="F",space = 0.02,colour=(1,1,1,1))
    text.add_text_block(event)
-   
    actualy -= event.size * text.point_size
-#   print(max(event.char_offsets))
+
+
+
+
   actualy -= 20
   count+=1
 
