@@ -94,7 +94,7 @@ additional = [chr(0xE000), #arrow
 
 displayheight = 480
 
-DISPLAY = pi3d.Display.create(layer=0,w=800, h= displayheight,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=120, tk=False)
+DISPLAY = pi3d.Display.create(layer=0,w=800, h= displayheight,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=60, tk=False)
 shader = pi3d.Shader("uv_flat")
 CAMERA = pi3d.Camera(is_3d=False)
 
@@ -128,23 +128,21 @@ gcal = Calendar(icalfile.readlines())
 
 
 
-import textwrap
-
 count = 0
 mystring = ''
 actualy = 0
 
 for e in list(gcal.timeline.start_after(arrow.now().floor('day'))):
 
- if count < 4:
+ if count < 5:
   size = 0.79
-  titles = pi3d.TextBlock(-390, ((displayheight/2) + actualy - (pointFont.height*size*0.5)), 0.1, 0.0, 50 ,text_format= e.begin.humanize().title(), size=size, spacing="F", space=0.02, colour=(1,0,0,1))
+  titles = pi3d.TextBlock(-390, ((displayheight/2) + actualy - (pointFont.height*size*0.5)), 0.1, 0.0, 30 ,text_format= e.begin.humanize().title(), size=size, spacing="F", space=0.02, colour=(1,0,0,1))
   text.add_text_block(titles)
   
   actualy -= titles.size * pointFont.height
 
   size = 0.29
-  date = pi3d.TextBlock(-380, ((displayheight/2) + actualy - (pointFont.height*size*0.5)), 0.1, 0.0, 12 ,text_format= '(' + e.begin.format('DD.MM.YYYY') + ')', size=0.29,spacing="F", space= 0.02, colour=(1,1,1,1))
+  date = pi3d.TextBlock(-380, ((displayheight/2) + actualy - (pointFont.height*size*0.5)), 0.1, 0.0, 12 ,text_format= '(' + e.begin.format('DD.MM.YYYY') + ')', size=size,spacing="F", space= 0.02, colour=(1,1,1,1))
   text.add_text_block(date)
 
   actualy -= date.size *  pointFont.height
@@ -156,24 +154,24 @@ for e in list(gcal.timeline.start_after(arrow.now().floor('day'))):
   subtext = ''
   actualword = ''
   g_scale = float(text.point_size) / pointFont.height
-  print(g_scale)
+  
 
   for c in e.name:
     width += pointFont.glyph_table[c][0] * g_scale * size
-    print(width)
+    
     actualword +=  c
-    if (c == ' ') or (c == '-'):
+    if c in (' ','-',',','.','+',':'):
      subtext += actualword 
      actualword = ''
     
     if width > 740:
-     event = pi3d.TextBlock(-350, (displayheight/2) + actualy - (pointFont.height*size*0.5), 0.1, 0.0, 70, text_format = subtext, size=0.4,spacing="F",space =0.02,colour=(1,1,1,1))
+     event = pi3d.TextBlock(-350, (displayheight/2) + actualy - (pointFont.height*size*0.5), 0.1, 0.0, 40, text_format = subtext, size=size,spacing="F",space =0.02,colour=(1,1,1,1))
      text.add_text_block(event)
      subtext = ''
      width = 0
      actualy -= event.size * pointFont.height
   if (subtext != '') or (actualword != ''):
-   event = pi3d.TextBlock(-350, (displayheight/2) + actualy  - (pointFont.height*size*0.5), 0.1, 0.0, 70,text_format = subtext + actualword, size=0.4,spacing="F",space = 0.02,colour=(1,1,1,1))
+   event = pi3d.TextBlock(-350, (displayheight/2) + actualy  - (pointFont.height*size*0.5), 0.1, 0.0, 40,text_format = subtext + actualword, size=size,spacing="F",space = 0.02,colour=(1,1,1,1))
    text.add_text_block(event)
    actualy -= event.size * pointFont.height
 
