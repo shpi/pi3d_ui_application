@@ -144,7 +144,7 @@ text.add_text_block(legend2)
 
 
 
-grapharea = pi3d.Sprite(camera=CAMERA,w=780,h=460,z=3, x =0, y = 0)
+grapharea = pi3d.Sprite(camera=CAMERA,w=780,h=460,z=3.0, x =0, y = 0)
 grapharea.set_shader(matsh)
 grapharea.set_material((1.0, 1.0, 1.0))
 grapharea.set_alpha(0.6)
@@ -178,11 +178,10 @@ while DISPLAY.loop_running():
     
     
   if slide == 1:
-     grapharea.draw()
-     text.draw()
+     grapharea.draw()     
      text.regen()
      graph.draw()
-     
+     text.draw()
      y_vals[0][:-1] = y_vals[0][1:]
      y_vals[1][:-1] = y_vals[1][1:]
      y_vals[2][:-1] = y_vals[2][1:]
