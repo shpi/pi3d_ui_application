@@ -118,17 +118,12 @@ from ics import Calendar
 import arrow
 
 #c = Calendar(requests.get(url).text)
-md_template = """
-### {start}
-*{name}*: {desc}""" 
 
 
 icalfile = open('muellkalender.ics', 'r')
 gcal = Calendar(icalfile.readlines())
 
-#for e in sorted(gcal.events):
-#    print(md_template.format(start=e.begin.humanize(), name=e.name,
-#                             desc=e.description))
+
 
 import textwrap
 
@@ -140,22 +135,23 @@ for e in list(gcal.timeline.start_after(arrow.now().floor('day'))):
 
  if count < 4:
   size = 0.79
-  titles = pi3d.TextBlock(-390, ((displayheight/2) + actualy - (size * 50)), 0.1, 0.0, 50 ,text_format= e.begin.humanize().title(), size=size, spacing="F", space=0.02, colour=(1,0,0,1))
+  titles = pi3d.TextBlock(-390, ((displayheight/2) + actualy - (text.point_size * size * 0.5)), 0.1, 0.0, 50 ,text_format= e.begin.humanize().title(), size=size, spacing="F", space=0.02, colour=(1,0,0,1))
   text.add_text_block(titles)
-
-  actualy -= titles.size * 80  +5
+  
+  actualy -= titles.size * text.point_size
   size = 0.29
-  date = pi3d.TextBlock(-380, ((displayheight/2) + actualy  - (size * 50)), 0.1, 0.0, 12 ,text_format= '(' + e.begin.format('DD.MM.YYYY') + ')', size=0.29,spacing="F", space= 0.02, colour=(1,1,1,1))
+  date = pi3d.TextBlock(-380, ((displayheight/2) + actualy  - (text.point_size * size * 0.5)), 0.1, 0.0, 12 ,text_format= '(' + e.begin.format('DD.MM.YYYY') + ')', size=0.29,spacing="F", space= 0.02, colour=(1,1,1,1))
   text.add_text_block(date)
 
+  actualy -= date.size * text.point_size
   for subtext in  textwrap.wrap(e.name, width= 30):
   
-   actualy -= date.size * 80 +5
+   
    size = 0.4
-   event = pi3d.TextBlock(-350, (displayheight/2) + actualy  - (size * 50), 0.1, 0.0, 50 ,text_format=  subtext, size=0.4,spacing="F",space = 0.02,colour=(1,1,1,1))
+   event = pi3d.TextBlock(-350, (displayheight/2) + actualy  - (text.point_size * size * 0.5), 0.1, 0.0, 50 ,text_format=  subtext, size=0.4,spacing="F",space = 0.02,colour=(1,1,1,1))
    text.add_text_block(event)
   
-   actualy -= event.size * 80 + 5
+   actualy -= event.size * text.point_size
 
   actualy -= 20
   count+=1
