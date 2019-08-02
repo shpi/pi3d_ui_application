@@ -119,19 +119,19 @@ text.add_text_block(temp_block)
 
 temp_block2 = pi3d.TextBlock(-200, -100, 0.1, 0.0, 15, attr="act_temp",text_format= chr(0xE021) +"23°C", size=0.39, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(temp_block2)
-officearea = pi3d.Sprite(camera=CAMERA,w=380,h=220,z=2, x = -70, y = 110)
+officearea = pi3d.Sprite(camera=CAMERA,w=380,h=220,z=3, x = -70, y = 110)
 officearea.set_shader(matsh)
 officearea.set_material((1.0, 0.0, 0.0))
 officearea.set_alpha(0.3)
 
 
-kitchenarea = pi3d.Sprite(camera=CAMERA,w=220,h=200,z=2, x = -140, y = -110)
+kitchenarea = pi3d.Sprite(camera=CAMERA,w=220,h=200,z=3, x = -140, y = -110)
 kitchenarea.set_shader(matsh)
 kitchenarea.set_material((0.0, 1.0, 0.0))
 kitchenarea.set_alpha(0.3)
 
 
-storagearea = pi3d.Sprite(camera=CAMERA,w=140,h=220,z=2, x = 190, y = 110)
+storagearea = pi3d.Sprite(camera=CAMERA,w=140,h=220,z=3, x = 190, y = 110)
 storagearea.set_shader(matsh)
 storagearea.set_material((0.0, 0.0, 1.0))
 storagearea.set_alpha(0.3)
@@ -139,7 +139,7 @@ storagearea.set_alpha(0.3)
 
 
 slide = 1
-floorplan = pi3d.ImageSprite('floorplan.png',shader=shader, camera=CAMERA,w=539, h=450, x=0, y=0, z=3.0)
+floorplan = pi3d.ImageSprite('floorplan.png',shader=shader, camera=CAMERA,w=539, h=450, x=0, y=0, z=2.0)
 doorneedle = pi3d.Lines(camera=CAMERA, vertices=((0,0,0),(60,0,0)), material=(1.0, 0.3, 0.0), line_width=10, x=-13.0, y=-220.0, z=1.0)
 doorneedle.set_shader(matsh)
 
@@ -177,6 +177,11 @@ while DISPLAY.loop_running():
      doorneedle.set_material([rotate*1.1*0.01,0,0])
      windowneedle.set_material([rotate*1.1*0.01,100-rotate*1.1*0.01,0])
      windowneedle.rotateToZ(-rotate)
+     officearea.draw() 
+     kitchenarea.draw() 
+     storagearea.draw()  
+
+
      doorneedle.draw()
      windowneedle.draw()
      floorplan.draw()
@@ -184,10 +189,7 @@ while DISPLAY.loop_running():
      text.regen() 
      officearea.set_alpha(0.005 * rotate)
      kitchenarea.set_alpha(0.6-0.01 * rotate)
-     officearea.draw() 
-     kitchenarea.draw() 
-     storagearea.draw()  
-
+    
   time.sleep(0.1)
 
 DISPLAY.destroy()
