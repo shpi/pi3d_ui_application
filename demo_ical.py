@@ -94,7 +94,7 @@ additional = [chr(0xE000), #arrow
 
 displayheight = 480
 
-DISPLAY = pi3d.Display.create(layer=0,w=800, h= displayheight,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=60, tk=False)
+DISPLAY = pi3d.Display.create(layer=0,w=800, h= displayheight,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=120, tk=False)
 shader = pi3d.Shader("uv_flat")
 CAMERA = pi3d.Camera(is_3d=False)
 
@@ -144,15 +144,17 @@ for e in list(gcal.timeline.start_after(arrow.now().floor('day'))):
   text.add_text_block(date)
 
   actualy -= date.size * text.point_size
-  for subtext in  textwrap.wrap(e.name, width= 30):
+  size = 0.4
+  
+  for subtext in  textwrap.wrap(e.name, width= 20):  
   
    
    size = 0.4
-   event = pi3d.TextBlock(-350, (displayheight/2) + actualy  - (text.point_size * size * 0.5), 0.1, 0.0, 50 ,text_format=  subtext, size=0.4,spacing="F",space = 0.02,colour=(1,1,1,1))
+   event = pi3d.TextBlock(-350, (displayheight/2) + actualy  - (text.point_size * size * 0.5), 0.1, 0.0, 50 ,text_format= subtext, size=0.4,spacing="F",space = 0.02,colour=(1,1,1,1))
    text.add_text_block(event)
-  
+   
    actualy -= event.size * text.point_size
-
+#   print(max(event.char_offsets))
   actualy -= 20
   count+=1
 
@@ -162,18 +164,26 @@ for e in list(gcal.timeline.start_after(arrow.now().floor('day'))):
  else: break
 
 
-print(actualy)
-
 
 storagearea = pi3d.Sprite(camera=CAMERA,w=780,h=460,z=3, x =0, y = 0)
 storagearea.set_shader(matsh)
 storagearea.set_material((0.0, 0.0, 0.0))
 storagearea.set_alpha(0.6)
+upperboarder = pi3d.Sprite(camera=CAMERA,w=780,h=20,z=0.1, x =0, y = 240)
+upperboarder.set_shader(matsh)
+upperboarder.set_material((0.0, 0.0, 0.0))
+upperboarder.set_alpha(0.0)
+lowerboarder = pi3d.Sprite(camera=CAMERA,w=780,h=20,z=0.1, x =0, y = -240)
+lowerboarder.set_shader(matsh)
+lowerboarder.set_material((0.0, 0.0, 0.0))
+lowerboarder.set_alpha(0.0)
+
 
 
 
 slide = 1
 scrolloffset = 0
+updown = 0
 
 while DISPLAY.loop_running():
   
@@ -200,14 +210,21 @@ while DISPLAY.loop_running():
     
   if slide == 1:
      storagearea.draw()
+     lowerboarder.draw()
+     upperboarder.draw()
      text.draw()
      #text.regen() 
      
      if actualy < -displayheight:
-      if scrolloffset <  actualy + displayheight: scrolloffset = 0
-      scrolloffset -= 1
+      if scrolloffset <  actualy + displayheight:
+         updown = 1
+      if scrolloffset > 0:
+         updown = 0
+      if updown:    
+        scrolloffset += 15
+      else:
+        scrolloffset -= 1
       text.text.positionY(-scrolloffset)
 
-  time.sleep(0.1)
-
+    
 DISPLAY.destroy()
