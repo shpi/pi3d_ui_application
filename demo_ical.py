@@ -164,7 +164,7 @@ for e in list(gcal.timeline.start_after(arrow.now().floor('day'))):
      subtext += actualword 
      actualword = ''
     
-    if width > 740:
+    if width > 730:
      event = pi3d.TextBlock(-350, (displayheight/2) + actualy - (pointFont.height*size*0.5), 0.1, 0.0, 40, text_format = subtext, size=size,spacing="F",space =0.02,colour=(1,1,1,1))
      text.add_text_block(event)
      subtext = ''
