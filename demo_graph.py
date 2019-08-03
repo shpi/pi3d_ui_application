@@ -5,6 +5,7 @@ import random,time, os , sys
 import pi3d
 import MinGraph
 from random import randint
+import smbus
 
 import numpy as np
 import math
@@ -21,6 +22,7 @@ class EgClass(object):
 
 eg_object = EgClass()
 
+bus = smbus.SMBus(2)
 
 
 
