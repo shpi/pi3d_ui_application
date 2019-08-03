@@ -80,10 +80,10 @@ os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
 #os.chdir('/media/ramdisk')
 
 
-if not os.path.isfile('/home/pi/temperatures.rrd'):
+if not os.path.isfile('temperatures.rrd'):
     print('create rrd')
     rrdtool.create(
-    "/home/pi/temperatures.rrd",
+    "temperatures.rrd",
     "--step","60",
     "DS:act_temp:GAUGE:120:-127:127",
     "DS:gpu:GAUGE:120:-127:127",
@@ -626,7 +626,8 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
      eg_object.a7 = read_two_bytes(0x06)
 
 
-  except:
+  except Exception as e:
+    print(e)
     pass
 
 # chars and symbols for GUI
