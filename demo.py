@@ -130,7 +130,7 @@ def motion_detected(channel):
     motion = True
   else:
     motion = False
-  eg_object.lastmotion = datetime.datetime.now() #more convienience
+  eg_object.lastmotion = time.time()
 
 def get_touch():
   global  xc,yc
@@ -339,6 +339,8 @@ if starthttpserver:
             print(self.client_address[0],end=': ')
             
             for key,value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
+                if key == 'lastmotion':
+                   message +=key +'real:'+ time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(eg_object.lastmotion))
                                 
                 if hasattr(eg_object,key): 
                    message += key +':'+ (str)(getattr(eg_object,key)) + ';' 
