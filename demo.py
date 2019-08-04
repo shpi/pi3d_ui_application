@@ -128,8 +128,10 @@ def motion_detected(channel):
   global motion
   if gpio.input(PIR):
     motion = True
+    eg_object.motion  = True
   else:
     motion = False
+    eg_object.motion = False
   eg_object.lastmotion = time.time()
 
 def get_touch():
@@ -272,6 +274,7 @@ pic_num = nFi - 1
 
 
 class EgClass(object):
+  motion = False
   set_temp = 23.0
   atmega_volt = 0
   backlight_level = 0
