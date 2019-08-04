@@ -340,7 +340,7 @@ if starthttpserver:
             
             for key,value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
                 if key == 'lastmotion':
-                   message +=key +'date:'+ time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(eg_object.lastmotion))
+                   message +=key +'date:'+ time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(eg_object.lastmotion)) + ';'
                                 
                 if hasattr(eg_object,key): 
                    message += key +':'+ (str)(getattr(eg_object,key)) + ';' 
