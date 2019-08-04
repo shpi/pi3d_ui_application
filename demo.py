@@ -10,6 +10,7 @@ import rrdtool
 import numpy as np
 import math
 import struct
+import datetime
 
 installpath = '/home/pi/zero_thermostat_demo/'
 PIC_DIR = './backgrounds'
@@ -129,7 +130,7 @@ def motion_detected(channel):
     motion = True
   else:
     motion = False
-  eg_object.lastmotion = time.time()
+  eg_object.lastmotion = datetime.datetime.now() #more convienience
 
 def get_touch():
   global  xc,yc
