@@ -151,7 +151,7 @@ additional = [chr(0xE000), #arrow
               #chr(0xE01B), #ampere
               chr(0xE01C), #motion
               #chr(0xE01D), #electric
-              #chr(0xE01E), #close
+              chr(0xE01E), #close
               #chr(0xE01F), #leaf
               #chr(0xE020), #socket
               chr(0xE021), #temp
@@ -317,11 +317,22 @@ bbox = pi3d.Lines(vertices=bbox_vertices, material=(1.0,0.8,0.05), closed=False,
 bbox.set_alpha(0.1)
 bbox.set_shader(matsh)
 
-textfield = pi3d.Sprite(camera=CAMERA,w=500,h=70,z=3, x = -140, y =195)
+textfield = pi3d.Sprite(camera=CAMERA,w=590,h=70,z=3, x = -95, y =195)
 textfield.set_shader(matsh)
 textfield.set_material((0.0, 0.0, 0.0))
 textfield.set_alpha(0.7)
 
+
+controlok= pi3d.FixedString('opensans.ttf', (str)(chr(0xE03E)), font_size=65,shadow_radius=4, 
+                        background_color=(0,0,0,0), color= (255,255,255,255),
+                        camera=CAMERA, shader=shader, f_type='SMOOTH')
+controlok.sprite.position(245, 196, 1)
+
+
+controlx= pi3d.FixedString('opensans.ttf', (str)(chr(0xE01E)), font_size=65,shadow_radius=4, 
+                        background_color=(0,0,0,0), color= (255,255,255,255),
+                        camera=CAMERA, shader=shader, f_type='SMOOTH')
+controlx.sprite.position(335, 196, 1)
 
 keyboardfield = pi3d.Sprite(camera=CAMERA,w=780,h = 380,z=3, x = 0, y =-40)
 keyboardfield.set_shader(matsh)
@@ -389,7 +400,8 @@ while DISPLAY.loop_running():
      textfield.draw()
      keyboardslide.draw()
      keyboardfield.draw()
-     
+     controlok.draw()     
+     controlx.draw()
      chars[chartype].draw()
      bbox.draw()
 
