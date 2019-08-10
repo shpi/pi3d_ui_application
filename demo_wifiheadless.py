@@ -424,6 +424,7 @@ while DISPLAY.loop_running():
      if touch_pressed:
       touch_pressed = False
       if 150 < lasty <  240:
+       if 192 < lastx < 289:
         subslide = 'wifistatus'
         print(wifinetworks[calculateselectednetwork]['essid'])
         print(eg_object.usertext)
@@ -454,12 +455,12 @@ while DISPLAY.loop_running():
         os.popen('sudo wpa_cli -i wlan0 reconfigure')
         #sudo systemctl daemon-reload
         #sudo systemctl restart dhcpcd
-
         #sudo systemctl reenable wpa_supplicant.service
         #sudo systemctl restart wpa_supplicant.service
         #sudo systemctl restart dhcpcd.service
         #sudo wpa_supplicant -B -Dwext -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
-
+       elif lastx > 289:
+         subslide= 'wifisetup'
 
 
       else: 
