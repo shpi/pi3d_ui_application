@@ -173,6 +173,7 @@ def get_touch():
           xc = x1
           yc = y1
           #print(x1,y1)
+          eg_object.lastmotion = time.time() # wake screen up on touch
           return x1,y1  #compensate position to match with PI3D
         else:
           xc = x1
