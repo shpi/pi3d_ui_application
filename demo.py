@@ -378,9 +378,15 @@ if starthttpserver:
 
               if (value != ''):
                 try:
-                  if key in ('backlight_level', 'vent_pwm'):
+                  if key in ('backlight_level'):             
                     value = int(value) # variable int value
                     assert -1 < value < 32, 'value outside 0..31'
+
+                  elif key in ('vent_pwm'):
+                    value = int(value) # variable int value
+                    assert -1 < value < 256, 'value outside 0..255'
+ 
+
                   else:
                     value = VALS[value] # convert from '0','1','CLICK' string
                   key_code = CODES_32U4[key] # convert to 0x87 etc
