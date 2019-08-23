@@ -204,7 +204,7 @@ while graphics.DISPLAY.loop_running():
    subslides[config.subslide].inloop(textchange,activity)
 
   elif -1 < config.slide < len(config.slides):
-   activity,slide_offset = slides[config.slide].inloop(peripherals.lastx,peripherals.lasty,peripherals.touch_pressed,textchange,activity,slide_offset)
+   activity,slide_offset = slides[config.slide].inloop(textchange,activity,slide_offset)
   
 
 
