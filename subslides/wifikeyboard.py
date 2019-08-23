@@ -175,20 +175,20 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
         file.write('ctrl_interface=/var/run/wpa_supplicant GROUP=netdev\n') 
         file.write('update_config=1\n') 
         file.write('network={\n') 
-        file.write('ssid="' + wifinetworks[calculateselectednetwork]['essid'] + '"\n') 
-        if wifinetworks[calculateselectednetwork]['essid'] == 'hidden':
+        file.write('ssid="' + wifisetup.wifinetworks[wifisetup.selectednetwork]['essid'] + '"\n') 
+        if wifisetup.wifinetworks[wifisetup.selectednetwork]['essid'] == 'hidden':
            file.write('scan_ssid=1\n')
 
-        if wifinetworks[calculateselectednetwork]['enc'] == 'off':
+        if wifisetup.wifinetworks[wifisetup.selectednetwork]['enc'] == 'off':
           file.write('key_mgmt=NONE\n')
-        elif wifinetworks[calculateselectednetwork]['enc'] == 'WPA2': 
-          file.write('psk="' + eg_object.usertext  +  '"\n') 
-        elif wifinetworks[calculateselectednetwork]['enc'] == 'on': 
+        elif wifisetup.wifinetworks[wifisetup.selectednetwork]['enc'] == 'WPA2': 
+          file.write('psk="' + peripherals.eg_object.usertext  +  '"\n') 
+        elif wifisetup.wifinetworks[wifisetup.selectednetwork]['enc'] == 'on': 
           file.write('wep_tx_keyidx=0\n')
-          file.write('wep_key0="'+ eg_object.usertext  +'"\n')
+          file.write('wep_key0="'+ peripherals.eg_object.usertext  +'"\n')
           file.write('key_mgmt=NONE\n')
-        elif wifinetworks[calculateselectednetwork]['enc'] == 'WPA' :
-          file.write('psk="' + eg_object.usertext  +  '"\n') 
+        elif wifisetup.wifinetworks[wifisetup.selectednetwork]['enc'] == 'WPA' :
+          file.write('psk="' + peripherals.eg_object.usertext  +  '"\n') 
           file.write('pairwise=CCMP\n')
           file.write('group=TKIP\n')
 
