@@ -26,20 +26,24 @@ def add_to_text3(x, y, n_ch, text_format, attr=None, space=0.6, colour=(1.0, 1.0
 add_to_text3(-380, 210, 22, text_format="HDD USED: {:s}", attr="useddisk")
 add_to_text3(-380, 180, 25, text_format="FREE MB: {:2.0f}", attr="freespace")
 add_to_text3(-380, 150, 22, text_format="LOAD:     {:2.1f}", attr="load")
-#add_to_text3(-380, 120, 22, text_format="WIFI SIG: {:s}dbm", attr="wifistrength")
+
+add_to_text3(-380, 120, 22, text_format="WIFI SIG: {:s}dbm", attr="wifistrength")
+
+
 #add_to_text3(-380, 90, 25, text_format= "IP:{:s}", attr="ipaddress")
 #add_to_text3(-380, 60, 22, text_format= "SSID:     {:s}", attr="ssid")
-add_to_text3(-380, 30, 22, text_format= "GPU TEMP: {:2.1f}", attr="gputemp")
-add_to_text3(-380, 0, 22, text_format=  "CPU TEMP: {:2.1f}", attr="cputemp")
-add_to_text3(-380, -30, 22, text_format="Voltage:  {:3d}mV", attr="atmega_volt")
-add_to_text3(-380, -60, 22, text_format="Backlight:{:3d}", attr="backlight_level")
-add_to_text3(-380,-90, 22, text_format= "Vent RPM: {:3d}", attr="vent_rpm")
-add_to_text3(-380,-120, 22, text_format="Vent PWM: {:3d}", attr="vent_pwm")
-add_to_text3(-380,-150, 22, text_format="AVR RAM:  {:3d}B", attr="atmega_ram")
-add_to_text3(-380,-180, 22, text_format="Humidity: {:2.1f}%", attr="humidity")
+
+add_to_text3(-380, 90, 22, text_format= "GPU TEMP: {:2.1f}", attr="gputemp")
+add_to_text3(-380, 60, 22, text_format=  "CPU TEMP: {:2.1f}", attr="cputemp")
+add_to_text3(-380, 30, 22, text_format="Voltage:  {:3d}mV", attr="atmega_volt")
+add_to_text3(-380, 0, 22, text_format="Backlight:{:3d}", attr="backlight_level")
+add_to_text3(-380,-30, 22, text_format= "Vent RPM: {:3d}", attr="vent_rpm")
+add_to_text3(-380,-60, 22, text_format="Vent PWM: {:3d}", attr="vent_pwm")
+add_to_text3(-380,-120, 22, text_format="AVR RAM:  {:3d}B", attr="atmega_ram")
+add_to_text3(-380,-150, 22, text_format="Humidity: {:2.1f}%", attr="humidity")
 if hasattr(peripherals.eg_object,'pressure'):
- add_to_text3(-380,-210, 22, text_format="Pressure: {:2.1f}hPa", attr="pressure")
- add_to_text3(-50, 150, 20, text_format="BMP280:   {:2.1f}", attr="bmp280_temp")
+ add_to_text3(-380,-180, 22, text_format="Pressure: {:2.1f}hPa", attr="pressure")
+ add_to_text3(-380, -210, 20, text_format="BMP280:   {:2.1f}", attr="bmp280_temp")
 if hasattr(peripherals.eg_object,'lightlevel'):
 
  add_to_text3(-50, 210, 20, text_format= "LightLvl: {:2.1f}lx", attr="lightlevel")

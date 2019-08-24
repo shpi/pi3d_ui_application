@@ -34,7 +34,7 @@ text2.add_text_block(wifi)
 textblock = pi3d.TextBlock(-270, 0, 0.1, 0.0, 170, data_obj=peripherals.eg_object,attr="ssid",text_format= "SSID: {:s}", size=0.29, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text2.add_text_block(textblock)
 
-textblock = pi3d.TextBlock(-270, -50, 0.1, 0.0, 27, data_obj=peripherals.eg_object,attr="wifistrength",text_format= "Signal: {:s}", size=0.29, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+textblock = pi3d.TextBlock(-270, -50, 0.1, 0.0, 27, data_obj=peripherals.eg_object,attr="wifistrength",text_format= "Signal: {:s}dBm", size=0.29, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text2.add_text_block(textblock)
 
 textblock = pi3d.TextBlock(-270, -100, 0.1, 0.0, 47, data_obj=peripherals.eg_object,attr="ipaddress",text_format= "IP: {:s}", size=0.29, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
