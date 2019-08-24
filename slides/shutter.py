@@ -29,8 +29,8 @@ else:
   text2.add_text_block(uhrzeit_block)      
         
         
-def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False, offset = 0):
-     
+def inloop(textchange = False,activity = False, offset = 0):
+      
      if textchange:
        text2.regen()
      if shutterUp.y != -100 and shutterUp.colouring.colour[2] == 1:

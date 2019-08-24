@@ -104,9 +104,8 @@ lowerboarder.set_alpha(0.0)
 scrolloffset = 0
 updown = 0
 
+def inloop(textchange = False,activity = False, offset = 0):
 
-
-def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False, offset = 0):
      global actualy,scrolloffset, updown,displayheight, lasticalrefresh
 
 

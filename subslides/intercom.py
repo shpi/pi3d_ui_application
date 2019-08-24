@@ -52,4 +52,4 @@ def inloop(textchange = False,activity = False):
       os.popen('killall omxplayer.bin')
       os.popen('killall raspivid')
       config.subslide = None
-
+    return activity

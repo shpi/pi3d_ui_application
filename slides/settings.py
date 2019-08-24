@@ -47,8 +47,8 @@ text2.add_text_block(textblock)
 
 
 
-        
-def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False, offset = 0):
+def inloop(textchange = False,activity = False, offset = 0):
+         
      
      if textchange:
        text2.regen()
@@ -77,6 +77,8 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
         
      if offset != 0:
          offset = graphics.slider_change(text2.text, offset)
+         if offset == 0:
+             text2.regen()
      text2.draw()   
          
      return activity,offset

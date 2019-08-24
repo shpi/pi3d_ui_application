@@ -63,8 +63,8 @@ if 'intercom' in config.subslides:
 
 controls_alpha = 1        
         
+def inloop(textchange = False,activity = False, offset = 0):
         
-def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False, offset = 0):
         global controls_alpha
        
         if textchange:

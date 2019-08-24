@@ -160,7 +160,7 @@ chartype = 0
 everysecond = 0
 
         
-def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False, offset = 0):
+def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False):
 
      global chartype,everysecond
      if peripherals.touch_pressed:
@@ -222,7 +222,7 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
 
        if peripherals.eg_object.usertext == '':
         peripherals.eg_object.usertextshow = '|' 
-
+       activity = True
        keyboardslide.regen()
       
      if everysecond < time.time():
@@ -231,7 +231,7 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
         peripherals.eg_object.usertextshow = peripherals.eg_object.usertext[-24:] + '|'
        else: 
         peripherals.eg_object.usertextshow = peripherals.eg_object.usertext[-24:]  
-      
+      activity = True
       keyboardslide.regen()
       everysecond = time.time() + 1
 
@@ -247,7 +247,7 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
 
 
          
-     return activity,offset
+     return activity
 
 
 

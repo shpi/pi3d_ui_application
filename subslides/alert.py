@@ -12,7 +12,7 @@ import core.graphics as graphics
 
 
 
-str1 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', 'ALERT!', font_size=72, color = (1,0,0,1),background_color=(0,0,0,0),camera=graphics.CAMERA, shader=graphics.SHADER)
+str1 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', 'ALERT!', font_size=72, color = (255,0,0,255),background_color=(0,0,0,0),camera=graphics.CAMERA, shader=graphics.SHADER)
 str1.sprite.position(0, 0, 0.1)
 
 

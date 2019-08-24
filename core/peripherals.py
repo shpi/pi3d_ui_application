@@ -183,12 +183,12 @@ def alert(value = 1):
   if value and (int)(time.time())%2 == 0:
       controlrelays(4,1)
       controlled([255,0,0])
-      controlbacklight(31)
+      controlbacklight(1)
       config.subslide = 'alert'
   else:
       controlrelays(4,0)
       controlled([0,0,0])
-      controlbacklight(1)
+      controlbacklight(eg_object.max_backlight)
 
 def touched():
   return gpio.input(TOUCHINT)  

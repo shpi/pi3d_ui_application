@@ -16,7 +16,7 @@ wifinetworkstext.sprite.position(0, 200, 1)
 wifinetworks = None
 selectednetwork = None
 
-def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False, offset = 0):
+def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False):
        global wifinetworks,selectednetwork
        wifinetworkstext.draw()
        if wifinetworks == None:
@@ -34,6 +34,7 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
             network['string'].draw()
          if peripherals.touch_pressed:
            peripherals.touch_pressed = False
+           activity = True
            selectednetwork = abs((int)((peripherals.lasty - 100)/80))
            if -1 <  selectednetwork  <  len(wifinetworks):
               peripherals.eg_object.usertextshow = 'Please enter WIFI password.'
@@ -47,8 +48,7 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
 
 
          
-       return activity,offset
-
+       return activity
 
 
 

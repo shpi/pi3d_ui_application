@@ -21,8 +21,8 @@ graphupdated = 0
 
 graph = None
     
+def inloop(textchange = False,activity = False, offset = 0):
 
-def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False, offset = 0):
     global graphupdated,graph 
 
     if graphupdated < time.time():
