@@ -5,6 +5,10 @@ You can easily request functions by mailing lh@shpi.de
 
 Create your own Slides simply by rename and modify one of our samples and add them in config.py.  
 
+Headless Wifi Setup needs root rights.
+
+Use "sudo crontab -e" or "rc.local" for autostart
+
 ## Slides
 
 - [X] Thermostat
