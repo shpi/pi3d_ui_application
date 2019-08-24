@@ -88,7 +88,7 @@ if config.starthttpserver:
   from core.httpserver import ServerHandler
 
   try:
-    littleserver = HTTPServer(("0.0.0.0", 9000), ServerHandler)
+    littleserver = HTTPServer(("0.0.0.0", config.HTTP_PORT), ServerHandler)
     #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
     littleserver.timeout = 0.1
   except:

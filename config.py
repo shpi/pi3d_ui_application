@@ -8,7 +8,7 @@ ICAL_TM = 3600  #update calenderslide every 3600 seconds
 
 show_airquality = 1 # show airquality over LED
 starthttpserver = 1 #activate simple GET/POST server in python, be aware of  security issues
-httpserverport = 9000
+HTTP_PORT = 9000
 
 startmqttclient = 1
 MQTT_USER = ''
@@ -16,6 +16,7 @@ MQTT_PW = ''
 MQTT_SERVER = "mqtt.eclipse.org" 
 MQTT_PORT = 1883
 MQTT_PATH = "shpi"
+MQTT_QOS = 1
 
 backlight_auto = 60  # timer for backlight auto off, 0 for always on
 allowedips = list('192.168.1.31') #for check in server , not implemented so far
@@ -32,7 +33,7 @@ shutterup = 4 #4    # 4... buzzer, 5 d13, 6 hwb
 
 
 
-icallink = 'muellkalender.ics'
+icallink = 'muellkalender.ics' #also http possible
 
 
 slide = 0

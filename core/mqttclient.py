@@ -95,17 +95,17 @@ def init():
 
  client.connect(config.MQTT_SERVER,config.MQTT_PORT, 60) 
  client.loop_start()
- client.subscribe(config.MQTT_PATH + "/set/relais1", qos=0)
- client.subscribe(config.MQTT_PATH + "/set/relais2", qos=0)
- client.subscribe(config.MQTT_PATH + "/set/relais3", qos=0)
- client.subscribe(config.MQTT_PATH + "/set/buzzer", qos=0)
- client.subscribe(config.MQTT_PATH + "/set/d13", qos=0)
+ client.subscribe(config.MQTT_PATH + "/set/relais1", qos=config.MQTT_QOS)
+ client.subscribe(config.MQTT_PATH + "/set/relais2", qos=config.MQTT_QOS)
+ client.subscribe(config.MQTT_PATH + "/set/relais3", qos=config.MQTT_QOS)
+ client.subscribe(config.MQTT_PATH + "/set/buzzer", qos=config.MQTT_QOS)
+ client.subscribe(config.MQTT_PATH + "/set/d13", qos=config.MQTT_QOS)
  #client.subscribe(MQTT_PATH + "/hwb", qos=0)
- client.subscribe(config.MQTT_PATH + "/set/alert", qos=0)
- client.subscribe(config.MQTT_PATH + "/set/max_backlight", qos=0)
- client.subscribe(config.MQTT_PATH + "/set/set_temp", qos=0)
- client.subscribe(config.MQTT_PATH + "/set/vent_pwm", qos=0)
- client.subscribe(config.MQTT_PATH + "/led", qos=0)
+ client.subscribe(config.MQTT_PATH + "/set/alert", qos=config.MQTT_QOS)
+ client.subscribe(config.MQTT_PATH + "/set/max_backlight", qos=config.MQTT_QOS)
+ client.subscribe(config.MQTT_PATH + "/set/set_temp", qos=config.MQTT_QOS)
+ client.subscribe(config.MQTT_PATH + "/set/vent_pwm", qos=config.MQTT_QOS)
+ client.subscribe(config.MQTT_PATH + "/set/led", qos=config.MQTT_QOS)
 
  client.on_connect = on_connect
  client.on_message = on_message
