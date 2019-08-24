@@ -25,6 +25,8 @@ You can easily request functions by mailing lh@shpi.de
 - [ ] Remote Switch for IP Symcon, Openhab, FHEM, Shelly, Loxone
 
 
+
+
 ## Configuration
 
 - [X] Seperate config file
@@ -43,6 +45,8 @@ You can easily request functions by mailing lh@shpi.de
 
 - [ ] Config Files for Openhab, Loxone, FHEM, IP Symcon
 
+- [ ] Bluetooth Sensor Broadcasting ?
+
 ## Controlling Functions
 
 - [X] Cooling
@@ -54,6 +58,22 @@ You can easily request functions by mailing lh@shpi.de
 - [ ] Vent
 
 - [ ] Mail, SMS, WhatsApp, HTTP
+## Hardware (Drivers, Interface)
+
+
+- [X] Display with Touchdriver (touchdriver.py in other demos for Desktop)
+
+- [X] ATmega 32u4 I2C Firmware
+
+- [X] CULFW Implementation for CC1101
+
+- [X] Backlight Control
+
+- [X] GPIO Drivestrength
+
+
+- [ ] Xiaomi Bluetooth Sensors
+
 
 
 
