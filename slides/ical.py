@@ -10,9 +10,15 @@ import config
 import core.graphics as graphics
 import core.peripherals as peripherals
 
+try:
+ from ics import Calendar
+except ImportError:
+    exit("Please run: (sudo) pip3 install ics")
+try:
+    import arrow
+except ImportError:
+    exit("Please run: (sudo) pip3 install arrow")
 
-from ics import Calendar
-import arrow
 
 text6 = None
 
