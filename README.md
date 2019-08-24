@@ -6,6 +6,8 @@ You can easily request functions by mailing lh@shpi.de
 
 - [X] Thermostat
 
+*  Config: HYSTERESIS, coolingrelay, heatingrelay
+
 - [X] Shutter
 
 - [X] Amperemeter
