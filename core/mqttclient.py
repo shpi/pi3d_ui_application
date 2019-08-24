@@ -11,7 +11,10 @@ client = None
 def publishall():
     global client
     for path in vars(peripherals.eg_object):
-        client.publish(config.MQTT_PATH + "/" + path,getattr(peripherals.eg_object, path))
+        if path == 'led':
+         client.publish(config.MQTT_PATH + "/" + path,(str)(getattr(peripherals.eg_object, path)))
+        else:
+         client.publish(config.MQTT_PATH + "/" + path,getattr(peripherals.eg_object, path))
 
 def publish(path,value):
         global client

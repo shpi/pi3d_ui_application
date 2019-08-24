@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import time
 import urllib.parse as urlparse
 
-import core.peripherals
+import core.peripherals as peripherals
 
 
 
@@ -47,7 +47,7 @@ class ServerHandler(BaseHTTPRequestHandler):
                        peripherals.controlled(value)  
                        
                      else:
-                      peripherals.controlrelays(key,value)
+                      peripherals.controlrelays(key,(int)(value))
                    except Exception as e:
                      message += 'Excepton:{}>{};'.format(key, e)
                    finally:

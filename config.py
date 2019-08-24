@@ -41,7 +41,7 @@ subslide = None
 
 #configurate your slides here
 
-slides = ['shutter','thermostat','status','amperemeter','rrdgraph','ical','settings']
+slides = ['thermostat','shutter','status','amperemeter','rrdgraph','ical','settings']
 
 subslides = ['videostream','intercom','wifisetup','wifikeyboard','alert']
 

@@ -177,6 +177,7 @@ class EgClass(object):
   usertext = ''
   usertextshow = '|'
   alert =  0
+  led = [led_red, led_green, led_blue]
 eg_object = EgClass()
 
 def alert(value = 1):
@@ -295,11 +296,13 @@ def controlbacklight(value):
   
 def controlled(rgbvalues, retries=0):
     if len(rgbvalues) == 3:
+      rgb = []
       for value in rgbvalues:
        value = int(value) # variable int value
        assert -1 < value < 256, 'value outside 0..255'
+       rgb.append(value)
       try:
-           bus.write_i2c_block_data(ADDR_32U4, 0x8C, rgbvalues)
+           bus.write_i2c_block_data(ADDR_32U4, 0x8C, rgb)
       except Exception as e: # potential inifinite loop - count repeats and break after n
            print('error setting channels: {}'.format(e))
            if retries < 25:
@@ -446,6 +449,7 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
       eg_object.led_red   = bus.read_byte(ADDR_32U4)
       eg_object.led_green = bus.read_byte(ADDR_32U4)
       eg_object.led_blue  = bus.read_byte(ADDR_32U4)
+      eg_object.led = led = [eg_object.led_red, eg_object.led_green, eg_object.led_blue]
 
       eg_object.a5 = read_two_bytes(0x05)
       eg_object.a7 = read_two_bytes(0x06)
