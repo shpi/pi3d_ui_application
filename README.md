@@ -4,54 +4,54 @@ You can easily request functions by mailing lh@shpi.de
 
 ## Slides
 
-\[X] Thermostat
+- [X] Thermostat
 
-\[X] Shutter
+- [X] Shutter
 
-\[X] Amperemeter
+- [X] Amperemeter
 
-\[X] Calendar
+- [X] Calendar
 
-\[X] ATmega / Sensor Status
+- [X] ATmega / Sensor Status
 
-\[X] Statistics RRD
+- [X] Statistics RRD
 
-\[ ] Live Graph (prepared in othe demos)
+- [ ] Live Graph (prepared in othe demos)
 
-\[ ] 2D Visu
+- [ ] 2D Visu
 
-\[ ] Lightswitch
+- [ ] Lightswitch
 
-\[ ] Remote Switch for IP Symcon, Openhab, FHEM, Shelly, Loxone
+- [ ] Remote Switch for IP Symcon, Openhab, FHEM, Shelly, Loxone
 
 
 ## Configuration
 
-\[X] Seperate config file
+- [X] Seperate config file
 
-\[ ] Webserver Config Page
+- [ ] Webserver Config Page
 
-\[X] Headless WIFI Setup
+- [X] Headless WIFI Setup
 
 ## Connectivity
 
-\[X] HTTP Server
+- [X] HTTP Server
 
-\[X] MQTT Client
+- [X] MQTT Client
 
-\[ ] Apple Home Kit
+- [ ] Apple Home Kit
 
-\[ ] Config Files for Openhab, Loxone, FHEM, IP Symcon
+- [ ] Config Files for Openhab, Loxone, FHEM, IP Symcon
 
 ## Controlling Functions
 
-\[X] Cooling
+- [X] Cooling
 
-\[X] Heating
+- [X] Heating
 
-\[X] Alert
+- [X] Alert
 
-\[ ] Vent
+- [ ] Vent
 
 
 
