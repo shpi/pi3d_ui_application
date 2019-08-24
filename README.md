@@ -2,6 +2,13 @@
 
 You can easily request functions by mailing lh@shpi.de
 
+
+Create your own Slides simply by rename and modify one of our samples and add them in config.py.  
+
+Headless Wifi Setup needs root rights.
+
+Use "sudo crontab -e" or "rc.local" for autostart
+
 ## Slides
 
 - [X] Thermostat
@@ -31,7 +38,13 @@ You can easily request functions by mailing lh@shpi.de
 
 - [ ] Remote Switch for IP Symcon, Openhab, FHEM, Shelly, Loxone
 
+## Subslides (non slideable)
 
+- [X] Videostream
+
+- [X] Intercom
+
+- [X] Alert
 
 
 ## Configuration
@@ -44,8 +57,18 @@ You can easily request functions by mailing lh@shpi.de
 
 ## Connectivity
 
+#### HTTP Server
+
 - [X] HTTP Server
 
+* e.g.:   http://ipshpi:port/?relais1     -> relais1:1;
+
+*          http://ipshpi:port/?relais2     -> relais2:0;
+
+*          http://ipshpi:port/?relais1=1   -> relais1:1;relais1>1;   SETS Relais1 !
+
+*          http://ipshpi:port/?led=255,255,255  ->   led:[1, 7, 0];led>['255', '255', '255']; SETS RGB LED
+          
 
 #### MQTT Client
 - [X] MQTT Client - start with startmqttclient = 1 in config.py
