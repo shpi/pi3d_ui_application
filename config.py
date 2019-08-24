@@ -1,4 +1,4 @@
-installpath = '/home/pi/zero_thermostat_demo/'
+installpath = '/home/pi/zero_main_application/'
 
 TMDELAY = 30  #delay for changing backgrounds
 INFRARED_TM = 5
