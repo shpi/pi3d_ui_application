@@ -16,9 +16,9 @@ You can easily request functions by mailing lh@shpi.de
 
 - [X] Statistics RRD
 
-- [ ] Live Graph (prepared in othe demos)
+- [ ] Live Graph (testing, in other demos)
 
-- [ ] 2D Visu
+- [ ] 2D Visu (testing, in other demos)
 
 - [ ] Lightswitch
 
@@ -39,7 +39,7 @@ You can easily request functions by mailing lh@shpi.de
 
 - [X] MQTT Client
 
-- [ ] Apple Home Kit
+- [ ] Apple Home Kit (testing)
 
 - [ ] Config Files for Openhab, Loxone, FHEM, IP Symcon
 
@@ -52,6 +52,8 @@ You can easily request functions by mailing lh@shpi.de
 - [X] Alert
 
 - [ ] Vent
+
+- [ ] Mail, SMS, WhatsApp, HTTP
 
 
 
