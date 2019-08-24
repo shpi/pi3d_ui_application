@@ -10,9 +10,14 @@ You can easily request functions by mailing lh@shpi.de
 
 - [X] Shutter
 
+*  Config: shutterdown, shutterup
+
 - [X] Amperemeter
 
 - [X] Calendar
+
+*  Config: icallink
+
 
 - [X] ATmega / Sensor Status
 
@@ -31,7 +36,7 @@ You can easily request functions by mailing lh@shpi.de
 
 ## Configuration
 
-- [X] Seperate config file
+- [X] Seperate config file: config.py
 
 - [ ] Webserver Config Page
 
