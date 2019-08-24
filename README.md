@@ -61,13 +61,13 @@ Use "sudo crontab -e" or "rc.local" for autostart
 
 - [X] HTTP Server
 
-* e.g.:   http://ipshpi:port/?relais1     -> relais1:1;
+*          http://ipshpi:port/?relais1     -> relais1:1;
 
 *          http://ipshpi:port/?relais2     -> relais2:0;
 
 *          http://ipshpi:port/?relais1=1   -> relais1:1;relais1>1;   SETS Relais1 !
 
-*          http://ipshpi:port/?led=255,255,255  ->   led:[1, 7, 0];led>['255', '255', '255']; SETS RGB LED
+*          http://ipshpi:port/?led=255,255,255  ->   led>['255', '255', '255']; SETS RGB LED
           
 
 #### MQTT Client
