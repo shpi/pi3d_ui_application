@@ -1,8 +1,14 @@
 import os,sys
 import core.peripherals as peripherals
 
-import paho.mqtt.publish as publish  
-import paho.mqtt.client as mqtt 
+try:
+    import paho.mqtt.publish as publish  
+    import paho.mqtt.client as mqtt 
+except ImportError:
+    exit("Please run: (sudo) pip3 install paho-mqtt")
+
+
+
 
 import config
 
