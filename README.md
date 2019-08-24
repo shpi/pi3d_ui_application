@@ -2,6 +2,9 @@
 
 You can easily request functions by mailing lh@shpi.de
 
+
+Create your own Slides simply by rename and modify one of our samples and add them in config.py.  
+
 ## Slides
 
 - [X] Thermostat
@@ -31,7 +34,13 @@ You can easily request functions by mailing lh@shpi.de
 
 - [ ] Remote Switch for IP Symcon, Openhab, FHEM, Shelly, Loxone
 
+## Subslides (non slideable)
 
+- [X] Videostream
+
+- [X] Intercom
+
+- [X] Alert
 
 
 ## Configuration
