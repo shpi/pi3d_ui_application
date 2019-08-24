@@ -1,6 +1,6 @@
-# zero_main_application
+# zero_main_application - Actual Development Status
 
-
+You can easily request functions by mailing lh@shpi.de
 
 ## Slides
 
@@ -42,6 +42,19 @@
 \[ ] Apple Home Kit
 
 \[ ] Config Files for Openhab, Loxone, FHEM, IP Symcon
+
+## Controlling Functions
+
+\[X] Cooling
+
+\[X] Heating
+
+\[X] Alert
+
+\[ ] Vent
+
+
+
 
 
 
