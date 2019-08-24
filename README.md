@@ -57,8 +57,15 @@ Use "sudo crontab -e" or "rc.local" for autostart
 
 ## Connectivity
 
+#### HTTP Server
+
 - [X] HTTP Server
 
+* e.g.:   http://ipshpi:port/?relais1     -> relais1:1;
+          http://ipshpi:port/?relais2     -> relais2:0;
+          http://ipshpi:port/?relais1=1   -> relais1:1;relais1>1;   SETS Relais1 !
+          
+          
 
 #### MQTT Client
 - [X] MQTT Client - start with startmqttclient = 1 in config.py
