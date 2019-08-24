@@ -79,7 +79,9 @@ def get_files():
 iFiles, nFi = get_files()
 pic_num = nFi - 1
 
-
+if config.startmqttclient:
+  import core.mqttclient as mqttclient
+  mqttclient.init()
 
 if config.starthttpserver:
   from http.server import BaseHTTPRequestHandler, HTTPServer              #ThreadingHTTPServer for python 3.7
@@ -103,6 +105,12 @@ sfg = graphics.tex_load(iFiles[pic_num])
 while graphics.DISPLAY.loop_running():
 
   now = time.time()
+
+  if peripherals.eg_object.alert:
+    peripherals.alert()
+  elif config.subslide == 'alert':
+    peripherals.alert(0)
+    config.subslide = None
 
   if config.backlight_auto:
 
@@ -146,7 +154,8 @@ while graphics.DISPLAY.loop_running():
           greenvalue = int(0.02*(400 - peripherals.eg_object.a4))
     peripherals.controlled([redvalue,greenvalue,0])
 
-
+    if config.startmqttclient:
+        mqttclient.publishall()
     textchange = True
 
 

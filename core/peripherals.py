@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import RPi.GPIO as gpio
@@ -11,6 +10,9 @@ import rrdtool
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import config
+
+if config.startmqttclient:
+  import core.mqttclient as mqttclient
 
 
 xc, yc, lastx, lasty,touch_pressed,lasttouch = 0,0,0,0,0,0
@@ -174,15 +176,33 @@ class EgClass(object):
   max_backlight = config.max_backlight
   usertext = ''
   usertextshow = '|'
+  alert =  0
 eg_object = EgClass()
 
-  
+def alert(value = 1):
+  if value and (int)(time.time())%2 == 0:
+      controlrelays(4,1)
+      controlled([255,0,0])
+      controlbacklight(31)
+      config.subslide = 'alert'
+  else:
+      controlrelays(4,0)
+      controlled([0,0,0])
+      controlbacklight(1)
+
 def touched():
   return gpio.input(TOUCHINT)  
 
 def motion_detected(channel):  
-  if gpio.input(channel):   eg_object.motion  = True
-  else: eg_object.motion = False
+  if gpio.input(channel): 
+     eg_object.motion  = True
+     if config.startmqttclient:
+         mqttclient.publish("motion", 'ON')
+  else: 
+    eg_object.motion = False
+    if config.startmqttclient:
+         mqttclient.publish("motion", 'OFF')
+
   eg_object.lastmotion = time.time()
 
 def get_touch():
@@ -284,7 +304,7 @@ def controlled(rgbvalues, retries=0):
            print('error setting channels: {}'.format(e))
            if retries < 25:
                time.sleep(0.02)
-               controlled(rgbvalues)
+               controlled(rgbvalues,retries +1)
     else:
              print('error, wrong rgbvalues for controlled')
       

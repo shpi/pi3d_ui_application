@@ -3,13 +3,23 @@ installpath = '/home/pi/zero_thermostat_demo/'
 TMDELAY = 30  #delay for changing backgrounds
 INFRARED_TM = 5
 SENSOR_TM = 10
-ICAL_TM = 3600
+ICAL_TM = 3600  #update calenderslide every 3600 seconds
 
 
 show_airquality = 1 # show airquality over LED
 starthttpserver = 1 #activate simple GET/POST server in python, be aware of  security issues
+httpserverport = 9000
+
+startmqttclient = 1
+MQTT_USER = ''
+MQTT_PW = ''
+MQTT_SERVER = "mqtt.eclipse.org" 
+MQTT_PORT = 1883
+MQTT_PATH = "shpi"
+
 backlight_auto = 60  # timer for backlight auto off, 0 for always on
 allowedips = list('192.168.1.31') #for check in server , not implemented so far
+
 
 max_backlight = 31 # possible values  0 .. 31 
 
@@ -30,9 +40,9 @@ subslide = None
 
 #configurate your slides here
 
-slides = ['thermostat','shutter','status','amperemeter','rrdgraph','ical','settings']
+slides = ['shutter','thermostat','status','amperemeter','rrdgraph','ical','settings']
 
-subslides = ['videostream','intercom','wifisetup','wifikeyboard']
+subslides = ['videostream','intercom','wifisetup','wifikeyboard','alert']
 
 
 
