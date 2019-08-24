@@ -46,7 +46,9 @@ You can easily request functions by mailing lh@shpi.de
 
 - [X] HTTP Server
 
-### - [X] MQTT Client - start with startmqttclient = 1 in config.py
+
+#### MQTT Client
+- [X] MQTT Client - start with startmqttclient = 1 in config.py
 
 * published channels: <sup><sub>atmega_volt, d13, hwb, a0, a1, a2, a3, a4, a5, a7, atmega_temp, vent_rpm, vent_pwm, atmega_ram, buzzer, relais1current, mlxamb, mlxobj, bmp280_temp, pressure, lightlevel, sht_temp, humidity, motion, set_temp, backlight_level, gputemp, cputemp, act_temp, useddisk, load, freespace, wifistrength, ipaddress, led_red, led_green, led_blue, ssid, uhrzeit, relais1, relais2, relais3, lastmotion, max_backlight, usertext, usertextshow, alert</sub></sup>
 
