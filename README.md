@@ -77,7 +77,11 @@ Use "sudo crontab -e" or "rc.local" for autostart
 
 
 * subscribed channels for remote control of SHPI (set/): <sup><sub>relais1, relais2, relais3, buzzer, d13, alert, max_backlight, set_temp, vent_pwm, led</sub></sup>
-
+* USE: ON | OFF for relais1, relais2, relais3, d13, alert
+* USE: 1 .. 31 for max_backlight
+* USE: 0.0 .. 88.5 for set_temp
+* USE: 0 .. 255 for vent_pwm
+* USE: 255,255,255 for led
 
 - [ ] Apple Home Kit (testing)
 
