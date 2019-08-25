@@ -88,10 +88,7 @@ def on_message(client, userdata, message):
     if message.topic == (config.MQTT_PATH + "/set/led"):
        value = msg.split(',')  
        if len(value) == 3:
-          for value in rgbvalues:
-              value = int(value) # variable int value
-              assert -1 < value < 256, 'value outside 0..255'
-       peripherals.controlled(value)  
+           peripherals.controlled(value)  
        
 
 
