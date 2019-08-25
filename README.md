@@ -58,6 +58,7 @@ Use "sudo crontab -e" or "rc.local" for autostart
 ## Connectivity
 
 #### HTTP Server
+All vars from eg_object (core/peripherals.py) are accessible.
 
 - [X] HTTP Server
 
