@@ -13,7 +13,7 @@ import config
 import core.graphics as graphics
 import core.peripherals as peripherals
 import core.mqttclient as mqttclient
-
+import json
 
 text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=35, point_size=128) 
 text2 = pi3d.PointText(graphics.pointFontbig, graphics.CAMERA, max_chars=35, point_size=256)  #also big font possible, higher resolution
@@ -45,8 +45,18 @@ def get_button_status():
         elif content == 'OFF': 
            httpbutton.status = 'OFF'
            httpbutton.colouring.set_colour([1,0,0])
+        
+   ## solution for shelly:
+   #     status = json.loads(content)
+   #     print(status)
+   #     if status['ison'] == True:
+   #        httpbutton.status = 'ON'
+   #        httpbutton.colouring.set_colour([0,1,0])
+   #     elif status['ison'] == False:
+   #        httpbutton.status = 'OFF'
+   #        httpbutton.colouring.set_colour([1,0,0])
 
-   #elif ...
+
   
 
 
