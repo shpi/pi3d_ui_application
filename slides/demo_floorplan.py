@@ -14,7 +14,7 @@ import core.peripherals as peripherals
 
 text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=35, point_size=256) 
 
-temp_block = pi3d.TextBlock(-200, -100, 0.1, 0.0, 15, data_obj=peripherals.eg_object, attr="act_temp",text_format= chr(0xE021) +" {:2.1f}°C", size=0.1, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
+temp_block = pi3d.TextBlock(-200, -100, 0.1, 0.0, 15, data_obj=peripherals.eg_object, attr="act_temp",text_format= chr(0xE021) +" {:2.1f}°C", size=0.2, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(temp_block)
 
 
@@ -33,10 +33,10 @@ storagearea.set_material((0.0, 0.0, 1.0))
 
 
 floorplan = pi3d.ImageSprite('sprites/floorplan.png',shader=graphics.SHADER, camera=graphics.CAMERA,w=539, h=450, x=0, y=0, z=2.0)
-doorneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=((0,0,0),(60,0,0)), material=(1.0, 0.3, 0.0), line_width=10, x=-13.0, y=-220.0, z=1.0)
+doorneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=((0,0,0),(60,0,0)), material=(1.0, 0.3, 0.0), line_width=20, x=-13.0, y=-220.0, z=1.0)
 doorneedle.set_shader(graphics.MATSH)
 
-windowneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=((0,0,0),(45,0,0)), material=(0, 1, 0.0), line_width=10, x=-180.0, y=217.0, z=1.0)
+windowneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=((0,0,0),(45,0,0)), material=(0, 1, 0.0), line_width=100, x=-180.0, y=217.0, z=1.0)
 windowneedle.set_shader(graphics.MATSH)
 rotate = 0
 
@@ -78,7 +78,7 @@ def inloop(textchange = False,activity = False, offset = 0):
              text.regen()
 
      text.draw()   
-         
+     activity = True    
      return activity,offset
 
 
