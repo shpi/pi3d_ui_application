@@ -43,9 +43,11 @@ subslide = None
 
 #configurate your slides here
 
-slides = ['thermostat','shutter','status','amperemeter','rrdgraph','ical','settings']
+slides = ['thermostat','shutter','status','amperemeter','livegraph','rrdgraph','ical','settings']
 
-if demo: slides.append('demo_remote_button')
+if demo:
+  slides.append('demo_floorplan') 
+  slides.append('demo_remote_button')
 
 
 subslides = ['videostream','intercom','wifisetup','wifikeyboard','alert']

@@ -11,8 +11,7 @@ LOGGER = logging.getLogger(__name__)
 class MinGraph(object):
   '''Providing some basic functionality for a GPU accelerated x, y graph
   (i.e. for real-time display of instrumentation data etc)'''
-  def __init__(self, x_values, y_values, width, height,  
-              line_width=1, xpos=0, ypos=0,z = 1.0,
+  def __init__(self, x_values, y_values, width, height,  xpos=0, ypos=0,z = 1.0,
               xmin=None, xmax=None, ymin=None, ymax=None, camera=None,
               shader=None, colorarray = [(0,0,1,1,1),(1,0,0,1,1),(0,1,0,1,1)]):
     '''
@@ -92,12 +91,11 @@ class MinGraph(object):
         xx_vals = np.stack([data[:,0], data[:,0]], axis=1).flatten() # make x into pairs
         data = np.zeros((n * 2, 3))
         data[:,0] = xx_vals
-        data[:,1] = (y_values[i].flatten() - y_offset) * y_factor - axey + ypos
+        data[:,1] = (y_values[i].ravel() - y_offset) * y_factor - axey + ypos
         strip = False
       data[:,2] = z # z value
       rgb_val = colorarray[i]
-
-      line = pi3d.Lines(vertices=data, line_width=rgb_val[4], z = z, strip=strip)
+      line = pi3d.Lines(vertices=data, line_width=rgb_val[4], z = (z-i*0.01), strip=strip)
       line.set_shader(shader)
       j = i + 2
       #rgb_val = tuple((int)(i * 255) for i in colorarray[i]) # converting 0..1 -> 0 -255

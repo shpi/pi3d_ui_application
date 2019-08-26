@@ -71,7 +71,7 @@ additional = [chr(0xE000), #arrow
               
               
               
-DISPLAY = pi3d.Display.create(layer=0,w=800, h=480,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=60, tk=False, samples=4)
+DISPLAY = pi3d.Display.create(layer=0,w=800, h=480,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=60, tk=False) #, samples=4)
 SHADER = pi3d.Shader("uv_flat")
 CAMERA = pi3d.Camera(is_3d=False)
 MATSH = pi3d.Shader("mat_flat")

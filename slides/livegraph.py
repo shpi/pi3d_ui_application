@@ -20,7 +20,6 @@ import core.MinGraph as MinGraph
 
 text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=500, point_size=128) 
 
-#matsh = pi3d.Shader("mat_flat")
 
 x_vals = np.linspace(0, 780, 780)
 nextsensorcheck = time.time()
@@ -30,29 +29,29 @@ showvars = ['atmega_temp','mlxamb','mlxobj','sht_temp','act_temp','gputemp','cpu
 if hasattr(peripherals.eg_object,'bmp280_temp'):
    showvars.append('bmp280_temp')
 
-
-colors = [(1,0,0,1,1),
-         (0,0.5,0,1,1),
-         (0,0,1,1,1),
-         (0.5,1,0.3,1,1),
-         (1,0.3,0.7,1,2),
-         (0,0.7,0.3,1,1),
-         (0,0,0.5,1,1),
-         (1,1,0.3,1,1)]
+      #R,G,B,A, THICKNESS
+colors = [(1,0,0,0.7,1),
+         (0,0.5,0,0.7,1),
+         (1,0,1,0.7,1),
+         (0.5,1,0.3,0.7,1),
+         (1,0.3,0.7,0.7,3),
+         (0,0.7,0.3,0.7,1),
+         (0,0,0.5,0.7,1),
+         (1,1,0.3,0.7,1)]
 
 
 y_vals = np.zeros((len(showvars),780))
 
 
 graph = MinGraph.MinGraph(x_vals, y_vals, 780, 460, 
-              line_width=1,camera=graphics.CAMERA,shader=graphics.MATSH,colorarray=colors, xpos=0, ypos=0 , z = 1.0, ymax=50,ymin=10)
+              camera=graphics.CAMERA,shader=graphics.MATSH,colorarray=colors, xpos=0, ypos=0 , z = 1.0, ymax=50,ymin=10)
 
 
 i = 0
 
 for varname in showvars:
 
- legend = pi3d.TextBlock(-340, (200 - (i * 30)), 0.1, 0.0, 30, data_obj=peripherals.eg_object,text_format= varname + "  {:2.1f}", attr=varname,size=0.3, spacing="C", space=1.1, colour=colors[i])
+ legend = pi3d.TextBlock(-340, (200 - (i * 30)), 0.1, 0.0, 30, data_obj=peripherals.eg_object,text_format= varname + "  {:2.1f}", attr=varname,size=0.3, spacing="C", space=1.1, colour=(colors[i][0],colors[i][1],colors[i][2],1))
  text.add_text_block(legend)
  i += 1
 
