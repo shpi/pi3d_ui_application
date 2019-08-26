@@ -31,6 +31,7 @@ def on_connect(client, userdata, flags, rc):
       print("Connected to MQTT broker")
 
 def on_message(client, userdata, message):
+ if config.MQTT_SERVER != "mqtt.eclipse.org":  #deactivate for demo server
     msg = message.payload.decode("utf-8")
     print("message received " ,str(msg))
     print("message topic=",message.topic)
@@ -42,30 +43,37 @@ def on_message(client, userdata, message):
        assert 0 < channel < 4, 'channel outside 1..3'
        if msg == 'ON':
            peripherals.controlrelays(channel, 1)
+           publish("relais"+channel, 'ON')
        elif msg == 'OFF':
            peripherals.controlrelays(channel, 0)
+           publish("relais"+channel, 'OFF')
        else: print('unknown:' + message.topic + ' message:' + msg)
 
     if message.topic == (config.MQTT_PATH + "/set/buzzer"):
        
        if msg == 'ON':
            peripherals.controlrelays(4, 1)
+           publish("buzzer", 'ON')
        elif msg == 'OFF':
            peripherals.controlrelays(4, 0)
+           publish("buzzer", 'OFF')
        else: print('unknown:' + message.topic + ' message:' + msg)
 
     if message.topic == (config.MQTT_PATH + "/set/d13"):
         
        if msg == 'ON':
            peripherals.controlrelays(5, 1)
+           publish("d13", 'ON')
        elif msg == 'OFF':
            peripherals.controlrelays(5, 0)
+           publish("d13", 'OFF')
        else: print('unknown:' + message.topic + ' message:' + msg)
 
     if message.topic == (config.MQTT_PATH + "/set/alert"):
         
        if msg == 'ON':
            peripherals.eg_object.alert = 1
+           publish("alert", 'ON')
        elif msg == 'OFF':
            peripherals.eg_object.alert = 0
        else: print('unknown:' + message.topic + ' message:' + msg)

@@ -1,5 +1,7 @@
 installpath = '/home/pi/zero_main_application/'
 
+demo = 1  #shows demo slides
+
 TMDELAY = 30  #delay for changing backgrounds
 INFRARED_TM = 5
 SENSOR_TM = 10
@@ -42,6 +44,9 @@ subslide = None
 #configurate your slides here
 
 slides = ['thermostat','shutter','status','amperemeter','rrdgraph','ical','settings']
+
+if demo: slides.append('demo_remote_button')
+
 
 subslides = ['videostream','intercom','wifisetup','wifikeyboard','alert']
 
