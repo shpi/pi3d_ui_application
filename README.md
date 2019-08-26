@@ -1,5 +1,7 @@
 # zero_main_application - Actual Development Status
 
+Warning: The software is in early development stage and is not fully documented so far. 
+
 You can easily request functions by mailing lh@shpi.de
 
 
@@ -58,6 +60,7 @@ Use "sudo crontab -e" or "rc.local" for autostart
 ## Connectivity
 
 #### HTTP Server
+All vars from eg_object (core/peripherals.py) are accessible.
 
 - [X] HTTP Server
 
@@ -77,7 +80,7 @@ Use "sudo crontab -e" or "rc.local" for autostart
 
 
 * subscribed channels for remote control of SHPI (set/): <sup><sub>relais1, relais2, relais3, buzzer, d13, alert, max_backlight, set_temp, vent_pwm, led</sub></sup>
-* USE: ON | OFF for relais1, relais2, relais3, d13, alert
+* USE: ON | OFF for relais1, relais2, relais3,buzzer d13, alert
 * USE: 1 .. 31 for max_backlight
 * USE: 0.0 .. 88.5 for set_temp
 * USE: 0 .. 255 for vent_pwm
