@@ -32,13 +32,13 @@ Use "sudo crontab -e" or "rc.local" for autostart
 
 - [X] Statistics RRD
 
-- [ ] Live Graph (testing, in other demos)
+- [X] Live Graph
 
-- [ ] 2D Visu (testing, in other demos)
+- [X] Floorplan Demo with example Window / Door / Movement areas
 
 - [ ] Lightswitch
 
-- [ ] Remote Switch for IP Symcon, Openhab, FHEM, Shelly, Loxone
+- [X] Remote Switch HTTP
 
 ## Subslides (non slideable)
 
