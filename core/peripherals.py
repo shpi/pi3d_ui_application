@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import os
 import time
-import rrdtool
+
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import config
@@ -271,6 +271,7 @@ def clicksound():
 def controlrelays(channel, value, retries=0):
   try:
     bus.write_byte_data(ADDR_32U4, RELAYCHANNEL[channel-1], VALS[value])
+     
   except Exception as e: # potential inifinite loop - count repeats and break after n
     print('error setting channels: {}'.format(e))
     if retries < 25:
@@ -406,19 +407,7 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
     eg_object.act_temp = np.nanmedian(infrared_vals)
 
     
-    activity = True
     
-    if hasattr(eg_object,'bmp280_temp'): bmp280_temp = eg_object.bmp280_temp
-    else: bmp280_temp = 0
-    
-    temperatures_str = 'N:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}'.format(
-      eg_object.act_temp, eg_object.gputemp, eg_object.cputemp, eg_object.atmega_temp,
-      eg_object.sht_temp, bmp280_temp, eg_object.mlxamb, eg_object.mlxobj,(0.0))
-
-    rrdtool.update('temperatures.rrd', temperatures_str)
-    print(temperatures_str)
-
-
     if ADDR_32U4:
 
 

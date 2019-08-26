@@ -71,13 +71,13 @@ additional = [chr(0xE000), #arrow
               
               
               
-DISPLAY = pi3d.Display.create(layer=0,w=800, h=480,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=60, tk=False)
+DISPLAY = pi3d.Display.create(layer=0,w=800, h=480,background=(0.0, 0.0, 0.0, 1.0),frames_per_second=60, tk=False, samples=4)
 SHADER = pi3d.Shader("uv_flat")
 CAMERA = pi3d.Camera(is_3d=False)
 MATSH = pi3d.Shader("mat_flat")
 
 def tex_load(fname):
-  slide = pi3d.ImageSprite(fname,shader=SHADER,camera=CAMERA,w=800,h=480,z=3)
+  slide = pi3d.ImageSprite(fname,shader=SHADER,camera=CAMERA,w=800,h=480,z=4)
   slide.set_alpha(0)
   return slide
 
@@ -95,4 +95,4 @@ def slider_change(shape_obj, offset_val):
 
 pointFont = pi3d.Font(config.installpath + "fonts/opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=5, grid_size=12,
                        codepoints=mytext, add_codepoints=additional)
-pointFontbig = pi3d.Font(config.installpath + "fonts/opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=4, grid_size=5, codepoints='0123456789:' +chr(0xE000) + chr(0xE035))
+pointFontbig = pi3d.Font(config.installpath + "fonts/opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=4, grid_size=5, codepoints='0123456789:' +chr(0xE000) + chr(0xE035) + chr(0xE001))

@@ -12,9 +12,9 @@ class MinGraph(object):
   '''Providing some basic functionality for a GPU accelerated x, y graph
   (i.e. for real-time display of instrumentation data etc)'''
   def __init__(self, x_values, y_values, width, height,  
-              line_width=3, xpos=0, ypos=0,z = 1.0,
+              line_width=1, xpos=0, ypos=0,z = 1.0,
               xmin=None, xmax=None, ymin=None, ymax=None, camera=None,
-              shader=None, colorarray = [(0,0,1,1),(1,0,0,1),(0,1,0,1)]):
+              shader=None, colorarray = [(0,0,1,1,1),(1,0,0,1,1),(0,1,0,1,1)]):
     '''
     Arguments:
         *x_values*
@@ -95,11 +95,12 @@ class MinGraph(object):
         data[:,1] = (y_values[i].flatten() - y_offset) * y_factor - axey + ypos
         strip = False
       data[:,2] = z # z value
-      line = pi3d.Lines(vertices=data, line_width=line_width, z = z, strip=strip)
+      rgb_val = colorarray[i]
+
+      line = pi3d.Lines(vertices=data, line_width=rgb_val[4], z = z, strip=strip)
       line.set_shader(shader)
       j = i + 2
       #rgb_val = tuple((int)(i * 255) for i in colorarray[i]) # converting 0..1 -> 0 -255
-      rgb_val = colorarray[i]
       line.set_material((rgb_val[0],rgb_val[1],rgb_val[2]))
       line.set_alpha(rgb_val[3])
       self.lines.append(line)

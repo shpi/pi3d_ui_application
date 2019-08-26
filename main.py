@@ -2,11 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-import os, subprocess,random ,time, sys
-from random import randint
-import math
-import struct
-import datetime
+import os,time, sys
+from _thread import start_new_thread
 
 import rrdtool
 import pi3d
@@ -16,6 +13,8 @@ import importlib
 import core.peripherals as peripherals
 import config
 import core.graphics as graphics
+
+
 
 slides = []
 subslides = dict()
@@ -72,7 +71,7 @@ def get_files():
       ext = os.path.splitext(filename)[1].lower()
       if ext in extensions and not filename.startswith('.'):
         file_list.append(os.path.join(root, filename))
-  random.shuffle(file_list)
+  #random.shuffle(file_list)
 
   return file_list, len(file_list)
 
@@ -111,6 +110,7 @@ while graphics.DISPLAY.loop_running():
   elif config.subslide == 'alert':
     peripherals.alert(0)
     config.subslide = None
+    if config.startmqttclient:   mqqtclient.publish('alert','off')
 
   if config.backlight_auto:
 
@@ -141,21 +141,44 @@ while graphics.DISPLAY.loop_running():
       if config.coolingrelay: peripherals.cooling()
       if config.heatingrelay: peripherals.heating()
 
-
-    peripherals.get_sensors()
+    start_new_thread(peripherals.get_sensors,())
     nextsensorcheck = now + config.SENSOR_TM
+
+    if hasattr(peripherals.eg_object,'bmp280_temp'): bmp280_temp = peripherals.eg_object.bmp280_temp
+    else: bmp280_temp = 0
+    
+    temperatures_str = 'N:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}'.format(
+      peripherals.eg_object.act_temp, peripherals.eg_object.gputemp, peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
+      peripherals.eg_object.sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,(0.0))
+
+    rrdtool.update('temperatures.rrd', temperatures_str)
+    print(temperatures_str)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     if config.show_airquality:
         redvalue = int(0.03 * peripherals.eg_object.a4)
-    if (peripherals.eg_object.a4 > 400):
-          greenvalue = 0
-    else:
-          greenvalue = int(0.02*(400 - peripherals.eg_object.a4))
+        greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
+
     peripherals.controlled([redvalue,greenvalue,0])
 
-    if config.startmqttclient:
-        mqttclient.publishall()
+    if config.startmqttclient: mqttclient.publishall()
+    
     textchange = True
 
 
@@ -166,7 +189,7 @@ while graphics.DISPLAY.loop_running():
       nexttm = now + config.TMDELAY
       a = 0.0
       sbg = sfg
-      sbg.positionZ(4)
+      sbg.positionZ(5)
       pic_num = (pic_num + 1) % nFi
       sfg = graphics.tex_load(iFiles[pic_num])
 
@@ -184,7 +207,7 @@ while graphics.DISPLAY.loop_running():
     activity = True
     if ((x != 400) and peripherals.lastx):  #catch 0,0 -> 400,-240
       movex = (peripherals.lastx - x)
-      movey = (peripherals.lasty - x)
+      #movey = (peripherals.lasty - y)
       if (abs(movex) > 50):                              #calculate slider movement
         slide_offset = movex
 
@@ -213,7 +236,6 @@ while graphics.DISPLAY.loop_running():
    activity = subslides[config.subslide].inloop(textchange,activity)
 
   elif -1 < config.slide < len(config.slides):
-   #activity,slide_offset = slides[config.slide].inloop(textchange,activity,slide_offset)
    activity,slide_offset = slides[config.slide].inloop(textchange,activity,slide_offset)  
 
 
