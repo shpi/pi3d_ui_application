@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import os
 import time
-
+import struct
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import config
@@ -106,10 +106,9 @@ except:
 
 #correction values for BMP280
 try:
-  b1 = bytes(bus.read_i2c_block_data(ADDR_BMP, 0x88, 24))
-  dig_T = struct.unpack_from('<Hhh', b1, 0)
-  dig_P = struct.unpack_from('<Hhhhhhhhh', b1, 6)
-
+   b1 = bytes(bus.read_i2c_block_data(ADDR_BMP, 0x88, 24))
+   dig_T = struct.unpack_from('<Hhh', b1, 0)
+   dig_P = struct.unpack_from('<Hhhhhhhhh', b1, 6)
 except:
   print('no bmp280')
   ADDR_BMP = 0
