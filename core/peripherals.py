@@ -270,7 +270,7 @@ def clicksound():
 def controlrelays(channel, value, retries=0):
   try:
     bus.write_byte_data(ADDR_32U4, RELAYCHANNEL[channel-1], VALS[value])
-    print('controlrelays called') 
+   
   except Exception as e: # potential inifinite loop - count repeats and break after n
     print('error setting channels: {}'.format(e))
     if retries < 25:
@@ -292,8 +292,11 @@ def controlvent(value):
 
 def controlbacklight(value):
       os.popen('sudo chrt --rr 99 ' + config.installpath + 'bin/backlight {}'.format(value)) #needs sudo because of timing
-      bus.write_byte_data(ADDR_32U4, BACKLIGHT_LEVEL, value)
-  
+      try:
+       bus.write_byte_data(ADDR_32U4, BACKLIGHT_LEVEL, value)
+      except:
+       pass
+
 def controlled(rgbvalues, retries=0):
     if len(rgbvalues) == 3:
       rgb = []
