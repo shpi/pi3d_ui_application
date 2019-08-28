@@ -45,9 +45,20 @@ class ServerHandler(BaseHTTPRequestHandler):
                      elif key in ('led'):
                        value = value.split(',') # variable int value
                        peripherals.controlled(value)  
-                       
+
+                     elif key in ('alert'):
+                       peripherals.eg_object.alert = int(value)
+                         
+
+
+                     elif key in ('buzzer'):
+                       value = int(value)
+                       peripherals.controlrelays(4,value)  
+  
                      else:
-                      peripherals.controlrelays(key,(int)(value))
+                      if  key.startswith('relais'):
+                         channel = int(key[-1])
+                         peripherals.controlrelays(channel,(int)(value))
                    except Exception as e:
                      message += 'Excepton:{}>{};'.format(key, e)
                    finally:

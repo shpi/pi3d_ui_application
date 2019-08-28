@@ -12,7 +12,7 @@ show_airquality = 1 # show airquality over LED
 starthttpserver = 1 #activate simple GET/POST server in python, be aware of  security issues
 HTTP_PORT = 9000
 
-startmqttclient = 1
+startmqttclient = 0
 MQTT_USER = ''
 MQTT_PW = ''
 MQTT_SERVER = "mqtt.eclipse.org" 
@@ -27,11 +27,12 @@ allowedips = list('192.168.1.31') #for check in server , not implemented so far
 max_backlight = 31 # possible values  0 .. 31 
 
 
-HYSTERESIS = 1.0  #  in degree
-coolingrelay = 1 #1 #off
-heatingrelay = 3 #3 #on relay3
+HYSTERESIS = 0.5  #  in degree
+
+coolingrelay = 0 #1 #off
+heatingrelay = 1 #3 #on relay3
 shutterdown = 2 #1  #on
-shutterup = 4 #4    # 4... buzzer, 5 d13, 6 hwb
+shutterup = 3 #4    # 4... buzzer, 5 d13, 6 hwb
 
 
 

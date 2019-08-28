@@ -62,7 +62,7 @@ grapharea.set_alpha(0.6)
 
 
 def inloop(textchange = False,activity = False, offset = 0):
-     global nextsensorcheck 
+     global nextsensorcheck, graph
 
      if (time.time() > nextsensorcheck) and offset == 0 and peripherals.touched() == False:
         peripherals.get_sensors()

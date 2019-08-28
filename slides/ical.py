@@ -26,7 +26,7 @@ text6 = None
 if config.icallink.startswith('http'):
   icalfile = requests.get(config.icallink).text
 else:
-  icalfile = open(config.icallink, 'r')
+  icalfile = open(config.installpath + config.icallink, 'r')
 
 gcal = Calendar(icalfile.readlines())
 actualy = 0

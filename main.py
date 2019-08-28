@@ -139,7 +139,9 @@ while graphics.DISPLAY.loop_running():
         peripherals.coolingheating()
     else:    
       if config.coolingrelay: peripherals.cooling()
-      if config.heatingrelay: peripherals.heating()
+      if config.heatingrelay: 
+            peripherals.heating()
+            print('heating called')
 
     start_new_thread(peripherals.get_sensors,())
     nextsensorcheck = now + config.SENSOR_TM
@@ -153,19 +155,6 @@ while graphics.DISPLAY.loop_running():
 
     rrdtool.update('temperatures.rrd', temperatures_str)
     print(temperatures_str)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

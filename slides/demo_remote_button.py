@@ -21,7 +21,7 @@ text2 = pi3d.PointText(graphics.pointFontbig, graphics.CAMERA, max_chars=35, poi
 
 # look for graphics in core/graphics.py  0xE00F -> light,   0xE001 -> circle
 
-httpbutton = pi3d.TextBlock(0, 0, 0.1, 0.0, 1, text_format= chr(0xE00F),size=0.99, spacing="C", space=0.6, colour=(1, 1, 1, 1))
+httpbutton = pi3d.TextBlock(100, 100, 0.1, 0.0, 1, text_format= chr(0xE00F),size=0.99, spacing="C", space=0.6, colour=(1, 1, 1, 1))
 circle = pi3d.TextBlock(-5, 15, 0.1, 0.0, 1, text_format= chr(0xE001),size=0.99, spacing="C", space=0.6, colour=(1, 1, 1, 1))
 
 text.add_text_block(httpbutton)

@@ -270,7 +270,7 @@ def clicksound():
 def controlrelays(channel, value, retries=0):
   try:
     bus.write_byte_data(ADDR_32U4, RELAYCHANNEL[channel-1], VALS[value])
-     
+    print('controlrelays called') 
   except Exception as e: # potential inifinite loop - count repeats and break after n
     print('error setting channels: {}'.format(e))
     if retries < 25:
@@ -316,16 +316,17 @@ def controlled(rgbvalues, retries=0):
       
 def heating():
     if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp:
-      controlrelays(config.coolingrelay, 0)
+      controlrelays(config.heatingrelay, 1)
+    
     elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp:
-      controlrelays(config.coolingrelay, 1)
+      controlrelays(config.heatingrelay, 0)
       
       
 def cooling():   
     if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp:
-      controlrelays(config.heatingrelay, 1)
+      controlrelays(config.coolingrelay, 1)
     elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp:
-      controlrelays(config.heatingrelay, 0)
+      controlrelays(config.collingrelay, 0)
    
 def coolingheating():   
     if eg_object.set_temp - config.HYSTERESIS < eg_object.act_temp < eg_object.set_temp + config.HYSTERESIS:       

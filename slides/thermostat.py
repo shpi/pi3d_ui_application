@@ -84,6 +84,7 @@ def inloop(textchange = False,activity = False, offset = 0):
                      cooling.colouring.set_colour([0,0,1])
                  else:
                     cooling.colouring.set_colour([1,1,1])
+            
             if config.heatingrelay:
                if getattr(peripherals.eg_object,'relais' + (str)(config.heatingrelay)):
                      heating.colouring.set_colour([1,1,0])

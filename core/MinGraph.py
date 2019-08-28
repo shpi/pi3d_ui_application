@@ -88,7 +88,7 @@ class MinGraph(object):
         data[:,1] = (y_values[i] - y_offset) * y_factor - axey + ypos
         strip = True
       else: # has to be pairs of values for separate line segments
-        xx_vals = np.stack([data[:,0], data[:,0]], axis=1).flatten() # make x into pairs
+        xx_vals = np.stack([data[:,0], data[:,0]], axis=1).ravel() # make x into pairs
         data = np.zeros((n * 2, 3))
         data[:,0] = xx_vals
         data[:,1] = (y_values[i].ravel() - y_offset) * y_factor - axey + ypos
@@ -159,7 +159,7 @@ class MinGraph(object):
     if len(y_values.shape) < 2: # in case single line
       y_values.shape = (1,) + y_values.shape
     for i in range(y_values.shape[0]):
-      self.lines[i].buf[0].array_buffer[:,1] = (y_values[i].flatten() - self.y_offset) * self.y_factor - self.axey + self.ypos
+      self.lines[i].buf[0].array_buffer[:,1] = (y_values[i].ravel() - self.y_offset) * self.y_factor - self.axey + self.ypos
       self.lines[i].re_init()
 
 
