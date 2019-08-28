@@ -139,9 +139,7 @@ while graphics.DISPLAY.loop_running():
         peripherals.coolingheating()
     else:    
       if config.coolingrelay: peripherals.cooling()
-      if config.heatingrelay: 
-            peripherals.heating()
-            print('heating called')
+      if config.heatingrelay: peripherals.heating()
 
     start_new_thread(peripherals.get_sensors,())
     nextsensorcheck = now + config.SENSOR_TM
