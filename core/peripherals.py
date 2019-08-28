@@ -291,7 +291,7 @@ def controlvent(value):
     bus.write_byte_data(ADDR_32U4, 0x93, value)
 
 def controlbacklight(value):
-      os.popen('sudo chrt --rr 99 ./bin/backlight {}'.format(value)) #needs sudo because of timing
+      os.popen('sudo chrt --rr 99 ' + config.installpath + 'bin/backlight {}'.format(value)) #needs sudo because of timing
       bus.write_byte_data(ADDR_32U4, BACKLIGHT_LEVEL, value)
   
 def controlled(rgbvalues, retries=0):

@@ -135,13 +135,13 @@ textfield.set_shader(graphics.MATSH)
 textfield.set_material((0.0, 0.0, 0.0))
 textfield.set_alpha(0.7)
 
-controlok= pi3d.FixedString('fonts/opensans.ttf', (str)(chr(0xE03E)), font_size=65,shadow_radius=4, 
+controlok= pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', (str)(chr(0xE03E)), font_size=65,shadow_radius=4, 
                         background_color=(0,0,0,0), color= (255,255,255,255),
                         camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
 controlok.sprite.position(245, 196, 1)
 
 
-controlx= pi3d.FixedString('fonts/opensans.ttf', (str)(chr(0xE01E)), font_size=65,shadow_radius=4, 
+controlx= pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', (str)(chr(0xE01E)), font_size=65,shadow_radius=4, 
                         background_color=(0,0,0,0), color= (255,255,255,255),
                         camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
 controlx.sprite.position(335, 196, 1)
