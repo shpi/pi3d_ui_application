@@ -135,15 +135,19 @@ while graphics.DISPLAY.loop_running():
 
   if (now > nextsensorcheck):
 
+    start_new_thread(peripherals.get_sensors,())
+    nextsensorcheck = now + config.SENSOR_TM
+
     if config.coolingrelay and config.coolingrelay == config.heatingrelay:
         peripherals.coolingheating()
     else:    
       if config.coolingrelay: peripherals.cooling()
       if config.heatingrelay: peripherals.heating()
 
-    start_new_thread(peripherals.get_sensors,())
-    nextsensorcheck = now + config.SENSOR_TM
 
+    start_new_thread(peripherals.get_status,())
+
+    
     if hasattr(peripherals.eg_object,'bmp280_temp'): bmp280_temp = peripherals.eg_object.bmp280_temp
     else: bmp280_temp = 0
     
@@ -151,18 +155,15 @@ while graphics.DISPLAY.loop_running():
       peripherals.eg_object.act_temp, peripherals.eg_object.gputemp, peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
       peripherals.eg_object.sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,(0.0))
 
-    rrdtool.update('temperatures.rrd', temperatures_str)
+    start_new_thread(rrdtool.update,('temperatures.rrd', temperatures_str))
+    #rrdtool.update('temperatures.rrd', temperatures_str)
     print(temperatures_str)
-
-
-
 
 
     if config.show_airquality:
         redvalue = int(0.03 * peripherals.eg_object.a4)
         greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
-
-    peripherals.controlled([redvalue,greenvalue,0])
+        peripherals.controlled([redvalue,greenvalue,0])
 
     if config.startmqttclient: mqttclient.publishall()
     
@@ -204,7 +205,7 @@ while graphics.DISPLAY.loop_running():
   if movex < -300 and config.slide > 0:     #start sliding when there is enough touchmovement
     peripherals.lastx = 0
     movex = 0
-    config.slide = config.slide - 1
+    config.slide -= 1
     sbg.set_alpha(0)
     a = 0
     slide_offset += 400
@@ -213,7 +214,7 @@ while graphics.DISPLAY.loop_running():
   if movex > 300 and config.slide < len(config.slides) - 1:
     peripherals.lastx = 0
     movex = 0
-    config.slide = config.slide + 1
+    config.slide += 1
     sbg.set_alpha(0)
     a = 0
     slide_offset -= 400

@@ -350,23 +350,51 @@ def get_infrared():
         pass
 
 
+def get_status():
+  try:
+        eg_object.useddisk = os.popen("df | grep root  | awk '{print $5}'").readline().strip()
+        eg_object.load =  float(os.getloadavg()[0])
+        s = os.statvfs('/')
+        eg_object.freespace = float((s.f_bavail * s.f_frsize) / 1024 / 1024)
+        eg_object.wifistrength = (os.popen("/sbin/iwconfig wlan0 | grep 'Signal level' | awk '{print $4}' | cut -d= -f2 | cut -d/ -f1;").readline()).strip()
+        eg_object.ipaddress = os.popen("ip addr show wlan0 | grep 'inet ' | head -1 | awk '{print $2}' | cut -d/ -f1;").readline().strip()
+        eg_object.ssid = (os.popen("/sbin/iwconfig wlan0 | grep \"SSID:\" | awk \"{print $4}\" | cut -d'\"' -f2").readline()).strip()
+
+        if ADDR_32U4:
+
+
+
+           eg_object.backlight_level = read_one_byte(READ_BACKLIGHT_LEVEL)
+           eg_object.vent_pwm = read_one_byte(READ_VENT_PWM)
+           eg_object.relais1 = 1 if read_one_byte(READ_RELAIS1) == 255 else 0
+           eg_object.relais2 = 1 if read_one_byte(READ_RELAIS2) == 255 else 0
+           eg_object.relais3 = 1  if read_one_byte(READ_RELAIS3) == 255 else 0
+           eg_object.d13 = 1 if read_one_byte(READ_D13) == 255 else 0
+           eg_object.hwb = 1 if read_one_byte(READ_HWB) == 255 else 0
+           eg_object.buzzer = 1 if read_one_byte(READ_BUZZER) == 255 else 0
+           eg_object.vent_rpm = read_two_bytes(READ_VENT_RPM)
+           eg_object.atmega_ram =  read_two_bytes(READ_ATMEGA_RAM)
+           bus.write_byte(ADDR_32U4, 0x0C)
+           eg_object.led_red   = bus.read_byte(ADDR_32U4)
+           eg_object.led_green = bus.read_byte(ADDR_32U4)
+           eg_object.led_blue  = bus.read_byte(ADDR_32U4)
+           eg_object.led = led = [eg_object.led_red, eg_object.led_green, eg_object.led_blue]
+
+
+
+  except:
+   pass
+
 
 
 def get_sensors(): #readout all sensor values, system, and atmega vars
-  global infrared_vals
+  global infrared_vals,dig_T,dig_P
   
   try:
-    eg_object.useddisk = os.popen("df | grep root  | awk '{print $5}'").readline().strip()
+    
     eg_object.uhrzeit = time.strftime("%H:%M")
-    eg_object.load =  float(os.getloadavg()[0])
-    s = os.statvfs('/')
-    eg_object.freespace = float((s.f_bavail * s.f_frsize) / 1024 / 1024)
-    eg_object.wifistrength = (os.popen("/sbin/iwconfig wlan0 | grep 'Signal level' | awk '{print $4}' | cut -d= -f2 | cut -d/ -f1;").readline()).strip()
-    eg_object.ipaddress = os.popen("ip addr show wlan0 | grep 'inet ' | head -1 | awk '{print $2}' | cut -d/ -f1;").readline().strip()
     eg_object.gputemp = float(os.popen("vcgencmd measure_temp").readline()[5:-3])
     eg_object.cputemp = float(os.popen("cat /sys/class/thermal/thermal_zone0/temp").readline()) / 1000
-    eg_object.ssid = (os.popen("/sbin/iwconfig wlan0 | grep \"SSID:\" | awk \"{print $4}\" | cut -d'\"' -f2").readline()).strip()
-
 
     if ADDR_SHT:
       bus.write_i2c_block_data(ADDR_SHT, 0x2C, [0x06])
@@ -413,35 +441,17 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
 
       eg_object.relais1current = (((5000/1024) *
                               (read_one_byte(READ_RELAIS1CURRENT) - 2)) / 185)
-      eg_object.backlight_level = read_one_byte(READ_BACKLIGHT_LEVEL)
-      eg_object.vent_pwm = read_one_byte(READ_VENT_PWM)
-      eg_object.relais1 = 1 if read_one_byte(READ_RELAIS1) == 255 else 0
-      eg_object.relais2 = 1 if read_one_byte(READ_RELAIS2) == 255 else 0
-      eg_object.relais3 = 1  if read_one_byte(READ_RELAIS3) == 255 else 0
-      eg_object.d13 = 1 if read_one_byte(READ_D13) == 255 else 0
-      eg_object.hwb = 1 if read_one_byte(READ_HWB) == 255 else 0
-      eg_object.buzzer = 1 if read_one_byte(READ_BUZZER) == 255 else 0
-
-      eg_object.vent_rpm = read_two_bytes(READ_VENT_RPM)
       eg_object.atmega_temp = read_two_bytes(READ_ATMEGA_TEMP) * 0.558 - 142.5
       eg_object.atmega_volt = read_two_bytes(READ_ATMEGA_VOLT)
-      eg_object.atmega_ram =  read_two_bytes(READ_ATMEGA_RAM)
       eg_object.a0 = read_two_bytes(READ_A0)
       eg_object.a1 = read_two_bytes(READ_A1)
       eg_object.a2 = read_two_bytes(READ_A2)
       eg_object.a3 = read_two_bytes(READ_A3)
       eg_object.a4 = read_two_bytes(READ_A4)
-
-
-
-      bus.write_byte(ADDR_32U4, 0x0C)
-      eg_object.led_red   = bus.read_byte(ADDR_32U4)
-      eg_object.led_green = bus.read_byte(ADDR_32U4)
-      eg_object.led_blue  = bus.read_byte(ADDR_32U4)
-      eg_object.led = led = [eg_object.led_red, eg_object.led_green, eg_object.led_blue]
-
       eg_object.a5 = read_two_bytes(0x05)
       eg_object.a7 = read_two_bytes(0x06)
+
+
 
 
   except Exception as e:
@@ -453,7 +463,7 @@ gpio.setwarnings(False)
 gpio.setup(TOUCHINT, gpio.IN)
 gpio.setup(PIR, gpio.IN)        
       
-gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce, bouncetime=100)    #touch interrupt
-gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected, bouncetime=100)  #motion detector interrupt
+gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce)    #touch interrupt
+gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected)  #motion detector interrupt
 
 infrared_vals = np.full(100, np.nan)    
