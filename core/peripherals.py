@@ -401,7 +401,7 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
 
     if ADDR_SHT:
       bus.write_i2c_block_data(ADDR_SHT, 0x2C, [0x06])
-      time.sleep(0.01)
+      time.sleep(0.05)
       data = bus.read_i2c_block_data(ADDR_SHT, 0x00, 6)
       eg_object.sht_temp = float(((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45)
       eg_object.humidity = 100 * (data[3] * 256 + data[4]) / 65535.0
