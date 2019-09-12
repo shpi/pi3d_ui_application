@@ -80,7 +80,8 @@ pic_num = nFi - 1
 
 if config.startmqttclient:
   import core.mqttclient as mqttclient
-  mqttclient.init()
+  try: mqttclient.init()
+  except: pass
 
 if config.starthttpserver:
   from http.server import BaseHTTPRequestHandler, HTTPServer              #ThreadingHTTPServer for python 3.7
@@ -99,7 +100,9 @@ if config.starthttpserver:
 slide_offset = 0 # change by touch and slide
 textchange = True
 sfg = graphics.tex_load(iFiles[pic_num])
-
+peripherals.get_infrared() #run all one for init eg_object
+peripherals.get_sensors() # ''
+peripherals.get_status() # ''
 
 while graphics.DISPLAY.loop_running():
 
@@ -150,10 +153,16 @@ while graphics.DISPLAY.loop_running():
     
     if hasattr(peripherals.eg_object,'bmp280_temp'): bmp280_temp = peripherals.eg_object.bmp280_temp
     else: bmp280_temp = 0
+
+    if hasattr(peripherals.eg_object,'sht_temp'): sht_temp = peripherals.eg_object.sht_temp
+    else: sht_temp = 0
+
+
+
     
     temperatures_str = 'N:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}'.format(
       peripherals.eg_object.act_temp, peripherals.eg_object.gputemp, peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
-      peripherals.eg_object.sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,(0.0))
+      sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,(0.0))
 
     start_new_thread(rrdtool.update,('temperatures.rrd', temperatures_str))
     #rrdtool.update('temperatures.rrd', temperatures_str)

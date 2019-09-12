@@ -16,16 +16,19 @@ client = None
 
 def publishall():
     global client
-    for path in vars(peripherals.eg_object):
+    try:
+     for path in vars(peripherals.eg_object):
         if path == 'led':
          client.publish(config.MQTT_PATH + "/" + path,(str)(getattr(peripherals.eg_object, path)))
         else:
          client.publish(config.MQTT_PATH + "/" + path,getattr(peripherals.eg_object, path))
+    except: pass
+
 
 def publish(path,value):
         global client
-        client.publish(config.MQTT_PATH + "/" + path, value)
-
+        try: client.publish(config.MQTT_PATH + "/" + path, value)
+        except: pass
 
 def on_connect(client, userdata, flags, rc):
       print("Connected to MQTT broker")

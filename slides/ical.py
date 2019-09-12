@@ -45,7 +45,7 @@ def init():
 
     if count < 5:
       size = 0.79
-      titles = pi3d.TextBlock(-390, ((displayheight/2) + actualy - (graphics.pointFont.height*size*0.5)), 0.1, 0.0, 30 ,text_format= e.begin.humanize().title(), size=size, spacing="F", space=0.02, colour=(1,0,0,1))
+      titles = pi3d.TextBlock(-390, ((displayheight/2) + actualy - (graphics.pointFont.height*size*0.5)), 0.1, 0.0, 30 ,text_format= e.begin.humanize(locale='de_de').title(), size=size, spacing="F", space=0.02, colour=(1,0,0,1))
       text6.add_text_block(titles)
   
       actualy -= titles.size * graphics.pointFont.height
