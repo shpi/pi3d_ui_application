@@ -400,8 +400,8 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
     eg_object.cputemp = float(os.popen("cat /sys/class/thermal/thermal_zone0/temp").readline()) / 1000
 
     if ADDR_SHT:
-      bus.write_i2c_block_data(ADDR_SHT, 0x2C, [0x06])
-      time.sleep(0.05)
+      bus.write_i2c_block_data(ADDR_SHT, 0x24, [0x00]) #clockstretching disabled , softreset: 0x30A2 or general call: 0x0006
+      time.sleep(0.02)
       data = bus.read_i2c_block_data(ADDR_SHT, 0x00, 6)
       eg_object.sht_temp = float(((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45)
       eg_object.humidity = 100 * (data[3] * 256 + data[4]) / 65535.0
