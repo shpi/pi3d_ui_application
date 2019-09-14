@@ -37,8 +37,8 @@ grapharea2.set_material((0, 0, 0))
 grapharea2.set_alpha(0.7)
 
 def init():
- global seplines,degwind,weathericon,text,line,baroneedle,windneedle,linemin,linemax
- text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=600, point_size=128) 
+ global seplines,degwind,weathericon,text,line,baroneedle,windneedle,linemin,linemax,acttemp
+ text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=700, point_size=128) 
 
 
  owm = pyowm.OWM(API_key=config.owmkey,language=config.owmlanguage) 
@@ -57,8 +57,8 @@ def init():
   import urllib.request
   urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name() + "@2x.png", "sprites/" + weather.get_weather_icon_name() + ".png")
 
- weathericon = pi3d.ImageSprite('sprites/' + weather.get_weather_icon_name() + '.png',shader=graphics.SHADER,camera=graphics.CAMERA,w=150,h=150,z=1,x=-220)
- city = pi3d.TextBlock(-390, 180, 0.1, 0.0, 10, text_format= place.get_location().get_name() , size=0.99, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
+ weathericon = pi3d.ImageSprite('sprites/' + weather.get_weather_icon_name() + '.png',shader=graphics.SHADER,camera=graphics.CAMERA,w=150,h=150,z=2,x=-220)
+ city = pi3d.TextBlock(-390, 180, 0.1, 0.0, 150, text_format= place.get_location().get_name() , size=0.7, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
  text.add_text_block(city)
 
  city = pi3d.TextBlock(-380, 80, 0.1, 0.0, 30, text_format= weather.get_detailed_status() , size=0.4, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
@@ -66,20 +66,19 @@ def init():
 
 
 
- acttemp = pi3d.TextBlock(50, 180, 0.1, 0.0, 10, text_format= str(weather.get_temperature(unit='celsius')['temp']) + '°C'  ,  size=0.7, spacing="F",
-                                                                                                              space=0.05,colour=(1.0, 1.0, 1.0,1.0))
- text.add_text_block(acttemp)
-
-
+ # acttemp = pi3d.TextBlock(-280, 0, 0.1, 0.0, 10, text_format= str(weather.get_temperature(unit='celsius')['temp']) + '°C'  ,  size=0.5, spacing="F",space=0.05,colour=(1.0, 1.0, 1.0,1.0))
+ #text.add_text_block(acttemp)
+ acttemp = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', str(weather.get_temperature(unit='celsius')['temp']) + '°C'   , font_size=42, shadow_radius=1,justify='L', color= (255,255,255,255),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
+ acttemp.sprite.position(-210, -50, 1)
  sunriset = weather.get_sunrise_time(timeformat='date') + datetime.timedelta(hours=2)
  sunsett = weather.get_sunset_time(timeformat='date') + datetime.timedelta(hours=2)
- sunset = pi3d.TextBlock(50, 125, 0.1, 0.0, 20, text_format= chr(0xE041) +  " %s:%s" % (sunriset.hour, sunriset.minute) + ' ' + chr(0xE042) +  " %s:%s" % (sunsett.hour, sunsett.minute)  ,  size=0.3, spacing="F", 
+ sunset = pi3d.TextBlock(50, 100, 0.1, 0.0, 20, text_format= chr(0xE041) +  " %s:%s" % (sunriset.hour, sunriset.minute) + ' ' + chr(0xE042) +  " %s:%s" % (sunsett.hour, sunsett.minute)  ,  size=0.3, spacing="F", 
                                                                                                               space=0.05,colour=(1.0, 1.0, 1.0,1.0))
  text.add_text_block(sunset)
 
 
 
- barometer = pi3d.TextBlock(50, -25, 0.1, 0.0, 10, text_format= chr(0xE00B) + ' ' + str(weather.get_pressure()['press']) + ' hPa' , size=0.3, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
+ barometer = pi3d.TextBlock(50, -50, 0.1, 0.0, 10, text_format= chr(0xE00B) + ' ' + str(weather.get_pressure()['press']) + ' hPa' , size=0.3, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
  text.add_text_block(barometer)
  baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=((-2,0,0),(0,7,0),(2,0,0)), x=barometer.x+16, y=barometer.y - 6, z=0.1)
  baroneedle.set_shader(graphics.MATSH)
@@ -95,20 +94,20 @@ def init():
  baroneedle.rotateToZ(100 - (normalizedpressure*2))
 
 
- humidity = pi3d.TextBlock(50, 25, 0.1, 0.0, 10, text_format= chr(0xE003) + ' ' + str(weather.get_humidity()) + '%' , size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+ humidity = pi3d.TextBlock(50, 0, 0.1, 0.0, 10, text_format= chr(0xE003) + ' ' + str(weather.get_humidity()) + '%' , size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
  text.add_text_block(humidity)
 
 
 
 
  if 'speed' in weather.get_wind():
-   wind = pi3d.TextBlock(50, 75, 0.1, 0.0, 10, text_format= chr(0xE040) + ' ' + str(weather.get_wind()['speed']) + 'm/s' , size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+   wind = pi3d.TextBlock(50, 50, 0.1, 0.0, 10, text_format= chr(0xE040) + ' ' + str(weather.get_wind()['speed']) + 'm/s' , size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
    text.add_text_block(wind)
 
 
  if 'deg' in weather.get_wind():
    degwind = True
-   windneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=((-3,0,0),(0,15,0),(3,0,0)), x=wind.x+150, y=wind.y, z=0.1)
+   windneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=((-3,0,0),(0,15,0),(3,0,0)), x=wind.x+180, y=wind.y, z=0.1)
    windneedle.set_shader(graphics.MATSH)
    windneedle.set_material([1,1,1])
    windneedle.rotateToZ(weather.get_wind()['deg'])
@@ -214,7 +213,7 @@ init()
 
 
 def inloop(textchange = False,activity = False, offset = 0):
-     global seplines,degwind,threehours,weathericon,text,line,baroneedle,windneedle,linemin,linemax
+     global seplines,degwind,threehours,weathericon,text,line,baroneedle,windneedle,linemin,linemax,acttemp
 
 
      if (time.time() > threehours) and offset == 0:
@@ -233,7 +232,9 @@ def inloop(textchange = False,activity = False, offset = 0):
          offset = graphics.slider_change(text.text, offset)
               
      else:
+     
        weathericon.draw()
+       acttemp.draw()
        baroneedle.draw()
        line.draw()
        linemin.draw()
