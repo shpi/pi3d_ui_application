@@ -12,7 +12,7 @@ show_airquality = 1 # show airquality over LED
 starthttpserver = 1 #activate simple GET/POST server in python, be aware of  security issues
 HTTP_PORT = 9000
 
-startmqttclient = 0
+startmqttclient = 1
 MQTT_USER = ''
 MQTT_PW = ''
 MQTT_SERVER = "mqtt.eclipse.org" 
@@ -38,13 +38,17 @@ shutterup = 3 #4    # 4... buzzer, 5 d13, 6 hwb
 
 icallink = 'muellkalender.ics' #also http possible
 
+owmkey = '20f7aab0a600927a8486b220200ee694'
+owmlanguage = 'de'
+owmcity = 'Berlin, DE'
+
 
 slide = 0
 subslide = None
 
 #configurate your slides here
 
-slides = ['thermostat','shutter','status','amperemeter','livegraph','rrdgraph','ical','settings']
+slides = ['thermostat','weather','shutter','livegraph','status','amperemeter','rrdgraph','ical','settings']
 
 if demo:
   slides.append('demo_floorplan') 

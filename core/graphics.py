@@ -67,7 +67,10 @@ additional = [chr(0xE000), #arrow
               chr(0xE036),
               #chr(0xE030), #compass
               #chr(0xE02E), #trash
-              chr(0xE02F)] #cam
+              chr(0xE02F), #cam
+              chr(0xE040), #wind
+              chr(0xE041), #sunset
+              chr(0xE042)] #sunrise
               
               
               
