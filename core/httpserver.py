@@ -4,6 +4,9 @@ import urllib.parse as urlparse
 
 import core.peripherals as peripherals
 
+from io import BytesIO
+from PIL import Image
+import pi3d
 
 
 class ServerHandler(BaseHTTPRequestHandler):
@@ -16,11 +19,26 @@ class ServerHandler(BaseHTTPRequestHandler):
              start_time = time.time()
              message = ''
              self.send_response(200)
-             self.send_header('Content-type','text')
-             self.end_headers()
+             
              print(self.client_address[0],end=': ')
 
              for key, value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
+
+
+              if key == 'screenshot':
+               self.send_header('Content-type','image/png')
+               self.end_headers()
+               byte_io = BytesIO()
+               img = pi3d.util.Screenshot.screenshot()
+               im = Image.frombuffer('RGB', (800, 480), img, 'raw', 'RGB', 0, 1)
+               im.save(byte_io, format='PNG', quality=90)
+               self.wfile.write(byte_io.getvalue())
+
+
+
+              else:
+               self.send_header('Content-type','text')
+               self.end_headers()
                if key == 'lastmotion': # special treatment
                  message += '{}_date:{}_{:.1f}s_ago;'.format(
                          key,
@@ -64,10 +82,13 @@ class ServerHandler(BaseHTTPRequestHandler):
                    finally:
                      message +=  '{}>{};'.format(key, value)  #we should update eg_object here?
 
+               self.wfile.write(bytes(message, "utf8"))
+               self.connection.close()
+
              print(message)
              print("-- %s seconds --" % (time.time() - start_time))
-             self.wfile.write(bytes(message, "utf8"))
-             self.connection.close()
+             #self.wfile.write(bytes(message, "utf8"))
+             #self.connection.close()
            else:
              self.send_response(404)
              self.connection.close()
