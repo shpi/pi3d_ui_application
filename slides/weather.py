@@ -149,7 +149,7 @@ def init():
       #if weather.get_reference_time('iso')[11:16] == '12:00':
           day = weather.get_reference_time(timeformat='date').weekday()
           if actualy < 300:
-           city = pi3d.TextBlock(actualy+5, -100, 0.1, 0.0, 30, text_format= weekdays[day] , size=0.3, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
+           city = pi3d.TextBlock(actualy+65, -100, 0.1, 0.0, 30, text_format= weekdays[day] ,justify=0.5,  size=0.23, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
            text.add_text_block(city)
           if actualy > -300:
            city = pi3d.TextBlock(actualy-6*step, -150, 0.1, 0.0, 30, text_format= str(round(maxdaytemp,1)) + '°C' , size=0.25, spacing="F", space=0.05,colour=(1.0, 0.0, 0.0,1.0))
