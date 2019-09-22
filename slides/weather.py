@@ -72,7 +72,7 @@ def init():
  acttemp.sprite.position(-210, -50, 1)
  sunriset = weather.get_sunrise_time(timeformat='date') + datetime.timedelta(hours=2)
  sunsett = weather.get_sunset_time(timeformat='date') + datetime.timedelta(hours=2)
- sunset = pi3d.TextBlock(50, 100, 0.1, 0.0, 20, text_format= chr(0xE041) +  " %s:%s" % (sunriset.hour, sunriset.minute) + ' ' + chr(0xE042) +  " %s:%s" % (sunsett.hour, sunsett.minute)  ,  size=0.3, spacing="F", 
+ sunset = pi3d.TextBlock(50, 100, 0.1, 0.0, 20, text_format= chr(0xE041) +  " %s:%02d" % (sunriset.hour, sunriset.minute) + ' ' + chr(0xE042) +  " %s:%02d" % (sunsett.hour, sunsett.minute)  ,  size=0.3, spacing="F", 
                                                                                                               space=0.05,colour=(1.0, 1.0, 1.0,1.0))
  text.add_text_block(sunset)
 
