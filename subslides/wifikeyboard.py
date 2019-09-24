@@ -194,7 +194,11 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
 
         file.write('}') 
         file.close() 
-        os.popen('sudo wpa_cli -i wlan0 reconfigure')
+        #os.popen('sudo wpa_cli -i wlan0 reconfigure')
+        os.popen('sudo ifdown wlan0')
+        os.popen('sudo ifup wlan0')
+
+
         #sudo systemctl daemon-reload
         #sudo systemctl restart dhcpcd
         #sudo systemctl reenable wpa_supplicant.service
