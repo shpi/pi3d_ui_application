@@ -72,7 +72,7 @@ def init():
  acttemp.sprite.position(-210, -50, 1)
  sunriset = weather.get_sunrise_time(timeformat='date') + datetime.timedelta(hours=2)
  sunsett = weather.get_sunset_time(timeformat='date') + datetime.timedelta(hours=2)
- sunset = pi3d.TextBlock(50, 100, 0.1, 0.0, 20, text_format= chr(0xE041) +  " %s:%s" % (sunriset.hour, sunriset.minute) + ' ' + chr(0xE042) +  " %s:%s" % (sunsett.hour, sunsett.minute)  ,  size=0.3, spacing="F", 
+ sunset = pi3d.TextBlock(50, 100, 0.1, 0.0, 20, text_format= chr(0xE041) +  " %s:%02d" % (sunriset.hour, sunriset.minute) + ' ' + chr(0xE042) +  " %s:%02d" % (sunsett.hour, sunsett.minute)  ,  size=0.3, spacing="F", 
                                                                                                               space=0.05,colour=(1.0, 1.0, 1.0,1.0))
  text.add_text_block(sunset)
 
@@ -149,7 +149,7 @@ def init():
       #if weather.get_reference_time('iso')[11:16] == '12:00':
           day = weather.get_reference_time(timeformat='date').weekday()
           if actualy < 300:
-           city = pi3d.TextBlock(actualy+5, -100, 0.1, 0.0, 30, text_format= weekdays[day] , size=0.3, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
+           city = pi3d.TextBlock(actualy+65, -100, 0.1, 0.0, 30, text_format= weekdays[day] ,justify=0.5,  size=0.23, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
            text.add_text_block(city)
           if actualy > -300:
            city = pi3d.TextBlock(actualy-6*step, -150, 0.1, 0.0, 30, text_format= str(round(maxdaytemp,1)) + '°C' , size=0.25, spacing="F", space=0.05,colour=(1.0, 0.0, 0.0,1.0))
