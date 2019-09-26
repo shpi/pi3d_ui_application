@@ -3,6 +3,7 @@ import time
 import urllib.parse as urlparse
 
 import core.peripherals as peripherals
+import config
 
 from io import BytesIO
 from PIL import Image
@@ -59,6 +60,13 @@ class ServerHandler(BaseHTTPRequestHandler):
                        value = int(value) # variable int value
                        assert -1 < value < 256, 'value outside 0..255'
                        peripherals.controlvent(value)
+
+                     elif key in ('slide'):
+                       value = int(value) # variable int value
+                       assert -1 < value < len(config.slides), 'value outside 0..255'
+                       peripherals.eg_object.slide = value
+
+
                        
                      elif key in ('led'):
                        value = value.split(',') # variable int value

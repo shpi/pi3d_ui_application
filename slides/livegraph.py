@@ -79,7 +79,6 @@ def inloop(textchange = False,activity = False, offset = 0):
      grapharea.draw()
 
      if offset != 0:
-         #graphics.slider_change(graph, offset)
          offset = graphics.slider_change(text.text, offset)
      else:    
          graph.draw()

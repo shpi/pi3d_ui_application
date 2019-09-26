@@ -57,7 +57,7 @@ def init():
   import urllib.request
   urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name() + "@2x.png", "sprites/" + weather.get_weather_icon_name() + ".png")
 
- weathericon = pi3d.ImageSprite('sprites/' + weather.get_weather_icon_name() + '.png',shader=graphics.SHADER,camera=graphics.CAMERA,w=150,h=150,z=2,x=-220)
+ weathericon = pi3d.ImageSprite(config.installpath + 'sprites/' + weather.get_weather_icon_name() + '.png',shader=graphics.SHADER,camera=graphics.CAMERA,w=150,h=150,z=2,x=-220)
  city = pi3d.TextBlock(-390, 180, 0.1, 0.0, 150, text_format= place.get_location().get_name() , size=0.7, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
  text.add_text_block(city)
 

@@ -78,7 +78,7 @@ def inloop(textchange = False,activity = False, offset = 0):
              text.regen()
 
      text.draw()   
-     activity = True    
+     activity = False    
      return activity,offset
 
 

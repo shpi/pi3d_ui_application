@@ -19,12 +19,14 @@ import core.graphics as graphics
 slides = []
 subslides = dict()
 
-for  slidestring in config.slides:
- slides.append(importlib.import_module('slides.'+slidestring))
+try:
+   for  slidestring in config.slides:
+      slides.append(importlib.import_module('slides.'+slidestring))
 
-for  slidestring in config.subslides: 
- subslides[slidestring] = importlib.import_module('subslides.'+slidestring)
-
+   for  slidestring in config.subslides: 
+      subslides[slidestring] = importlib.import_module('subslides.'+slidestring)
+except: 
+  pass
 
 
 
@@ -103,6 +105,8 @@ sfg = graphics.tex_load(iFiles[pic_num])
 peripherals.get_infrared() #run all one for init eg_object
 peripherals.get_sensors() # ''
 peripherals.get_status() # ''
+
+peripherals.eg_object.slide = config.slide
 
 while graphics.DISPLAY.loop_running():
 
@@ -211,19 +215,19 @@ while graphics.DISPLAY.loop_running():
   else:
     movex = 0
 
-  if movex < -300 and config.slide > 0:     #start sliding when there is enough touchmovement
+  if movex < -300 and peripherals.eg_object.slide > 0:     #start sliding when there is enough touchmovement
     peripherals.lastx = 0
     movex = 0
-    config.slide -= 1
+    peripherls.eg_object.slide -= 1
     sbg.set_alpha(0)
     a = 0
     slide_offset += 400
 
 
-  if movex > 300 and config.slide < len(config.slides) - 1:
+  if movex > 300 and peripherals.eg_object.slide < len(config.slides) - 1:
     peripherals.lastx = 0
     movex = 0
-    config.slide += 1
+    perpherals.eg_object.slide += 1
     sbg.set_alpha(0)
     a = 0
     slide_offset -= 400
@@ -232,8 +236,8 @@ while graphics.DISPLAY.loop_running():
   if config.subslide != None: 
    activity = subslides[config.subslide].inloop(textchange,activity)
 
-  elif -1 < config.slide < len(config.slides):
-   activity,slide_offset = slides[config.slide].inloop(textchange,activity,slide_offset)  
+  elif -1 < peripherals.eg_object.slide < len(config.slides):
+   activity,slide_offset = slides[peripherals.eg_object.slide].inloop(textchange,activity,slide_offset)  
 
 
   if (activity == False) & (slide_offset == 0) : 
