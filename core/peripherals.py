@@ -17,11 +17,12 @@ if config.startmqttclient:
 
 
 
-os_touchdriver = os.popen('pgrep -f touchdriver.py -c') #checks if touchdriver is running
-if os_touchdriver: 
+os_touchdriver = os.popen('pgrep -f touchdriver.py -c').readline() #checks if touchdriver is running
+print(os_touchdriver)
+if int(os_touchdriver) > 1 : 
 
     print('os touch driver active')
-    mouse = pi3d.Mouse(restrict=False)
+    mouse = pi3d.Mouse(restrict=True, width=800, height=480)
     mouse.start()
 
 
@@ -217,10 +218,11 @@ def motion_detected(channel):
 
 def get_touch():
   global  xc,yc, os_touchdriver, mouse
-  if os_touchdriver:
+  if int(os_touchdriver) > 1:
    x1, y1 = mouse.position()
-   x1 = 0.8 * x1
-   y1 = 0.65 * y1
+   x1 -= 400 
+   y1 = (y1 - 240)
+   print(x1,y1)
    if ((-401 < x1  < 401) & (-241 < y1  < 241)):
         if ((-80 < (xc-x1) < 80) & (-80 < (yc-y1) < 80)):  #catch bounches
           xc = x1
@@ -229,9 +231,7 @@ def get_touch():
         else: 
           xc = x1
           yc = y1
-
           print('not identical')
-          
           return get_touch()
    else:
      return get_touch()
@@ -247,7 +247,7 @@ def get_touch():
           yc = y1
           #print(x1,y1)
          
-          return x1,y1  #compensate position to match with PI3D
+          return xc,yc  #compensate position to match with PI3D
         else:
           xc = x1
           yc = y1
@@ -279,6 +279,7 @@ def clicked(x,y):
 
 def touch_debounce(channel):
   global lastx, lasty, touch_pressed,lasttouch
+
   x,y = get_touch()
   lasttouch = time.time()
   if (channel == TOUCHINT):
@@ -288,7 +289,7 @@ def touch_debounce(channel):
     touch_pressed = True
     lastx = x
     lasty = y
-
+    print('touched')
 
 
 def clicksound():
