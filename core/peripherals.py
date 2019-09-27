@@ -227,6 +227,11 @@ def get_touch():
           yc = y1
           return xc, yc
         else: 
+          xc = x1
+          yc = y1
+
+          print('not identical')
+          
           return get_touch()
    else:
      return get_touch()
