@@ -7,12 +7,22 @@ import numpy as np
 import os
 import time
 import struct
+import pi3d 
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import config
 
 if config.startmqttclient:
   import core.mqttclient as mqttclient
+
+
+
+os_touchdriver = os.popen('pgrep -f touchdriver.py -c') #checks if touchdriver is running
+if os_touchdriver: 
+
+    print('os touch driver active')
+    mouse = pi3d.Mouse(restrict=False)
+    mouse.start()
 
 
 xc, yc, lastx, lasty,touch_pressed,lasttouch = 0,0,0,0,0,0
@@ -206,8 +216,21 @@ def motion_detected(channel):
   eg_object.lastmotion = time.time()
 
 def get_touch():
-  global  xc,yc
-  if TOUCHADDR:
+  global  xc,yc, os_touchdriver, mouse
+  if os_touchdriver:
+   x1, y1 = mouse.position()
+   x1 = 0.8 * x1
+   y1 = 0.65 * y1
+   if ((-401 < x1  < 401) & (-241 < y1  < 241)):
+        if ((-80 < (xc-x1) < 80) & (-80 < (yc-y1) < 80)):  #catch bounches
+          xc = x1
+          yc = y1
+          return xc, yc
+        else: 
+          return get_touch()
+   else:
+     return get_touch()
+  elif TOUCHADDR:
     try:
       data = bus.read_i2c_block_data(TOUCHADDR, 0x40, 8)
       x1 = 400 - (data[0] | (data[4] << 8))

@@ -9,10 +9,10 @@ import rrdtool
 import pi3d
 import importlib
 
-
+import core.graphics as graphics
 import core.peripherals as peripherals
 import config
-import core.graphics as graphics
+
 
 
 
@@ -218,7 +218,7 @@ while graphics.DISPLAY.loop_running():
   if movex < -300 and peripherals.eg_object.slide > 0:     #start sliding when there is enough touchmovement
     peripherals.lastx = 0
     movex = 0
-    peripherls.eg_object.slide -= 1
+    peripherals.eg_object.slide -= 1
     sbg.set_alpha(0)
     a = 0
     slide_offset += 400
@@ -227,7 +227,7 @@ while graphics.DISPLAY.loop_running():
   if movex > 300 and peripherals.eg_object.slide < len(config.slides) - 1:
     peripherals.lastx = 0
     movex = 0
-    perpherals.eg_object.slide += 1
+    peripherals.eg_object.slide += 1
     sbg.set_alpha(0)
     a = 0
     slide_offset -= 400
