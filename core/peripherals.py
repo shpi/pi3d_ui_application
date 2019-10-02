@@ -15,7 +15,7 @@ import config
 if config.startmqttclient:
   import core.mqttclient as mqttclient
 
-import core.graphics as graphics
+
 
 os_touchdriver = os.popen('pgrep -f touchdriver.py -c').readline() #checks if touchdriver is running
 
@@ -48,8 +48,9 @@ def touchloop():
          touch_pressed = True
          lastx = xc
          lasty = yc
-     else: 
-       touch_pressed = False
+     else:
+        lastx = 0 
+    #   touch_pressed = False
     
 
 
