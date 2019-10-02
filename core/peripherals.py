@@ -7,7 +7,7 @@ import numpy as np
 import os
 import time
 import struct
-import pi3d 
+import pi3d
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import config
@@ -15,18 +15,48 @@ import config
 if config.startmqttclient:
   import core.mqttclient as mqttclient
 
-
+import core.graphics as graphics
 
 os_touchdriver = os.popen('pgrep -f touchdriver.py -c').readline() #checks if touchdriver is running
-print(os_touchdriver)
-if int(os_touchdriver) > 1 : 
 
+if int(os_touchdriver) > 1 : 
     print('os touch driver active')
-    mouse = pi3d.Mouse(restrict=True, width=800, height=480)
-    mouse.start()
+    from _thread import start_new_thread
+    touch_file = open("/dev/input/event0", "rb")
+   
 
 
 xc, yc, lastx, lasty,touch_pressed,lasttouch = 0,0,0,0,0,0
+
+
+
+
+
+
+def touchloop():
+ global xc,yc,lastx,lasty,touch_pressed,touch_file
+ while True:
+    event = touch_file.read(16)
+    (timestamp, id, code, type, value) = struct.unpack('llHHI', event)
+    if code == 3 and type == 0:
+      xc = value - 400
+    if code == 3 and type == 1:
+      yc = -(value - 240)
+    if code == 1 and type == 330:
+     if value: 
+         lasttouch = time.time()
+         touch_pressed = True
+         lastx = xc
+         lasty = yc
+     else: 
+       touch_pressed = False
+    
+
+
+
+
+
+
 
 VALS = { # various aliases for off and on
   '0': 0x00, 0: 0x00, 'OFF': 0x00,
@@ -217,24 +247,11 @@ def motion_detected(channel):
   eg_object.lastmotion = time.time()
 
 def get_touch():
-  global  xc,yc, os_touchdriver, mouse
+  global  xc,yc, os_touchdriver, mouse,x_off,y_off
   if int(os_touchdriver) > 1:
-   x1, y1 = mouse.position()
-   x1 -= 400 
-   y1 = (y1 - 240)
-   print(x1,y1)
-   if ((-401 < x1  < 401) & (-241 < y1  < 241)):
-        if ((-80 < (xc-x1) < 80) & (-80 < (yc-y1) < 80)):  #catch bounches
-          xc = x1
-          yc = y1
-          return xc, yc
-        else: 
-          xc = x1
-          yc = y1
-          print('not identical')
-          return get_touch()
-   else:
-     return get_touch()
+   
+   return xc,yc
+    
   elif TOUCHADDR:
     try:
       data = bus.read_i2c_block_data(TOUCHADDR, 0x40, 8)
@@ -289,7 +306,7 @@ def touch_debounce(channel):
     touch_pressed = True
     lastx = x
     lasty = y
-    print('touched')
+    
 
 
 def clicksound():
@@ -494,8 +511,13 @@ gpio.setmode(gpio.BCM)
 gpio.setwarnings(False)
 gpio.setup(TOUCHINT, gpio.IN)
 gpio.setup(PIR, gpio.IN)        
-      
-gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce)    #touch interrupt
+
+if int(os_touchdriver) < 2 : 
+ gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce)    #touch interrupt
+else:
+ start_new_thread(touchloop,())
+
+
 gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected)  #motion detector interrupt
 
 infrared_vals = np.full(100, np.nan)    

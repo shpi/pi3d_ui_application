@@ -67,14 +67,6 @@ a = 0
 
 
 
-str1a = pi3d.FixedString('fonts/opensans.ttf', 'O', font_size=48, 
-                        color=(70, 70, 180, 255), background_color=None, shadow_radius=1, 
-                        camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
-
-
-
-
-
 
 def get_files():
   
@@ -217,8 +209,7 @@ while graphics.DISPLAY.loop_running():
 
   if peripherals.touched(): # and (peripherals.lasttouch + 0.4 > time.time()):  # check if touch is pressed, to detect sliding
     x,y = peripherals.get_touch()
-    #str1a.sprite.position(x, y, 0.1) #NB note Shape methods act on FixedString.sprite
-    #str1a.draw()
+
 
 
     activity = True
