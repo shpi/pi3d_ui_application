@@ -9,11 +9,15 @@ import time
 import struct
 import pi3d
 
+try:
+   import mqttclient
+except:
+   import core.mqttclient as mqttclient
+
+
+
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import config
-
-if config.startmqttclient:
-  import core.mqttclient as mqttclient
 
 
 
@@ -22,7 +26,7 @@ os_touchdriver = os.popen('pgrep -f touchdriver.py -c').readline() #checks if to
 if int(os_touchdriver) > 1 : 
     print('os touch driver active')
     from _thread import start_new_thread
-    touch_file = open("/dev/input/event0", "rb")
+    touch_file = open("/dev/input/event1", "rb")
    
 
 
@@ -98,6 +102,7 @@ TOUCHADDR = 0x5c
 ADDR_32U4 = 0x2A
 ADDR_BMP = 0x77
 ADDR_SHT = 0x44
+ADDR_AHT10 = 0x38
 ADDR_MLX = 0x5B
 ADDR_BH1750 = 0x23
 PIR = 18
@@ -129,6 +134,15 @@ try:
 except:
   ADDR_SHT = False
   print('no SHT found')
+
+
+#check for AHT10
+try:
+  bus.write_byte(ADDR_AHT10, 0x00)
+except:
+  ADDR_AHT10 = False
+  print('no AHT10 found')
+
 
 #check for light sensor BH1750
 try:
@@ -191,6 +205,11 @@ class EgClass(object):
       sht_temp = 0.0
       humidity = 0.0
       
+
+
+  if ADDR_AHT10:
+     sht_temp = 0.0
+     humidity = 0.0
    
   motion = False
   set_temp = 23.0  
@@ -452,6 +471,22 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
       data = bus.read_i2c_block_data(ADDR_SHT, 0x00, 6)
       eg_object.sht_temp = float(((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45)
       eg_object.humidity = 100 * (data[3] * 256 + data[4]) / 65535.0
+
+    if ADDR_AHT10:
+
+
+       bus.write_i2c_block_data(ADDR_AHT10,0xA8, [0x00, 0x00])
+       time.sleep(0.05)
+       bus.write_i2c_block_data(ADDR_AHT10,0xAC, [0x00, 0x00])
+       bus.write_i2c_block_data(ADDR_AHT10,0xE1, [0x08, 0x00])
+       time.sleep(0.05)
+       response = bus.read_byte(ADDR_AHT10)
+
+       if ( response & 0x68 == 0x08):
+           temp = bus.read_i2c_block_data(ADDR_AHT10, 0x00, 6)
+           eg_object.humidity = (temp[1] << 12 | temp[2] << 4 | (temp[3] & 0xf0) >> 4) * 100.0 / (1 << 20)
+           eg_object.sht_temp = ((temp[3] & 0xf) << 16 | temp[4] << 8 | temp[5]) * 200.0 / (1 << 20) - 50
+
 
     if ADDR_BH1750:
       data = bus.read_i2c_block_data(ADDR_BH1750,0x23)   #0x20 highres 1 lux prec.,  0x21 highres2 0.5lux prec., 0x23 4 lux prec. fast!
