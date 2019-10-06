@@ -19,14 +19,12 @@ import config
 slides = []
 subslides = dict()
 
-try:
-   for  slidestring in config.slides:
+for  slidestring in config.slides:
       slides.append(importlib.import_module('slides.'+slidestring))
 
-   for  slidestring in config.subslides: 
+for  slidestring in config.subslides: 
       subslides[slidestring] = importlib.import_module('subslides.'+slidestring)
-except: 
-  pass
+
 
 
 
@@ -106,6 +104,9 @@ if config.starthttpserver:
 slide_offset = 0 # change by touch and slide
 textchange = True
 sfg = graphics.tex_load(iFiles[pic_num])
+
+print(os.popen('i2cdetect -y 2').readlines())
+
 peripherals.get_infrared() #run all one for init eg_object
 peripherals.get_sensors() # ''
 peripherals.get_status() # ''
@@ -125,15 +126,15 @@ while graphics.DISPLAY.loop_running():
 
   if config.backlight_auto:
 
-    next_tm = peripherals.eg_object.lastmotion + config.backlight_auto
-    if peripherals.eg_object.backlight_level and next_tm  < now:
-      peripherals.eg_object.backlight_level = int(peripherals.eg_object.max_backlight - (now - next_tm)) 
+    if now < peripherals.eg_object.lastmotion + config.backlight_auto:
+      peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight 
 
-    elif peripherals.eg_object.backlight_level < peripherals.eg_object.max_backlight and next_tm > now:
-      peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight
+    else:
+      peripherals.eg_object.backlight_level = 0
 
 
     if peripherals.eg_object.backlight_level != last_backlight_level:
+      print('set backlight:' + str(peripherals.eg_object.backlight_level))
       peripherals.controlbacklight(peripherals.eg_object.backlight_level)
       last_backlight_level = peripherals.eg_object.backlight_level
 
@@ -146,7 +147,7 @@ while graphics.DISPLAY.loop_running():
 
   if (now > nextsensorcheck):
 
-    start_new_thread(peripherals.get_sensors,())
+    peripherals.get_sensors()
     nextsensorcheck = now + config.SENSOR_TM
 
     if config.coolingrelay and config.coolingrelay == config.heatingrelay:
@@ -211,7 +212,6 @@ while graphics.DISPLAY.loop_running():
     x,y = peripherals.get_touch()
 
 
-
     activity = True
     if ((x != 400) and peripherals.lastx):  #catch 0,0 -> 400,-240
       movex = (peripherals.lastx - x)
@@ -244,6 +244,7 @@ while graphics.DISPLAY.loop_running():
    activity = subslides[config.subslide].inloop(textchange,activity)
 
   elif -1 < peripherals.eg_object.slide < len(config.slides):
+   #print(peripherals.eg_object.slide)
    activity,slide_offset = slides[peripherals.eg_object.slide].inloop(textchange,activity,slide_offset)  
 
 
