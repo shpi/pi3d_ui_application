@@ -48,17 +48,15 @@ def touchloop():
       yc = -(value - 240)
     if code == 1 and type == 330:
      if value: 
-         lasttouch = time.time()
-         touch_pressed = True
-         lastx = xc
-         lasty = yc
+        eg_object.lastmotion = time.time() # wake screen up on touch
+        lasttouch = time.time()
+        touch_pressed = True
+        lastx = xc
+        lasty = yc
      else:
         lastx = 0 
     #   touch_pressed = False
     
-
-
-
 
 
 
@@ -113,6 +111,7 @@ TOUCHINT = 26
 bus = smbus.SMBus(2) 
 
 try:
+  bus.read_byte(TOUCHADDR)
   bus.write_byte_data(TOUCHADDR, 0x6e, 0b00001110)                                              # interrupt configuration i2c
   bus.write_byte_data(TOUCHADDR, 0x70, 0b00000000)
 except:
@@ -122,7 +121,7 @@ except:
 
 #check for atmega  -> future: lite or std SHPI
 try:
-  bus.write_byte(ADDR_32U4, 0x00)
+  bus.read_byte(ADDR_32U4)
 except:
   ADDR_32U4 = False
   print('no ATmega found, seems to be a SHPI.zero lite?')
@@ -130,22 +129,33 @@ except:
 
 #check for SHT3x
 try:
-  bus.write_byte(ADDR_SHT, 0x00)
+  bus.read_byte(ADDR_SHT)
 except:
   ADDR_SHT = False
   print('no SHT found')
 
 
-#check for AHT10
 try:
-  bus.write_byte(ADDR_AHT10, 0x00)
+  bus.read_byte(ADDR_AHT10)
+  bus.write_i2c_block_data(ADDR_AHT10,0xA8, [0x00, 0x00])
+  # time.sleep(0.1)
+  bus.write_i2c_block_data(ADDR_AHT10,0xAC, [0x00, 0x00])
+  time.sleep(0.3)
+  bus.write_i2c_block_data(ADDR_AHT10,0xE1, [0x08, 0x00])
+  #time.sleep(0.1)
+  response = bus.read_byte(ADDR_AHT10)
+  #time.sleep(0.1)
+  if ( response & 0x68 == 0x08):   print('AHT10 calibrated')
+  else: print('AHT10 error occured')
+  #time.sleep(0.5)
+
 except:
   ADDR_AHT10 = False
   print('no AHT10 found')
 
-
 #check for light sensor BH1750
 try:
+  bus.read_byte(ADDR_BH1750)
   bus.write_byte(ADDR_BH1750,0x01) #power on BH1750
 except:
   print('no BH1750')
@@ -155,13 +165,16 @@ except:
 
 #check for MLX90615
 try:
-  bus.write_byte(ADDR_MLX, 0x00)
+  print('check mlx')
+  bus.read_byte(ADDR_MLX)
 except:
   ADDR_MLX = False
   print('no MLX90615 found')
 
 #correction values for BMP280
 try:
+   print('check bmp')
+   bus.read_byte(ADDR_BMP)
    b1 = bytes(bus.read_i2c_block_data(ADDR_BMP, 0x88, 24))
    dig_T = struct.unpack_from('<Hhh', b1, 0)
    dig_P = struct.unpack_from('<Hhhhhhhhh', b1, 6)
@@ -190,26 +203,26 @@ class EgClass(object):
       buzzer = 0
       relais1current = 0.0
       
-  if ADDR_MLX:     
-      mlxamb = 0.0
-      mlxobj = 0.0
+  # if ADDR_MLX:     
+  mlxamb = 0.0
+  mlxobj = 0.0
 
-  if ADDR_BMP:       
-      bmp280_temp = 0.0 
-      pressure = 0.0
-      
-  if ADDR_BH1750:
-      lightlevel = 0.0
+  # if ADDR_BMP:       
+  bmp280_temp = 0.0 
+  pressure = 0.0
   
-  if ADDR_SHT:
-      sht_temp = 0.0
-      humidity = 0.0
+  # if ADDR_BH1750:
+  lightlevel = 0.0
+  
+  # if ADDR_SHT:
+  sht_temp = 0.0
+  humidity = 0.0
       
 
 
-  if ADDR_AHT10:
-     sht_temp = 0.0
-     humidity = 0.0
+  # if ADDR_AHT10:
+  sht_temp = 0.0
+  humidity = 0.0
    
   motion = False
   set_temp = 23.0  
@@ -273,6 +286,7 @@ def get_touch():
    return xc,yc
     
   elif TOUCHADDR:
+   if (gpio.input(TOUCHINT)):
     try:
       data = bus.read_i2c_block_data(TOUCHADDR, 0x40, 8)
       x1 = 400 - (data[0] | (data[4] << 8))
@@ -299,7 +313,7 @@ def get_touch():
         time.sleep(0.06)  #wait on  I2C error
         print('i2cerror')
         return get_touch()
-
+   else: return 0,0
   else:
     return 0,0
 
@@ -330,8 +344,10 @@ def touch_debounce(channel):
 
 
 def clicksound():
-  bus.write_byte_data(ADDR_32U4, BUZZER, VALS['CLICK'])
-  
+  try:
+   bus.write_byte_data(ADDR_32U4, BUZZER, VALS['CLICK'])
+  except:
+   print('clicksound error')
 
 def controlrelays(channel, value, retries=0):
   try:
@@ -344,24 +360,42 @@ def controlrelays(channel, value, retries=0):
       controlrelays(channel, value, retries + 1)
       
 def read_one_byte(addr_val): # utility function for brevity
+ try:
   bus.write_byte(ADDR_32U4, addr_val)
-  return bus.read_byte(ADDR_32U4)
+  time.sleep(0.01)
+  byte = bus.read_byte(ADDR_32U4)
+  return byte
+ except:
+  print('error ' + '0x{:02x}'.format(addr_val))
+  time.sleep(0.1)
+  return read_one_byte(addr_val)
 
 def read_two_bytes(addr_val): # utility function for brevity
+ try:
   bus.write_byte(ADDR_32U4, addr_val)
-  return bus.read_byte(ADDR_32U4) | (bus.read_byte(ADDR_32U4) << 8)
-  
+  time.sleep(0.01)
+  b1 = bus.read_byte(ADDR_32U4)
+  b2 = bus.read_byte(ADDR_32U4)
+  return b1 | (b2 << 8)
+ except:
+  print('error ' + '0x{:02x}'.format(addr_val))
+  time.sleep(0.1)
+  return read_two_bytes(addr_val)
+
 def controlvent(value):
+  try:
     value = int(value) # variable int value
     assert -1 < value < 256, 'value outside 0..255'
     bus.write_byte_data(ADDR_32U4, 0x93, value)
+  except Exception as e:
+    print(e) 
 
 def controlbacklight(value):
       os.popen('sudo chrt --rr 99 ' + config.installpath + 'bin/backlight {}'.format(value)) #needs sudo because of timing
       try:
        bus.write_byte_data(ADDR_32U4, BACKLIGHT_LEVEL, value)
-      except:
-       pass
+      except Exception as e:
+        print(e) 
 
 def controlled(rgbvalues, retries=0):
     if len(rgbvalues) == 3:
@@ -404,7 +438,7 @@ def coolingheating():
       controlrelays(config.heatingrelay, 1)    
 
 def get_infrared():
-
+     if (gpio.input(TOUCHINT) == 0):
       try:
         eg_object.mlxamb = float((bus.read_word_data(ADDR_MLX, 0x26) *0.02)  - 273.15)
         eg_object.mlxobj = float((bus.read_word_data(ADDR_MLX, 0x27) *0.02)  - 273.15)
@@ -415,8 +449,8 @@ def get_infrared():
         else:
           infrared_vals[-1] = eg_object.mlxobj
 
-      except:
-        pass
+      except Exception as e:
+        print('error MLX:' + e) 
 
 
 def get_status():
@@ -451,49 +485,38 @@ def get_status():
 
 
 
-  except:
-   pass
-
+  except Exception as e:
+    print(e) 
 
 
 def get_sensors(): #readout all sensor values, system, and atmega vars
-  global infrared_vals,dig_T,dig_P
-  
-  try:
+ global infrared_vals,dig_T,dig_P
+ if (gpio.input(TOUCHINT) == 0):
     
     eg_object.uhrzeit = time.strftime("%H:%M")
     eg_object.gputemp = float(os.popen("vcgencmd measure_temp").readline()[5:-3])
     eg_object.cputemp = float(os.popen("cat /sys/class/thermal/thermal_zone0/temp").readline()) / 1000
 
     if ADDR_SHT:
+     try:
       bus.write_i2c_block_data(ADDR_SHT, 0x24, [0x00]) #clockstretching disabled , softreset: 0x30A2 or general call: 0x0006
-      time.sleep(0.02)
+      time.sleep(0.05)
       data = bus.read_i2c_block_data(ADDR_SHT, 0x00, 6)
       eg_object.sht_temp = float(((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45)
       eg_object.humidity = 100 * (data[3] * 256 + data[4]) / 65535.0
-
-    if ADDR_AHT10:
-
-
-       bus.write_i2c_block_data(ADDR_AHT10,0xA8, [0x00, 0x00])
-       time.sleep(0.05)
-       bus.write_i2c_block_data(ADDR_AHT10,0xAC, [0x00, 0x00])
-       bus.write_i2c_block_data(ADDR_AHT10,0xE1, [0x08, 0x00])
-       time.sleep(0.05)
-       response = bus.read_byte(ADDR_AHT10)
-
-       if ( response & 0x68 == 0x08):
-           temp = bus.read_i2c_block_data(ADDR_AHT10, 0x00, 6)
-           eg_object.humidity = (temp[1] << 12 | temp[2] << 4 | (temp[3] & 0xf0) >> 4) * 100.0 / (1 << 20)
-           eg_object.sht_temp = ((temp[3] & 0xf) << 16 | temp[4] << 8 | temp[5]) * 200.0 / (1 << 20) - 50
+     except:
+      print('error sht')
 
 
     if ADDR_BH1750:
+     try:
       data = bus.read_i2c_block_data(ADDR_BH1750,0x23)   #0x20 highres 1 lux prec.,  0x21 highres2 0.5lux prec., 0x23 4 lux prec. fast!
       eg_object.lightlevel = (float)((data[1] + (256 * data[0])) / 1.2)
-
+     except:
+       print('error bh1750')
 
     if ADDR_BMP:
+     try:
       bus.write_byte_data(ADDR_BMP, 0xF4, 0x27)
       bus.write_byte_data(ADDR_BMP, 0xF5, 0xA0)
       data = bus.read_i2c_block_data(ADDR_BMP, 0xF7, 8)
@@ -516,9 +539,9 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
       var1 = (dig_P[8]) * p * p / 2147483648.0
       var2 = p * (dig_P[7]) / 32768.0
       eg_object.pressure = (p + (var1 + var2 + (dig_P[6])) / 16.0) / 100
-
+     except:
+       print('error bmp')
     eg_object.act_temp = np.nanmedian(infrared_vals)
-
     
     
     if ADDR_32U4:
@@ -536,13 +559,18 @@ def get_sensors(): #readout all sensor values, system, and atmega vars
       eg_object.a5 = read_two_bytes(0x05)
       eg_object.a7 = read_two_bytes(0x06)
 
+    if ADDR_AHT10:
+
+      try:
+       bus.write_i2c_block_data(ADDR_AHT10,0xAC, [0x00, 0x00])
+       time.sleep(0.3)
+       temp = bus.read_i2c_block_data(ADDR_AHT10, 0x00, 9)
+       eg_object.humidity = (temp[1] << 12 | temp[2] << 4 | (temp[3] & 0xf0) >> 4) * 100.0 / (1 << 20)
+       eg_object.sht_temp = ((temp[3] & 0xf) << 16 | temp[4] << 8 | temp[5]) * 200.0 / (1 << 20) - 50
+      except:
+       print('error aht10')
 
 
-
-  except Exception as e:
-    print(e)      
-      
-      
 gpio.setmode(gpio.BCM)
 gpio.setwarnings(False)
 gpio.setup(TOUCHINT, gpio.IN)
@@ -556,4 +584,4 @@ else:
 
 gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected)  #motion detector interrupt
 
-infrared_vals = np.full(100, np.nan)    
+infrared_vals = np.full(100, np.nan)
