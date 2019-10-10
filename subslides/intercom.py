@@ -38,18 +38,24 @@ def inloop(textchange = False,activity = False):
         str5.draw()
 
         #we deactivate speaker, while talking, to avaoid feedback and increase privacy for door intercoms
-        #os.popen('amixer set Master 0%')
-        #os.popen('amixer set Capture 100%')
+        os.popen('gpio -g write 27 0') #deactivate amplifier
+        os.popen('i2cset -y 2 0x2A 0x93 0xFF') #deactivate vent
+        os.popen("amixer -c 1 set 'PCM' 0%") #deactivate soundcard out
+        os.popen("amixer -c 1 set 'Mic' 100%") #enable mic
+
 
     else:
-      str3.draw()
-      #os.popen('amixer set Master 100%')
-      #os.popen('amixer set Capture 0%')
+        str3.draw()
+        os.popen('gpio -g write 27 1') #deactivate amplifier
+        os.popen('i2cset -y 2 0x2A 0x93 210') #deactivate vent
+        os.popen("amixer -c 1 set 'PCM' 100%") #deactivate soundcard out
+        os.popen("amixer -c 1 set 'Mic' 0%") #enable mic
+
+
     if (peripherals.touch_pressed and (peripherals.lastx < 0)):        #only close if left side touched
       peripherals.touch_pressed = False
       os.popen('killall nc') #warning just a test
       os.popen('killall ./videoplayer')
-      os.popen('killall omxplayer.bin')
       os.popen('killall raspivid')
       config.subslide = None
     return activity

@@ -119,22 +119,26 @@ def inloop(textchange = False,activity = False, offset = 0):
          init()
          lasticalrefresh = time.time() +  config.ICAL_TM
 
-     background2.draw()
-     lowerboarder.draw()
-     upperboarder.draw()
-     text6.draw()
-     #text.regen() 
+     if offset != 0:
+           offset = graphics.slider_change(text6.text, offset)
+     if offset == 0:
+             
+        background2.draw()
+        lowerboarder.draw()
+        upperboarder.draw()
      
-     if actualy < -displayheight:
-      if scrolloffset <  actualy + displayheight:
-         updown = 1
-      if scrolloffset > 0:
-         updown = 0
-      if updown:    
-        scrolloffset += 15
-      else:
-        scrolloffset -= 1
-      text6.text.positionY(-scrolloffset)
+        if actualy < -displayheight:
+            if scrolloffset <  actualy + displayheight:
+               updown = 1
+            if scrolloffset > 0:
+               updown = 0
+            if updown:    
+               scrolloffset += 15
+            else:
+              scrolloffset -= 1
+            text6.text.positionY(-scrolloffset)
 
 
-      return activity, offset
+
+     text6.draw()
+     return activity, offset

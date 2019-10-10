@@ -26,9 +26,6 @@ for  slidestring in config.subslides:
       subslides[slidestring] = importlib.import_module('subslides.'+slidestring)
 
 
-
-
-
 # make 4M ramdisk for graph
 os.popen('sudo mkdir /media/ramdisk')
 os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
@@ -60,9 +57,6 @@ everysecond = 0
 nexttm = 0
 last_backlight_level = 0 
 a = 0
-
-
-
 
 
 
@@ -100,16 +94,15 @@ if config.starthttpserver:
 
 
 
-
 slide_offset = 0 # change by touch and slide
 textchange = True
 sfg = graphics.tex_load(iFiles[pic_num])
 
-print(os.popen('i2cdetect -y 2').readlines())
 
-peripherals.get_infrared() #run all one for init eg_object
+peripherals.get_status() #run all one for init eg_object
 peripherals.get_sensors() # ''
-peripherals.get_status() # ''
+peripherals.get_infrared() # ''
+
 
 peripherals.eg_object.slide = config.slide
 
@@ -174,12 +167,12 @@ while graphics.DISPLAY.loop_running():
       sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,(0.0))
 
     start_new_thread(rrdtool.update,('temperatures.rrd', temperatures_str))
-    #rrdtool.update('temperatures.rrd', temperatures_str)
+
     print(temperatures_str)
 
 
     if config.show_airquality:
-        redvalue = int(0.03 * peripherals.eg_object.a4)
+        redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
         greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
         peripherals.controlled([redvalue,greenvalue,0])
 
@@ -222,7 +215,7 @@ while graphics.DISPLAY.loop_running():
   else:
     movex = 0
 
-  if movex < -300 and peripherals.eg_object.slide > 0:     #start sliding when there is enough touchmovement
+  if movex < -300 and peripherals.eg_object.slide > 0 and peripherals.lasttouch < (now - 0.1):     #start sliding when there is enough touchmovement
     peripherals.lastx = 0
     movex = 0
     peripherals.eg_object.slide -= 1
@@ -231,7 +224,7 @@ while graphics.DISPLAY.loop_running():
     slide_offset += 400
 
 
-  if movex > 300 and peripherals.eg_object.slide < len(config.slides) - 1:
+  if movex > 300 and peripherals.eg_object.slide < len(config.slides) - 1  and peripherals.lasttouch < (now - 0.1):
     peripherals.lastx = 0
     movex = 0
     peripherals.eg_object.slide += 1
@@ -244,7 +237,7 @@ while graphics.DISPLAY.loop_running():
    activity = subslides[config.subslide].inloop(textchange,activity)
 
   elif -1 < peripherals.eg_object.slide < len(config.slides):
-   #print(peripherals.eg_object.slide)
+   
    activity,slide_offset = slides[peripherals.eg_object.slide].inloop(textchange,activity,slide_offset)  
 
 

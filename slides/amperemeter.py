@@ -38,7 +38,7 @@ def inloop(textchange = False,activity = False, offset = 0):
     text5.draw()
 
     try:
-      peripherals.eg_object.relais1current = (((5000/1024) * (peripherals.read_one_byte(0x14) - 2)) / 185)
+      peripherals.eg_object.relais1current = (((5000/1024) * (peripherals.read_two_bytes(0x14) - 2)) / 185)
       text5.regen()
       
     except:

@@ -151,17 +151,27 @@ def inloop(textchange = False,activity = False, offset = 0):
                 except:
                     pass
 
-                os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@192.168.1.34 "raspivid  -t 0 -w 640 -h 480 -g 10 -ih -fps 25 -l -p \'640,0,160,120\' -o  tcp://0.0.0.0:5001"')
+                os.popen('gpio -g write 27 1') #deactivate amplifier
+                os.popen('i2cset -y 2 0x2A 0x93 210') #deactivate vent
+                os.popen("amixer -c 1 set 'PCM' 0%") #deactivate soundcard out
+                os.popen("amixer -c 1 set 'Mic' 0%") #enable mic
+                config.iip = '192.168.1.22'
+                config.iuser = 'pi'
+                config.ipw = 'raspberry'
+                os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@' + config.iip + ' "raspivid  -t 0 -w 640 -h 480 -g 10 -ih -fps 25 -l -p \'640,0,160,120\' -o  tcp://0.0.0.0:5001"')
+                os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@' + config.iip + ' "arecord -D plughw:1,0 -r 12000 -f S16_LE -c1 -B 300 -t wav | nc -l 5003"')
+
                 os.popen('raspivid  -t 0 -w 640 -h 480 -g 10  -ih -fps 25 -hf  -vf -l -p \'640,0,160,120\' -o  tcp://0.0.0.0:5002')
-                os.popen('sleep 1 && nc 192.168.1.34 5001 | ./videoplayer 0 0 640 480')
-                os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@192.168.1.34 "nc 192.168.1.50 5002 | ./videoplayer 0 0 640 480"')
+                os.popen('sleep 2 && nc ' + config.iip + ' 5001 | ./videoplayer 0 0 640 480')
+                os.popen('sleep 2 && nc ' + config.iip + '  5003 | { dd bs=60K count=1 iflag=fullblock of=/dev/null; aplay -c 1 --device=plughw:1,0 -B 0 -f S16_LE -c1 -r 12000 -t wav; }')
+                os.popen('arecord -D plughw:1,0 -r 12000 -f S16_LE -c1 -B 300 -t wav | nc -l 5004')
 
-        #intercom between 2 SHPIs,  just a test concept,  master access slave and start necessary applications
-        #os.popen('arecord -D plughw:1,0 -r 8000 -f S16_LE -c1 -N -B 100 -t wav | nc -l 5002')
-        #os.popen('nc [ownip] 5002 | aplay -f S16_LE -c1 -r 8000')
-        #sshpass -p 'password' ssh -o StrictHostKeyChecking=no  user@server "arecord -D plughw:1,0 -r 8000 -f S16_LE -c1 -N -B 100 -t wav | nc -l 5002";
-        #sshpass -p 'password' ssh -o StrictHostKeyChecking=no  user@server "nc [ownip] 5002 | aplay -f S16_LE -c1 -r 8000";
+                os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@' + config.iip + ' "nc 192.168.1.33 5002 | ./videoplayer 0 0 640 480"')
+                os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@' + config.iip + ' "nc 192.168.1.33 5004 | { dd bs=60K count=1 iflag=fullblock of=/dev/null; aplay -c 1 --device=plughw:1,0 -B 0 -f S16_LE -c1 -r 12000 -t wav; }"')
 
+
+        #nc 192.168.1.33 5003 | { dd bs=60K count=1 iflag=fullblock of=/dev/null; aplay -c 1 --device=plughw:1,0 -B 0 -f S16_LE -c1 -r 12000 -t wav; }
+        #arecord -D plughw:1,0 -r 12000 -f S16_LE -c1 -B 300 -t wav | nc -l 5003
 
         if controls_alpha > 0.3:
             activity = True
