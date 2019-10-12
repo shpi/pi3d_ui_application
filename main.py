@@ -140,7 +140,7 @@ while graphics.DISPLAY.loop_running():
 
   if (now > nextsensorcheck):
 
-    peripherals.get_sensors()
+    peripherals.get_sensors() #needs to be threaded
     nextsensorcheck = now + config.SENSOR_TM
 
     if config.coolingrelay and config.coolingrelay == config.heatingrelay:
@@ -150,7 +150,7 @@ while graphics.DISPLAY.loop_running():
       if config.heatingrelay: peripherals.heating()
 
 
-    start_new_thread(peripherals.get_status,())
+    peripherals.get_status()  #needs to be threaded 
 
     
     if hasattr(peripherals.eg_object,'bmp280_temp'): bmp280_temp = peripherals.eg_object.bmp280_temp
