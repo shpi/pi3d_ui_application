@@ -1,6 +1,6 @@
 # zero_main_application - Actual Development Status
 
-Warning: The software is in early development stage and is not fully documented so far. 
+Warning: Latest version needs ATmega firmware with CRC check. Please update atmega firmware. The software is in early development stage and is not fully documented so far. 
 
 You can easily request functions by mailing lh@shpi.de
 
