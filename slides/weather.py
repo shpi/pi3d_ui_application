@@ -45,7 +45,7 @@ def init():
  weather = place.get_weather()
  text.text_blocks = []
  text._first_free_char = 0
- #text.regen()
+
 
 
  if config.owmlanguage == 'de':
@@ -67,7 +67,7 @@ def init():
  city = pi3d.TextBlock(-220, 80, 0.1, 0.0, 30,justify=0.5, text_format= weather.get_detailed_status() , size=0.3, spacing="F", space=0.05,colour=(1.0, 1.0, 1.0,1.0))
  text.add_text_block(city)
 
- acttemp = pi3d.TextBlock(-300, -50, 0.1, 0.0, 10, text_format= str(weather.get_temperature(unit='celsius')['temp']) + '°C'  ,  size=0.9, spacing="F",space=0.05,colour=(1.0, 1.0, 1.0,1.0))
+ acttemp = pi3d.TextBlock(-350, -50, 0.1, 0.0, 10, text_format= str(weather.get_temperature(unit='celsius')['temp']) + '°C'  ,  size=0.9, spacing="F",space=0.05,colour=(1.0, 1.0, 1.0,1.0))
  text.add_text_block(acttemp)
  #acttemp = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', str(weather.get_temperature(unit='celsius')['temp']) + '°C'   , font_size=42, shadow_radius=1,justify='L', color= (255,255,255,255),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
  #acttemp.sprite.position(-210, -50, 1)
@@ -211,7 +211,7 @@ def init():
  #linemax.set_alpha(0.9)
 
 init()
-
+threehours = time.time() + (60*60*3)
 
 def inloop(textchange = False,activity = False, offset = 0):
      global seplines,degwind,threehours,weathericon,text,line,baroneedle,windneedle,linemin,linemax,acttemp
@@ -223,17 +223,15 @@ def inloop(textchange = False,activity = False, offset = 0):
 
      grapharea2.draw()
      grapharea.draw()
-     
 
-   
 
      if offset != 0:
          #graphics.slider_change(city.sprite, offset)
 
          offset = graphics.slider_change(text.text, offset)
-              
+
      else:
-     
+
        weathericon.draw()
        #acttemp.draw()
        baroneedle.draw()
