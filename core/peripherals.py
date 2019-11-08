@@ -298,12 +298,16 @@ def touched():
   return gpio.input(TOUCHINT)  
 
 def motion_detected(channel):  
+  global startmotion
   if gpio.input(channel): 
+     startmotion = time.time()
      print('motion detected')
      eg_object.motion  = True
      if config.startmqttclient:
          mqttclient.publish("motion", 'ON')
   else: 
+
+    print(time.time() - startmotion) 
     eg_object.motion = False
     if config.startmqttclient:
          mqttclient.publish("motion", 'OFF')

@@ -139,6 +139,6 @@ def inloop(textchange = False,activity = False, offset = 0):
             text6.text.positionY(-scrolloffset)
 
 
-
+     activity = True # for smooth movement
      text6.draw()
      return activity, offset

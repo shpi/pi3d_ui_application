@@ -1,5 +1,11 @@
 import os,sys
-import core.peripherals as peripherals
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+try:
+ import core.peripherals  as peripherals
+except:
+ pass
 
 try:
     import paho.mqtt.publish as publish  

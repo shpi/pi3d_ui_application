@@ -9,14 +9,14 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import config
 import core.graphics as graphics
 import core.peripherals as peripherals
-
+import time
 
 
 text2 = pi3d.PointText(graphics.pointFontbig, graphics.CAMERA, max_chars=35, point_size=256) #slider2 Time & shutter
 
 
 if config.shutterup or config.shutterdown:
-  uhrzeit_block = pi3d.TextBlock(-280, 100, 0.1, 0.0, 15, data_obj=peripherals.eg_object,attr="uhrzeit", text_format= "{:s}", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+  uhrzeit_block = pi3d.TextBlock(-50, 100, 0.1, 0.0, 15,justify = 0.5,  data_obj=peripherals.eg_object,attr="uhrzeit", text_format= "{:s}", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
   text2.add_text_block(uhrzeit_block)
   shuttersymbol = pi3d.TextBlock(-100, -100, 0.1, 0.0, 15, text_format=chr(0xE035), size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
   text2.add_text_block(shuttersymbol)
@@ -28,9 +28,10 @@ else:
   uhrzeit_block = pi3d.TextBlock(-280, 0, 0.1, 0.0, 15, data_obj=peripherals.eg_object,attr="uhrzeit", text_format= "{:s}", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
   text2.add_text_block(uhrzeit_block)      
         
-        
+shuttertimer = 0
+ 
 def inloop(textchange = False,activity = False, offset = 0):
-      
+     global shuttertimer
      if textchange:
        text2.regen()
      if shutterUp.y != -100 and shutterUp.colouring.colour[2] == 1:
@@ -50,14 +51,28 @@ def inloop(textchange = False,activity = False, offset = 0):
           shutterDown.set_position(y=0)
         shutterDown.set_position(y=(shutterDown.y-2))
         activity = True
-       
- 
+
+     if (shuttertimer > 0):  
+         if (shuttertimer > time.time()):
+              peripherals.eg_object.uhrzeit = str(int(shuttertimer - time.time()))
+              text2.regen()
+
+         elif (shuttertimer < time.time()):
+             shuttertimer = 0
+             peripherals.eg_object.uhrzeit = time.strftime("%H:%M")
+             text2.regen()
+             peripherals.controlrelays(config.shutterdown, 0)
+             peripherals.controlrelays(config.shutterup, 0)
+             shutterDown.colouring.set_colour([1,1,1])
+             shutterUp.colouring.set_colour([1,1,1])
+                 
 
      if peripherals.touch_pressed:
       peripherals.touch_pressed = False     
       if peripherals.clicked(shutterUp.x,shutterUp.y):
         peripherals.controlrelays(config.shutterdown, 0)
         peripherals.controlrelays(config.shutterup, 1)
+        shuttertimer = time.time() + config.shuttertimer
         shutterUp.colouring.set_colour([0,1,0])
         shutterDown.colouring.set_colour([1,1,1])
 
@@ -65,11 +80,16 @@ def inloop(textchange = False,activity = False, offset = 0):
       elif peripherals.clicked(shutterDown.x,shutterDown.y):
         peripherals.controlrelays(config.shutterup, 0)
         peripherals.controlrelays(config.shutterdown, 1)
+        shuttertimer = time.time() + config.shuttertimer
         shutterUp.colouring.set_colour([1,1,1])
         shutterDown.colouring.set_colour([0,1,0])
 
 
       else:
+        shuttertimer = 0
+        peripherals.eg_object.uhrzeit = time.strftime("%H:%M")
+        text2.regen()
+
         peripherals.controlrelays(config.shutterdown, 0)
         peripherals.controlrelays(config.shutterup, 0)
         shutterUp.colouring.set_colour([1,1,1])

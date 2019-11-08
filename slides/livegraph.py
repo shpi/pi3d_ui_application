@@ -63,11 +63,8 @@ grapharea.set_alpha(0.6)
 
 def inloop(textchange = False,activity = False, offset = 0):
      global nextsensorcheck, graph
-     now = time.time()
-     if (now > nextsensorcheck) and offset == 0 and peripherals.touched() == False:
-        peripherals.get_sensors()
-        peripherals.get_infrared()
-        nextsensorcheck = now + 0.1
+     if offset == 0 and peripherals.touched() == False:
+        nextsensorcheck = 0
         text.regen()
         i = 0
         for varname  in showvars:

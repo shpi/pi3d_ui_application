@@ -77,8 +77,7 @@ def inloop(textchange = False,activity = False, offset = 0):
     
             cloud.colouring.set_colour([red, green , 0, 1.0])
             
-            
-            
+                        
             if config.coolingrelay:
                  if getattr(peripherals.eg_object,'relais' + (str)(config.coolingrelay)):
                      cooling.colouring.set_colour([0,0,1])

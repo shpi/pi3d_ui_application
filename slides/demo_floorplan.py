@@ -40,12 +40,12 @@ windowneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=((0,0,0),(45,0,0)), m
 windowneedle.set_shader(graphics.MATSH)
 rotate = 0
 
-      
-        
-        
+
+
+
 def inloop(textchange = False,activity = False, offset = 0):
      global rotate
- 
+
      if textchange:
        text.regen()
 
@@ -56,7 +56,7 @@ def inloop(textchange = False,activity = False, offset = 0):
      doorneedle.set_material([rotate*1.1*0.01,0,0])
      windowneedle.set_material([rotate*1.1*0.01,100-rotate*1.1*0.01,0])
      windowneedle.rotateToZ(-rotate)
-      
+
 
      if offset == 0: 
       officearea.draw()
@@ -66,19 +66,19 @@ def inloop(textchange = False,activity = False, offset = 0):
       windowneedle.draw()
 
      floorplan.draw()
-     
+
      officearea.set_alpha(0.01 * rotate)
      kitchenarea.set_alpha(1 - 0.01 * rotate)
      storagearea.set_alpha(0.01*rotate) 
-        
-        
+
+
      if offset != 0:
          offset = graphics.slider_change(floorplan, offset)
          if offset == 0:
              text.regen()
 
-     text.draw()   
-     activity = False    
+     text.draw()
+     activity = True
      return activity,offset
 
 

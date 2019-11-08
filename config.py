@@ -8,11 +8,11 @@ SENSOR_TM = 10
 ICAL_TM = 3600  #update calenderslide every 3600 seconds
 
 
-show_airquality = 1 # show airquality over LED
+show_airquality = 0 # show airquality over LED
 starthttpserver = 1 #activate simple GET/POST server in python, be aware of  security issues
 HTTP_PORT = 9000
-
-startmqttclient = 1
+shuttertimer = 30 # timer for auto deactivation of shutter relais
+startmqttclient = 0
 MQTT_USER = ''
 MQTT_PW = ''
 MQTT_SERVER = "mqtt.eclipse.org" 
@@ -48,7 +48,7 @@ subslide = None
 
 #configurate your slides here
 
-slides = ['thermostat','weather','shutter','livegraph','status','amperemeter','rrdgraph','ical','settings']
+slides = ['thermostat','weather','status','shutter','livegraph','amperemeter','rrdgraph','ical','settings']
 
 if demo:
   slides.append('demo_floorplan') 

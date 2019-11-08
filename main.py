@@ -15,7 +15,6 @@ import config
 
 
 
-
 slides = []
 subslides = dict()
 
@@ -99,25 +98,21 @@ textchange = True
 sfg = graphics.tex_load(iFiles[pic_num])
 
 
-peripherals.get_status() #run all one for init eg_object
-peripherals.get_sensors() # ''
-peripherals.get_infrared() # ''
 
 
-peripherals.eg_object.slide = config.slide
+def sensor_thread():
+ global textchange,everysecond,nextsensorcheck,last_backlight_level,now
+ while True:
 
-while graphics.DISPLAY.loop_running():
 
-  now = time.time()
+   if peripherals.eg_object.alert:
+      peripherals.alert()
+   elif config.subslide == 'alert': #alert == 0
+      peripherals.alert(0)
+      config.subslide = None
+      if config.startmqttclient:   mqttclient.publish('alert','off')
 
-  if peripherals.eg_object.alert:
-    peripherals.alert()
-  elif config.subslide == 'alert':
-    peripherals.alert(0)
-    config.subslide = None
-    if config.startmqttclient:   mqttclient.publish('alert','off')
-
-  if config.backlight_auto:
+   if config.backlight_auto:
 
     if now < peripherals.eg_object.lastmotion + config.backlight_auto:
       peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight 
@@ -126,21 +121,28 @@ while graphics.DISPLAY.loop_running():
       peripherals.eg_object.backlight_level = 0
 
 
-    if peripherals.eg_object.backlight_level != last_backlight_level:
+   if peripherals.eg_object.backlight_level != last_backlight_level:
       print('set backlight:' + str(peripherals.eg_object.backlight_level))
       peripherals.controlbacklight(peripherals.eg_object.backlight_level)
       last_backlight_level = peripherals.eg_object.backlight_level
 
 
+   if config.starthttpserver:
+          littleserver.handle_request()
+   else:
+      time.sleep(0.1)
 
-  if (now > everysecond):
-    peripherals.get_infrared()
-    everysecond = now + config.INFRARED_TM
+   if config.startmqttclient: mqttclient.publishall()
+   
 
 
-  if (now > nextsensorcheck):
+   if (now > everysecond):
+     peripherals.get_infrared()
+     everysecond = now + config.INFRARED_TM
 
-    peripherals.get_sensors() #needs to be threaded
+   if (now > nextsensorcheck):
+
+    peripherals.get_sensors() 
     nextsensorcheck = now + config.SENSOR_TM
 
     if config.coolingrelay and config.coolingrelay == config.heatingrelay:
@@ -149,37 +151,38 @@ while graphics.DISPLAY.loop_running():
       if config.coolingrelay: peripherals.cooling()
       if config.heatingrelay: peripherals.heating()
 
-
-    peripherals.get_status()  #needs to be threaded 
-
-    
+    peripherals.get_status()   
+    textchange = True
     if hasattr(peripherals.eg_object,'bmp280_temp'): bmp280_temp = peripherals.eg_object.bmp280_temp
     else: bmp280_temp = 0
 
     if hasattr(peripherals.eg_object,'sht_temp'): sht_temp = peripherals.eg_object.sht_temp
     else: sht_temp = 0
 
-
-
-    
     temperatures_str = 'N:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}'.format(
       peripherals.eg_object.act_temp, peripherals.eg_object.gputemp, peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
       sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,(0.0))
 
-    start_new_thread(rrdtool.update,('temperatures.rrd', temperatures_str))
-
+    rrdtool.update('temperatures.rrd', temperatures_str)
     print(temperatures_str)
-
 
     if config.show_airquality:
         redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
         greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
         peripherals.controlled([redvalue,greenvalue,0])
 
-    if config.startmqttclient: mqttclient.publishall()
-    
-    textchange = True
 
+
+
+
+peripherals.eg_object.slide = config.slide
+
+start_new_thread(sensor_thread,())
+
+
+while graphics.DISPLAY.loop_running():
+
+  now = time.time()
 
 
   if not config.subslide:
@@ -208,12 +211,13 @@ while graphics.DISPLAY.loop_running():
     activity = True
     if ((x != 400) and peripherals.lastx):  #catch 0,0 -> 400,-240
       movex = (peripherals.lastx - x)
-      #movey = (peripherals.lasty - y)
+      
       if (abs(movex) > 50):                              #calculate slider movement
         slide_offset = movex
 
   else:
     movex = 0
+    peripherals.lastx = 0
 
   if movex < -300 and peripherals.eg_object.slide > 0 and peripherals.lasttouch < (now - 0.1):     #start sliding when there is enough touchmovement
     peripherals.lastx = 0
@@ -240,14 +244,10 @@ while graphics.DISPLAY.loop_running():
    
    activity,slide_offset = slides[peripherals.eg_object.slide].inloop(textchange,activity,slide_offset)  
 
-
-  if (activity == False) & (slide_offset == 0) : 
-      if config.starthttpserver:
-          littleserver.handle_request()
-      #else:
-      #    time.sleep(0.1)
+  if (textchange): textchange = False
+  if (activity == False) & (slide_offset == 0) :  time.sleep(0.1)
   activity = False
-  textchange = False
+  
   
 
 
