@@ -12,23 +12,11 @@ import importlib
 import core.graphics as graphics
 import core.peripherals as peripherals
 import config
-
-
-
-slides = []
-subslides = dict()
-
-for  slidestring in config.slides:
-      slides.append(importlib.import_module('slides.'+slidestring))
-
-for  slidestring in config.subslides: 
-      subslides[slidestring] = importlib.import_module('subslides.'+slidestring)
-
-
 # make 4M ramdisk for graph
 os.popen('sudo mkdir /media/ramdisk')
 os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
 #os.chdir('/media/ramdisk')
+
 
 
 if not os.path.isfile('temperatures.rrd'):
@@ -48,6 +36,15 @@ if not os.path.isfile('temperatures.rrd'):
     "RRA:MAX:0.5:1:1500",
     "RRA:MAX:0.5:10:1500",
     "RRA:MAX:0.5:60:1500")
+
+slides = []
+subslides = dict()
+
+for  slidestring in config.slides:
+      slides.append(importlib.import_module('slides.'+slidestring))
+
+for  slidestring in config.subslides: 
+      subslides[slidestring] = importlib.import_module('subslides.'+slidestring)
 
 
 
