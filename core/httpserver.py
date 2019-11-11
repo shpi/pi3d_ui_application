@@ -4,14 +4,12 @@ import urllib.parse as urlparse
 
 import core.peripherals as peripherals
 import config
+import os
 
-from io import BytesIO
-from PIL import Image
-import pi3d
 
 
 class ServerHandler(BaseHTTPRequestHandler):
-
+       
        def do_GET(self):
          
          try:
@@ -20,20 +18,23 @@ class ServerHandler(BaseHTTPRequestHandler):
              start_time = time.time()
              message = ''
              self.send_response(200)
-             
+
              print(self.client_address[0],end=': ')
 
              for key, value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
 
 
               if key == 'screenshot':
+               
                self.send_header('Content-type','image/png')
                self.end_headers()
-               byte_io = BytesIO()
-               img = pi3d.util.Screenshot.screenshot()
-               im = Image.frombuffer('RGB', (800, 480), img, 'raw', 'RGB', 0, 1)
-               im.save(byte_io, format='PNG', quality=90)
-               self.wfile.write(byte_io.getvalue())
+               os.popen('rm /media/ramdisk/screenshot.png')
+               time.sleep(0.01)
+               while (os.path.exists("/media/ramdisk/screenshot.png") == False):
+                     time.sleep(0.1)
+               #self.wfile.write(screenshot.getvalue())
+               with open('/media/ramdisk/screenshot.png', 'rb') as content_file:
+                self.wfile.write(content_file.read())
 
 
 
@@ -46,6 +47,13 @@ class ServerHandler(BaseHTTPRequestHandler):
                          time.strftime("%Y-%m-%d_%H:%M:%S", time.gmtime(peripherals.eg_object.lastmotion)), 
                          time.time() - peripherals.eg_object.lastmotion
                  )
+               elif key == 'all':
+                for subkey in peripherals.eg_object.__dict__:
+                     message += '{}:{};'.format(subkey, getattr(peripherals.eg_object,subkey))
+
+
+
+
                elif hasattr(peripherals.eg_object, key):
                  message += '{}:{};'.format(key, getattr(peripherals.eg_object, key))
 

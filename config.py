@@ -20,6 +20,8 @@ MQTT_PORT = 1883
 MQTT_PATH = "shpi"
 MQTT_QOS = 1
 
+motionthreshold = 4 #threshold in seconds of movement
+
 backlight_auto = 60  # timer for backlight auto off, 0 for always on
 allowedips = list('192.168.1.31') #for check in server , not implemented so far
 
@@ -33,8 +35,11 @@ coolingrelay = 0 #1 #off
 heatingrelay = 1 #3 #on relay3
 shutterdown = 2 #1  #on
 shutterup = 3 #4    # 4... buzzer, 5 d13, 6 hwb
-
-
+lightrelay = 0
+ventrelay = 0
+minhumiditythreshold = 0
+maxhumiditythreshold = 0
+airqualitythreshold = 0
 
 icallink = 'muellkalender.ics' #also http possible
 
@@ -47,8 +52,23 @@ slide = 0
 subslide = None
 
 #configurate your slides here
-
+autoslidetm = 10
+autoslides = ['thermostat','weather','ical']
 slides = ['thermostat','weather','status','shutter','livegraph','amperemeter','rrdgraph','ical','settings']
+autoslideints = []
+
+for autoslide in autoslides:
+  i = 0
+  for sslide in slides:
+     if sslide  == autoslide:
+       autoslideints.append(i)
+     i += 1
+
+print(autoslideints)
+
+
+
+
 
 if demo:
   slides.append('demo_floorplan') 

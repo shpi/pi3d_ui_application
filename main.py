@@ -4,10 +4,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os,time, sys
 from _thread import start_new_thread
-
+import numpy as np
 import rrdtool
 import pi3d
 import importlib
+
+from io import BytesIO
+from PIL import Image
 
 import core.graphics as graphics
 import core.peripherals as peripherals
@@ -53,7 +56,7 @@ everysecond = 0
 nexttm = 0
 last_backlight_level = 0 
 a = 0
-
+screenshot = None
 
 
 def get_files():
@@ -171,6 +174,7 @@ def sensor_thread():
 
 
 
+autoslide = time.time() + config.autoslidetm
 
 peripherals.eg_object.slide = config.slide
 
@@ -180,6 +184,7 @@ start_new_thread(sensor_thread,())
 while graphics.DISPLAY.loop_running():
 
   now = time.time()
+
 
 
   if not config.subslide:
@@ -209,12 +214,18 @@ while graphics.DISPLAY.loop_running():
     if ((x != 400) and peripherals.lastx):  #catch 0,0 -> 400,-240
       movex = (peripherals.lastx - x)
       
-      if (abs(movex) > 50):                              #calculate slider movement
+      if (abs(movex) > 40):                              #calculate slider movement
         slide_offset = movex
 
   else:
-    movex = 0
-    peripherals.lastx = 0
+    #autoslide demo mode
+    if len(config.autoslides) and peripherals.eg_object.backlight_level and peripherals.lasttouch + 10 < now  and  now > autoslide:
+     movex +=10
+     slide_offset = movex
+     if movex > 300: autoslide = time.time() + config.autoslidetm
+    else:
+     movex = 0
+     peripherals.lastx = 0
 
   if movex < -300 and peripherals.eg_object.slide > 0 and peripherals.lasttouch < (now - 0.1):     #start sliding when there is enough touchmovement
     peripherals.lastx = 0
@@ -225,27 +236,37 @@ while graphics.DISPLAY.loop_running():
     slide_offset += 400
 
 
-  if movex > 300 and peripherals.eg_object.slide < len(config.slides) - 1  and peripherals.lasttouch < (now - 0.1):
+  if movex > 300  and peripherals.lasttouch < (now - 0.1):
     peripherals.lastx = 0
     movex = 0
-    peripherals.eg_object.slide += 1
+    if peripherals.eg_object.slide < len(config.slides) -1 :
+       peripherals.eg_object.slide += 1
+
+    else: peripherals.eg_object.slide = 0
+
+    if (not peripherals.touched() and len(config.autoslideints)): 
+         config.autoslideints = np.roll(config.autoslideints,1)
+         peripherals.eg_object.slide = config.autoslideints[0]
+   
     sbg.set_alpha(0)
     a = 0
     slide_offset -= 400
 
-
   if config.subslide != None: 
    activity = subslides[config.subslide].inloop(textchange,activity)
-
+  
   elif -1 < peripherals.eg_object.slide < len(config.slides):
    
    activity,slide_offset = slides[peripherals.eg_object.slide].inloop(textchange,activity,slide_offset)  
-
+  
   if (textchange): textchange = False
   if (activity == False) & (slide_offset == 0) :  time.sleep(0.1)
   activity = False
-  
-  
+
+  if (os.path.exists("/media/ramdisk/screenshot.png") == False):
+               print('make screenshot')
+               pi3d.screenshot("/media/ramdisk/screenshot.png")
+
 
 
 
