@@ -65,10 +65,6 @@ for  slidestring in config.subslides:
 
 
 
-nextsensorcheck = 0
-everysecond = 0
-nexttm = 0
-last_backlight_level = 0 
 a = 0
 screenshot = None
 
@@ -86,8 +82,7 @@ def get_files():
 
   return file_list, len(file_list)
 
-iFiles, nFi = get_files()
-pic_num = nFi - 1
+
 
 if config.startmqttclient:
   import core.mqttclient as mqttclient
@@ -113,14 +108,29 @@ if config.starthttpserver:
 
 slide_offset = 0 # change by touch and slide
 textchange = True
-sfg = graphics.tex_load(iFiles[pic_num])
-
-
+sfg, sbg = None, None
+now = time.time()
 
 def sensor_thread():
- global textchange,everysecond,nextsensorcheck,last_backlight_level,now
+ global textchange,a,sbg,sfg,now
+ last_backlight_level = 0
+ iFiles, nFi = get_files()
+ pic_num = nFi - 1
+ sfg = graphics.tex_load(iFiles[pic_num])
+ nextsensorcheck = 0
+ everysecond = 0
+ nexttm = 0
+ 
  while True:
 
+   if now > nexttm:                                     # change background
+      nexttm = now + config.TMDELAY
+      
+      sbg = sfg
+      sbg.positionZ(5)
+      pic_num = (pic_num + 1) % nFi
+      sfg = graphics.tex_load(iFiles[pic_num])
+      a = 0
 
    if peripherals.eg_object.alert:
       peripherals.alert()
@@ -198,6 +208,8 @@ peripherals.eg_object.slide = config.slide
 start_new_thread(sensor_thread,())
 
 
+time.sleep(1)
+
 while graphics.DISPLAY.loop_running():
 
   now = time.time()
@@ -205,14 +217,6 @@ while graphics.DISPLAY.loop_running():
 
 
   if not config.subslide:
-
-    if now > nexttm and not peripherals.touched():                                     # change background
-      nexttm = now + config.TMDELAY
-      a = 0.0
-      sbg = sfg
-      sbg.positionZ(5)
-      pic_num = (pic_num + 1) % nFi
-      sfg = graphics.tex_load(iFiles[pic_num])
 
     if a < 1.0:                                              # fade to new background
       activity = True  #we calculate   more frames, when there is activity, otherwise we add sleep.time at end
@@ -236,7 +240,7 @@ while graphics.DISPLAY.loop_running():
 
   else:
     #autoslide demo mode
-    if len(config.autoslides) and peripherals.eg_object.backlight_level and peripherals.lasttouch + 10 < now  and  now > autoslide:
+    if len(config.autoslides) and peripherals.eg_object.backlight_level > 0  and peripherals.lasttouch + 10 < now  and  now > autoslide:
      movex +=10
      slide_offset = movex
      if movex > 300: autoslide = time.time() + config.autoslidetm
@@ -249,7 +253,7 @@ while graphics.DISPLAY.loop_running():
     movex = 0
     peripherals.eg_object.slide -= 1
     sbg.set_alpha(0)
-    a = 0
+    if config.slideshadow: a = 0
     slide_offset += 400
     
 
@@ -267,7 +271,7 @@ while graphics.DISPLAY.loop_running():
          
     else:
       sbg.set_alpha(0)
-      a = 0
+      if config.slideshadow: a = 0
     slide_offset -= 400
 
   if config.subslide != None: 
@@ -280,6 +284,10 @@ while graphics.DISPLAY.loop_running():
   if (textchange): textchange = False
   if (activity == False) & (slide_offset == 0) :  time.sleep(0.1)
   activity = False
+
+  while (peripherals.eg_object.backlight_level == 0): 
+           time.sleep(0.1)
+           now = time.time()
 
   if (os.path.exists("/media/ramdisk/screenshot.png") == False):
                print('make screenshot')

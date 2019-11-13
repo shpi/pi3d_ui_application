@@ -23,17 +23,27 @@ temp_block = pi3d.TextBlock(-350, 50, 0.1, 0.0, 15, data_obj=peripherals.eg_obje
 text.add_text_block(temp_block)
 
 if config.heatingrelay or config.coolingrelay:
-    set_temp_block= pi3d.TextBlock(-340, -30, 0.1, 0.0, 15, data_obj=peripherals.eg_object,text_format= unichr(0xE005) + u" {:2.1f}°C", attr="set_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    set_temp_block= pi3d.TextBlock(-340, -30, 0.1, 0.0, 15, data_obj=peripherals.eg_object,text_format= unichr(0xE005) + u" {:2.1f}°C", attr="set_temp",
+                                                                           size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(set_temp_block)
+    offset_temp_block= pi3d.TextBlock(-70, -30, 0.1, 0.0, 15, data_obj=peripherals.eg_object,text_format= u"{:s}", attr="tempoffsetstr",
+                                                                           size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    text.add_text_block(offset_temp_block)
+     
+    if   peripherals.eg_object.tempoffset > 0: offset_temp_block.colouring.set_colour([1,0,0])
+    elif peripherals.eg_object.tempoffset < 0: offset_temp_block.colouring.set_colour([0,0,1])
+    else:                                      offset_temp_block.colouring.set_colour([1,1,1])
+     
+
     increaseTemp = pi3d.TextBlock(300, 150, 0.1, 180.0, 1, text_format= unichr(0xE000),size=0.99, spacing="C", space=0.6, colour=(1, 0, 0, 0.8))
     text.add_text_block(increaseTemp)
     decreaseTemp = pi3d.TextBlock(300, -50, 0.1, 0.0, 1, text_format= unichr(0xE000),size=0.99, spacing="C", space=0.6, colour=(0, 0, 1, 0.8))
     text.add_text_block(decreaseTemp)
-    cloud = pi3d.TextBlock(-30, -30, 0.1, 0.0, 1  , text_format = unichr(0xE002), size=0.5, spacing="C", space=0.6, colour=(1,1,1,0.9))
+    cloud = pi3d.TextBlock(30, -30, 0.1, 0.0, 1  , text_format = unichr(0xE002), size=0.5, spacing="C", space=0.6, colour=(1,1,1,0.9))
     text.add_text_block(cloud)
 
 if hasattr(peripherals.eg_object,'pressure'):
-    barometer = pi3d.TextBlock(20, -25, 0.1, 0.0, 2, text_format= unichr(0xE00B), size=0.6, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0,0.9))
+    barometer = pi3d.TextBlock(80, -25, 0.1, 0.0, 2, text_format= unichr(0xE00B), size=0.6, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0,0.9))
     text.add_text_block(barometer)
     baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=((-3,0,0),(0,15,0),(3,0,0)), x=barometer.x+32, y=barometer.y - 12, z=0.1)
     baroneedle.set_shader(graphics.MATSH)
@@ -74,6 +84,11 @@ def inloop(textchange = False,activity = False, offset = 0):
         global controls_alpha
        
         if textchange:
+
+            if   peripherals.eg_object.tempoffset > 0: offset_temp_block.colouring.set_colour([1,0,0])
+            elif peripherals.eg_object.tempoffset < 0: offset_temp_block.colouring.set_colour([0,0,1])
+            else:                                      offset_temp_block.colouring.set_colour([1,1,1])
+
             red = (0.01 * (peripherals.eg_object.a4/4))
             if (red > 1): red = 1
     
@@ -185,6 +200,9 @@ def inloop(textchange = False,activity = False, offset = 0):
             increaseTemp.colouring.set_colour(alpha = controls_alpha)
             decreaseTemp.colouring.set_colour(alpha = controls_alpha)
             set_temp_block.colouring.set_colour(alpha = controls_alpha)
+            offset_temp_block.colouring.set_colour(alpha = controls_alpha)
+
+
         if controls_alpha < 0.3:
             
             if config.heatingrelay or config.coolingrealy:

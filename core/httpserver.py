@@ -5,18 +5,14 @@ except:
 
 
 import time
-
-try:
- import urllib.parse as urlparse
-except:
- from urlparse import urlparse
-
-
 import core.peripherals as peripherals
 import config
 import os
 
-
+try:
+ import urlparse
+except:
+ import urllib.parse as urlparse
 
 class ServerHandler(BaseHTTPRequestHandler):
        
@@ -32,7 +28,6 @@ class ServerHandler(BaseHTTPRequestHandler):
              print(self.client_address[0])
 
              for key, value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
-
 
               if key == 'screenshot':
                

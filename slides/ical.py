@@ -38,7 +38,7 @@ def init():
   text6 = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=1000, point_size=128)
   count = 0
   mystring = ''
-  actualy = 0
+  actualy = -100
   
 
   for e in list(gcal.timeline.start_after(arrow.now().floor('day'))):
@@ -132,7 +132,8 @@ def inloop(textchange = False,activity = False, offset = 0):
                updown = 1
             if scrolloffset > 0:
                updown = 0
-            if updown:    
+               
+            if updown:
                scrolloffset += 15
             else:
               scrolloffset -= 1

@@ -274,6 +274,8 @@ class EgClass(object):
   led_green = 0
   led_blue = 0
   ssid = " "
+  tempoffset = 0
+  tempoffsetstr = " "
   uhrzeit = "00:00"    
   relais1 = 0
   relais2 = 0
@@ -517,21 +519,21 @@ def controlled(rgbvalues, retries=0):
       ## cooling & heating function
       
 def heating():
-    if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp:
+    if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp + eg_object.tempoffset:
       controlrelays(config.heatingrelay, 1)
     
-    elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp:
+    elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp + eg_object.tempoffset:
       controlrelays(config.heatingrelay, 0)
       
       
 def cooling():   
-    if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp:
+    if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp + eg_object.tempoffset:
       controlrelays(config.coolingrelay, 1)
-    elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp:
+    elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp + eg_object.tempoffset:
       controlrelays(config.coolingrelay, 0)
    
 def coolingheating():   
-    if eg_object.set_temp - config.HYSTERESIS < eg_object.act_temp < eg_object.set_temp + config.HYSTERESIS:       
+    if eg_object.set_temp + eg_object.tempoffset - config.HYSTERESIS < eg_object.act_temp < eg_object.set_temp + eg_object.tempoffset + config.HYSTERESIS:       
       controlrelays(config.heatingrelay, 0)
     else:
       controlrelays(config.heatingrelay, 1)    
@@ -572,6 +574,26 @@ def get_status():
         eg_object.wifistrength = (os.popen("/sbin/iwconfig wlan0 | grep 'Signal level' | awk '{print $4}' | cut -d= -f2 | cut -d/ -f1;").readline()).strip()
         eg_object.ipaddress = os.popen("ip addr show wlan0 | grep 'inet ' | head -1 | awk '{print $2}' | cut -d/ -f1;").readline().strip()
         eg_object.ssid = (os.popen("/sbin/iwconfig wlan0 | grep \"SSID:\" | awk \"{print $4}\" | cut -d'\"' -f2").readline()).strip()
+
+        if config.daytempcurve:
+                eg_object.tempoffset = config.daytempdelta[int(time.strftime("%H"))]
+                if eg_object.tempoffset > 0: eg_object.tempoffsetstr = str('+' + eg_object.tempoffset)
+                elif eg_object.tempoffset < 0: eg_object.tempoffsetstr = str(eg_object.tempoffset)
+                else: eg_object.tempoffsetstr = ''
+
+
+        elif config.weektempcurve:
+                eg_object.tempoffset = config.weektempdelta[datetime.date.today().weekday()][int(time.strftime('%H'))]
+                if eg_object.tempoffset > 0: eg_object.tempoffsetstr = str('+' + eg_object.tempoffset)
+                elif eg_object.tempoffset < 0: eg_object.tempoffsetstr = str(eg_object.tempoffset)
+                else: eg_object.tempoffsetstr = ''
+
+
+        else:
+                eg_object.tempoffset = 0
+                eg_object.tempoffsetstr = ''
+
+
 
         if ADDR_32U4:
 
