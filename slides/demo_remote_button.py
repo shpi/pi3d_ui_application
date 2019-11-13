@@ -6,8 +6,10 @@ import sys,os
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-import urllib.request
-
+try:
+ import urllib.request as urlopen
+except:
+ from urllib2 import urlopen
 
 import config
 import core.graphics as graphics
@@ -15,14 +17,22 @@ import core.peripherals as peripherals
 import core.mqttclient as mqttclient
 import json
 
+try:
+    unichr
+except NameError:
+    unichr = chr
+
+
+
+
 text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=35, point_size=128) 
 text2 = pi3d.PointText(graphics.pointFontbig, graphics.CAMERA, max_chars=35, point_size=256)  #also big font possible, higher resolution
 
 
 # look for graphics in core/graphics.py  0xE00F -> light,   0xE001 -> circle
 
-httpbutton = pi3d.TextBlock(0, 0, 0.1, 0.0, 1, text_format= chr(0xE00F),size=0.99, spacing="C", space=0.6, colour=(1, 1, 1, 1))
-circle = pi3d.TextBlock(-5, 15, 0.1, 0.0, 1, text_format= chr(0xE001),size=0.99, spacing="C", space=0.6, colour=(1, 1, 1, 1))
+httpbutton = pi3d.TextBlock(0, 0, 0.1, 0.0, 1, text_format= unichr(0xE00F),size=0.99, spacing="C", space=0.6, colour=(1, 1, 1, 1))
+circle = pi3d.TextBlock(-5, 15, 0.1, 0.0, 1, text_format= unichr(0xE001),size=0.99, spacing="C", space=0.6, colour=(1, 1, 1, 1))
 
 text.add_text_block(httpbutton)
 text2.add_text_block(circle)
@@ -32,7 +42,7 @@ httpbutton.status = 'unknown'  # on init status is unknown
    
 def get_button_status():
   try:
-      a=urllib.request.urlopen('http://blabla/relais1')
+      a=urlopen('http://blabla/relais1')
   except:
     print('Error httpbutton')
     httpbutton.status = 'error'   

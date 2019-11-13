@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys,os
-from _thread import start_new_thread
 
+try:
+ from _thread import start_new_thread
+except:
+ from thread import start_new_thread
 
 import pi3d
 import time

@@ -1,6 +1,16 @@
-from http.server import BaseHTTPRequestHandler
+try:
+  from http.server import BaseHTTPRequestHandler, HTTPServer  
+except:
+  from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+
+
 import time
-import urllib.parse as urlparse
+
+try:
+ import urllib.parse as urlparse
+except:
+ from urlparse import urlparse
+
 
 import core.peripherals as peripherals
 import config
@@ -19,7 +29,7 @@ class ServerHandler(BaseHTTPRequestHandler):
              message = ''
              self.send_response(200)
 
-             print(self.client_address[0],end=': ')
+             print(self.client_address[0])
 
              for key, value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
 

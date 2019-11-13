@@ -11,6 +11,14 @@ import config
 import core.graphics as graphics
 import core.peripherals as peripherals
 
+
+try:
+    unichr
+except NameError:
+    unichr = chr
+
+
+
 text2 = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=500, point_size=128) 
 
 
@@ -19,14 +27,14 @@ title_block = pi3d.TextBlock(-200, 190, 0.1, 0.0, 15, text_format= "Backlight", 
 text2.add_text_block(title_block)
 bllevel = pi3d.TextBlock(-50, 100, 0.1, 0.0, 15, data_obj=peripherals.eg_object,attr="max_backlight", text_format= "{:d}", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text2.add_text_block(bllevel)
-Down = pi3d.TextBlock(200, 100, 0.1, 0.0, 1, text_format= chr(0xE000),size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
+Down = pi3d.TextBlock(200, 100, 0.1, 0.0, 1, text_format= unichr(0xE000),size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
 text2.add_text_block(Down)
-Up = pi3d.TextBlock(-200, 100, 0.1, 180.0, 1, text_format= chr(0xE000),size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
+Up = pi3d.TextBlock(-200, 100, 0.1, 180.0, 1, text_format= unichr(0xE000),size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
 text2.add_text_block(Up)
   
-newtxt = pi3d.TextBlock(-400, -180, 0.1, 0.0, 15, text_format = chr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(-400, -180, 0.1, 0.0, 15, text_format = unichr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
 text2.add_text_block(newtxt)
-wifi = pi3d.TextBlock(-365, -170, 0.1, 0.0, 15, text_format = chr(0xE016), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+wifi = pi3d.TextBlock(-365, -170, 0.1, 0.0, 15, text_format = unichr(0xE016), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
 text2.add_text_block(wifi)       
 
 

@@ -10,55 +10,61 @@ import config
 import core.graphics as graphics
 import core.peripherals as peripherals
 
+try:
+    unichr
+except NameError:
+    unichr = chr
+
+
 
                    
 text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=220, point_size=128)    
-temp_block = pi3d.TextBlock(-350, 50, 0.1, 0.0, 15, data_obj=peripherals.eg_object,attr="act_temp",text_format= chr(0xE021) +"{:2.1f}°C", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+temp_block = pi3d.TextBlock(-350, 50, 0.1, 0.0, 15, data_obj=peripherals.eg_object,attr="act_temp",text_format= unichr(0xE021) + u"{:2.1f}°C", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(temp_block)
 
 if config.heatingrelay or config.coolingrelay:
-    set_temp_block= pi3d.TextBlock(-340, -30, 0.1, 0.0, 15, data_obj=peripherals.eg_object,text_format= chr(0xE005) + " {:2.1f}°C", attr="set_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    set_temp_block= pi3d.TextBlock(-340, -30, 0.1, 0.0, 15, data_obj=peripherals.eg_object,text_format= unichr(0xE005) + u" {:2.1f}°C", attr="set_temp",size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(set_temp_block)
-    increaseTemp = pi3d.TextBlock(300, 150, 0.1, 180.0, 1, text_format= chr(0xE000),size=0.99, spacing="C", space=0.6, colour=(1, 0, 0, 0.8))
+    increaseTemp = pi3d.TextBlock(300, 150, 0.1, 180.0, 1, text_format= unichr(0xE000),size=0.99, spacing="C", space=0.6, colour=(1, 0, 0, 0.8))
     text.add_text_block(increaseTemp)
-    decreaseTemp = pi3d.TextBlock(300, -50, 0.1, 0.0, 1, text_format= chr(0xE000),size=0.99, spacing="C", space=0.6, colour=(0, 0, 1, 0.8))
+    decreaseTemp = pi3d.TextBlock(300, -50, 0.1, 0.0, 1, text_format= unichr(0xE000),size=0.99, spacing="C", space=0.6, colour=(0, 0, 1, 0.8))
     text.add_text_block(decreaseTemp)
-    cloud = pi3d.TextBlock(-30, -30, 0.1, 0.0, 1  , text_format = chr(0xE002), size=0.5, spacing="C", space=0.6, colour=(1,1,1,0.9))
+    cloud = pi3d.TextBlock(-30, -30, 0.1, 0.0, 1  , text_format = unichr(0xE002), size=0.5, spacing="C", space=0.6, colour=(1,1,1,0.9))
     text.add_text_block(cloud)
 
 if hasattr(peripherals.eg_object,'pressure'):
-    barometer = pi3d.TextBlock(20, -25, 0.1, 0.0, 2, text_format= chr(0xE00B), size=0.6, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0,0.9))
+    barometer = pi3d.TextBlock(20, -25, 0.1, 0.0, 2, text_format= unichr(0xE00B), size=0.6, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0,0.9))
     text.add_text_block(barometer)
     baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=((-3,0,0),(0,15,0),(3,0,0)), x=barometer.x+32, y=barometer.y - 12, z=0.1)
     baroneedle.set_shader(graphics.MATSH)
 
-newtxt = pi3d.TextBlock(270, -180, 0.1, 0.0, 15, text_format = chr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+newtxt = pi3d.TextBlock(270, -180, 0.1, 0.0, 15, text_format = unichr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
 text.add_text_block(newtxt)
-motiondetection = pi3d.TextBlock(290, -175, 0.1, 0.0, 15, text_format = chr(0xE01C), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+motiondetection = pi3d.TextBlock(290, -175, 0.1, 0.0, 15, text_format = unichr(0xE01C), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
 text.add_text_block(motiondetection)
 
 if config.heatingrelay:
-    newtxt = pi3d.TextBlock(145, -180, 0.1, 0.0, 15, text_format = chr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+    newtxt = pi3d.TextBlock(145, -180, 0.1, 0.0, 15, text_format = unichr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
     text.add_text_block(newtxt)
-    heating = pi3d.TextBlock(172, -180, 0.1, 0.0, 15, text_format = chr(0xE004), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+    heating = pi3d.TextBlock(172, -180, 0.1, 0.0, 15, text_format = unichr(0xE004), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
     text.add_text_block(heating)
 
 if config.coolingrelay:
-    newtxt = pi3d.TextBlock(20, -180, 0.1, 0.0, 15, text_format = chr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+    newtxt = pi3d.TextBlock(20, -180, 0.1, 0.0, 15, text_format = unichr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
     text.add_text_block(newtxt)
-    cooling = pi3d.TextBlock(42, -182, 0.1, 0.0, 15, text_format = chr(0xE029), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+    cooling = pi3d.TextBlock(42, -182, 0.1, 0.0, 15, text_format = unichr(0xE029), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
     text.add_text_block(cooling)
 
 if 'videostream' in config.subslides:
-  newtxt = pi3d.TextBlock(-400, -180, 0.1, 0.0, 15, text_format = chr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+  newtxt = pi3d.TextBlock(-400, -180, 0.1, 0.0, 15, text_format = unichr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
   text.add_text_block(newtxt)
-  newtxt = pi3d.TextBlock(-385, -180, 0.1, 0.0, 15, text_format = chr(0xE02F), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+  newtxt = pi3d.TextBlock(-385, -180, 0.1, 0.0, 15, text_format = unichr(0xE02F), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
   text.add_text_block(newtxt)
 
 if 'intercom' in config.subslides:
-  newtxt = pi3d.TextBlock(-300, -180, 0.1, 0.0, 15, text_format = chr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+  newtxt = pi3d.TextBlock(-300, -180, 0.1, 0.0, 15, text_format = unichr(0xE001), size=0.99, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
   text.add_text_block(newtxt)
-  newtxt = pi3d.TextBlock(-275, -180, 0.1, 0.0, 15, text_format = chr(0xE031), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
+  newtxt = pi3d.TextBlock(-275, -180, 0.1, 0.0, 15, text_format = unichr(0xE031), size=0.79, spacing="F", space=0.05, colour = (1.0, 1.0, 1.0, 1.0))
   text.add_text_block(newtxt)
 
 controls_alpha = 1        

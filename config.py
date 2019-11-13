@@ -53,8 +53,8 @@ subslide = None
 
 #configurate your slides here
 autoslidetm = 10
-autoslides = ['thermostat','weather','ical']
-slides = ['thermostat','weather','status','shutter','livegraph','amperemeter','rrdgraph','ical','settings']
+autoslides = ['thermostat','weather','ical2']
+slides = ['thermostat','weather','ical2','status','shutter','livegraph','amperemeter','rrdgraph','settings']
 autoslideints = []
 
 for autoslide in autoslides:

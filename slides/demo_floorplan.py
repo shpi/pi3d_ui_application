@@ -9,12 +9,17 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import config
 import core.graphics as graphics
 import core.peripherals as peripherals
+try:
+    unichr
+except NameError:
+    unichr = chr
+
 
 
 
 text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=35, point_size=256) 
 
-temp_block = pi3d.TextBlock(-200, -100, 0.1, 0.0, 15, data_obj=peripherals.eg_object, attr="act_temp",text_format= chr(0xE021) +" {:2.1f}°C", size=0.2, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
+temp_block = pi3d.TextBlock(-200, -100, 0.1, 0.0, 15, data_obj=peripherals.eg_object, attr="act_temp",text_format= unichr(0xE021) + u" {:2.1f}°C", size=0.2, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(temp_block)
 
 

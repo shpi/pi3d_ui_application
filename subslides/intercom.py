@@ -12,6 +12,10 @@ import core.peripherals as peripherals
 import core.graphics as graphics
 import config
 
+try:
+    unichr
+except NameError:
+    unichr = chr
 
 
 
@@ -19,11 +23,11 @@ str1 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', 'Loading stre
 str1.sprite.position(0, 0, 0.1)
 str2 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', 'Touch to close stream.', font_size=22, background_color=(0,0,0,0), camera=graphics.CAMERA, shader=graphics.SHADER)
 str2.sprite.position(0, -225, 0.1)
-str3 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', chr(0xE017), font_size=200, background_color=(0,0,0,0), camera=graphics.CAMERA, shader=graphics.SHADER)
+str3 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE017), font_size=200, background_color=(0,0,0,0), camera=graphics.CAMERA, shader=graphics.SHADER)
 str3.sprite.position(320, -120, 0.0)
-str5 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', chr(0xE017), font_size=200, background_color=(0,0,0,0), color=(255,0,0,255), camera=graphics.CAMERA, shader=graphics.SHADER)
+str5 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE017), font_size=200, background_color=(0,0,0,0), color=(255,0,0,255), camera=graphics.CAMERA, shader=graphics.SHADER)
 str5.sprite.position(320, -120, 0.0)
-str4 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', chr(0xE026), font_size=200, background_color=(0,0,0,0), camera=graphics.CAMERA, shader=graphics.SHADER)
+str4 = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE026), font_size=200, background_color=(0,0,0,0), camera=graphics.CAMERA, shader=graphics.SHADER)
 str4.sprite.position(320, 50, 0.0)
 
 def inloop(textchange = False,activity = False):

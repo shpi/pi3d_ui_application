@@ -25,7 +25,10 @@ os_touchdriver = os.popen('pgrep -f touchdriver.py -c').readline() #checks if to
 
 if int(os_touchdriver) > 1 : 
     print('os touch driver active')
-    from _thread import start_new_thread
+    try:
+       from _thread import start_new_thread
+    except:
+       from thread import start_new_thread
     touch_file = open("/dev/input/event1", "rb")
    
 
@@ -51,7 +54,7 @@ def i2crecover():
       while([0x00] == bus.read(1,addr)):
                  addr += 1
                  if (addr > 119): addr = 3
-                 print(str(i) + '.', end = "")
+                 #print(str(i) + '.', end = "")
 
    except:
       pass

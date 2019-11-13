@@ -11,6 +11,12 @@ import subslides.wifisetup as wifisetup
 import config
 import core.graphics as graphics
 import core.peripherals as peripherals
+
+try:
+    unichr
+except NameError:
+    unichr = chr
+
               
 chars = []
 chars.append(pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=220, point_size=128))   
@@ -22,9 +28,9 @@ wifistatus = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=320, 
 
 charmap = []
 
-charmap.append(['01234567','89!#$%^;','/*()-_+=', "~`[]{}|\\","\"'<>,.?"+chr(0xE03F)])
-charmap.append(['abcdefgh','ijklmnop','qrstuvwx', 'yzäöüß@_' ,chr(0xE036)+'      '+chr(0xE03F)])
-charmap.append(['ABCDEFGH','IJKLMNOP','QRSTUVWX', 'YZÄÖÜ°&_' ,chr(0xE036)+'      '+chr(0xE03F)])
+charmap.append([u'01234567',u'89!#$%^;',u'/*()-_+=', u"~`[]{}|\\","\"'<>,.?"+unichr(0xE03F)])
+charmap.append([u'abcdefgh',u'ijklmnop',u'qrstuvwx', u'yzäöüß@_' ,unichr(0xE036)+'      '+unichr(0xE03F)])
+charmap.append([u'ABCDEFGH',u'IJKLMNOP',u'QRSTUVWX', u'YZÄÖÜ°&_' ,unichr(0xE036)+'      '+unichr(0xE03F)])
 
 def calculatechar(type, x, y):
   global charmap
@@ -135,13 +141,13 @@ textfield.set_shader(graphics.MATSH)
 textfield.set_material((0.0, 0.0, 0.0))
 textfield.set_alpha(0.7)
 
-controlok= pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', (str)(chr(0xE03E)), font_size=65,shadow_radius=4, 
+controlok= pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE03E), font_size=65,shadow_radius=4, 
                         background_color=(0,0,0,0), color= (255,255,255,255),
                         camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
 controlok.sprite.position(245, 196, 1)
 
 
-controlx= pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', (str)(chr(0xE01E)), font_size=65,shadow_radius=4, 
+controlx= pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE01E), font_size=65,shadow_radius=4, 
                         background_color=(0,0,0,0), color= (255,255,255,255),
                         camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
 controlx.sprite.position(335, 196, 1)
@@ -213,10 +219,10 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
       else: 
        newchar  =   calculatechar(chartype,peripherals.lastx,peripherals.lasty)
        
-       if newchar == chr(0xE036):
+       if newchar == unichr(0xE036):
            peripherals.eg_object.usertext = peripherals.eg_object.usertext[:-1]
            
-       elif newchar == chr(0xE03F): 
+       elif newchar == unichr(0xE03F): 
          chartype += 1
          if chartype > 2: chartype = 0
        else: 

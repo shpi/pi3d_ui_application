@@ -12,17 +12,25 @@ import core.peripherals as peripherals
 import time
 
 
+try:
+    unichr
+except NameError:
+    unichr = chr
+
+
+
+
 text2 = pi3d.PointText(graphics.pointFontbig, graphics.CAMERA, max_chars=35, point_size=256) #slider2 Time & shutter
 
 
 if config.shutterup or config.shutterdown:
-  uhrzeit_block = pi3d.TextBlock(-50, 100, 0.1, 0.0, 15,justify = 0.5,  data_obj=peripherals.eg_object,attr="uhrzeit", text_format= "{:s}", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+  uhrzeit_block = pi3d.TextBlock(-70, 100, 0.1, 0.0, 15,justify = 0.5,  data_obj=peripherals.eg_object,attr="uhrzeit", text_format= "{:s}", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
   text2.add_text_block(uhrzeit_block)
-  shuttersymbol = pi3d.TextBlock(-100, -100, 0.1, 0.0, 15, text_format=chr(0xE035), size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+  shuttersymbol = pi3d.TextBlock(-100, -100, 0.1, 0.0, 15, text_format=unichr(0xE035), size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
   text2.add_text_block(shuttersymbol)
-  shutterDown = pi3d.TextBlock(300, -100, 0.1, 0.0, 1, text_format= chr(0xE000),size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
+  shutterDown = pi3d.TextBlock(300, -100, 0.1, 0.0, 1, text_format= unichr(0xE000),size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
   text2.add_text_block(shutterDown)
-  shutterUp = pi3d.TextBlock(-300, -100, 0.1, 180.0, 1, text_format= chr(0xE000),size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
+  shutterUp = pi3d.TextBlock(-300, -100, 0.1, 180.0, 1, text_format= unichr(0xE000),size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
   text2.add_text_block(shutterUp)
 else:
   uhrzeit_block = pi3d.TextBlock(-280, 0, 0.1, 0.0, 15, data_obj=peripherals.eg_object,attr="uhrzeit", text_format= "{:s}", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))

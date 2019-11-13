@@ -1,9 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os,time, sys
-from _thread import start_new_thread
+
+try:
+ from _thread import start_new_thread
+except:
+ from thread import start_new_thread
+
+try:
+    unichr
+except NameError:
+    unichr = chr
+
+
+
 import numpy as np
 import rrdtool
 import pi3d
@@ -14,6 +27,7 @@ from PIL import Image
 
 import core.graphics as graphics
 import core.peripherals as peripherals
+
 import config
 # make 4M ramdisk for graph
 os.popen('sudo mkdir /media/ramdisk')
@@ -81,13 +95,17 @@ if config.startmqttclient:
   except: pass
 
 if config.starthttpserver:
-  from http.server import BaseHTTPRequestHandler, HTTPServer              #ThreadingHTTPServer for python 3.7
+  try:
+   from http.server import BaseHTTPRequestHandler, HTTPServer              #ThreadingHTTPServer for python 3.7
+  except:
+   from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+
   from core.httpserver import ServerHandler
 
   try:
-    littleserver = HTTPServer(("0.0.0.0", config.HTTP_PORT), ServerHandler)
+   littleserver = HTTPServer(("0.0.0.0", config.HTTP_PORT), ServerHandler)
     #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
-    littleserver.timeout = 0.1
+   littleserver.timeout = 0.1
   except:
     print('server error')
 
@@ -96,7 +114,6 @@ if config.starthttpserver:
 slide_offset = 0 # change by touch and slide
 textchange = True
 sfg = graphics.tex_load(iFiles[pic_num])
-
 
 
 
@@ -162,9 +179,9 @@ def sensor_thread():
     temperatures_str = 'N:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}'.format(
       peripherals.eg_object.act_temp, peripherals.eg_object.gputemp, peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
       sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,(0.0))
-
-    rrdtool.update('temperatures.rrd', temperatures_str)
     print(temperatures_str)
+    rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
+    
 
     if config.show_airquality:
         redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
@@ -234,7 +251,7 @@ while graphics.DISPLAY.loop_running():
     sbg.set_alpha(0)
     a = 0
     slide_offset += 400
-
+    
 
   if movex > 300  and peripherals.lasttouch < (now - 0.1):
     peripherals.lastx = 0
@@ -247,9 +264,10 @@ while graphics.DISPLAY.loop_running():
     if (not peripherals.touched() and len(config.autoslideints)): 
          config.autoslideints = np.roll(config.autoslideints,1)
          peripherals.eg_object.slide = config.autoslideints[0]
-   
-    sbg.set_alpha(0)
-    a = 0
+         
+    else:
+      sbg.set_alpha(0)
+      a = 0
     slide_offset -= 400
 
   if config.subslide != None: 
