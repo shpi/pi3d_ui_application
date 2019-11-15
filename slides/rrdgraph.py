@@ -29,7 +29,7 @@ def update_graph():
     rrdtool.graph("/media/ramdisk/graph1.png", "--full-size-mode", "--font", "DEFAULT:13:", "--color", "BACK#ffffffC0", "--color", "CANVAS#ffffff00",
                   "--color", "SHADEA#ffffff00", "--color", "SHADEB#ffffff00", "--width", "800", "--height", "480",
                         #"--rigid", "--upper-limit" ,"40",
-                        "--start","-12h", "--title","", "--vertical-label",'° C',
+                        "--start","-2h", "--title","", "--vertical-label",'° C',
                         "DEF:act_temp=temperatures.rrd:act_temp:AVERAGE",
                         "DEF:heat=temperatures.rrd:heating:MAX",
                         "DEF:cool=temperatures.rrd:cooling:MAX",
@@ -40,6 +40,8 @@ def update_graph():
                         "DEF:bmp280=temperatures.rrd:bmp280:AVERAGE",
                         "DEF:mlxamb=temperatures.rrd:mlxamb:AVERAGE",
                         "DEF:mlxobj=temperatures.rrd:mlxobj:AVERAGE",
+                        "DEF:movement=temperatures.rrd:movement:MAX",
+                        "CDEF:motion=movement,.5,+,FLOOR,INF,0,IF",
                         "CDEF:heating=heat,.5,+,FLOOR,1,-,UNKN,act_temp,IF",
                         "CDEF:cooling=cool,.5,+,FLOOR,1,-,UNKN,act_temp,IF",
                         #"LINE1:cpu#ff0000:CPU",
@@ -50,11 +52,12 @@ def update_graph():
                         "LINE1:mlxobj#00ffff:MLX",
                         "LINE1:bmp280#888800:BMP280",
                         "AREA:act_temp#ffffcc",
-                        "LINE2:act_temp#999999:Room Temp.",
+                        "LINE2:act_temp#999999:Room",
                         "AREA:heating#ffcccc",
                         "LINE1:heating#ff5555:Heating",
                         "AREA:cooling#ccccff",
-                        "LINE1:cooling#5555ff:Cooling")
+                        "LINE1:cooling#5555ff:Cooling",
+                        "AREA:motion#00AA0070:Motion")
 
 
     graph = pi3d.ImageSprite('/media/ramdisk/graph1.png',
