@@ -1,23 +1,29 @@
-import sys          
-import ctypes      
-import fcntl       
+import sys
+import ctypes
+import fcntl
+
 
 class I2C_MSG_S(ctypes.Structure):
-    _fields_ = [("addr", ctypes.c_uint16),  
-                ("flags", ctypes.c_uint16), 
-                ("len", ctypes.c_uint16),   
-                ("buf", ctypes.c_char_p),]  
+    _fields_ = [("addr", ctypes.c_uint16),
+                ("flags", ctypes.c_uint16),
+                ("len", ctypes.c_uint16),
+                ("buf", ctypes.c_char_p), ]
+
+
 I2C_MSG_P = ctypes.POINTER(I2C_MSG_S)
 
-class I2C_RDWR_S(ctypes.Structure):
-       _fields_ = [("i2c_msg", I2C_MSG_P),
-                ("nmsgs", ctypes.c_int),]  
 
-I2C_TIMEOUT = 0x0702    
-I2C_RDWR = 0x0707       
-I2C_SMBUS = 0x0720     
+class I2C_RDWR_S(ctypes.Structure):
+    _fields_ = [("i2c_msg", I2C_MSG_P),
+                ("nmsgs", ctypes.c_int), ]
+
+
+I2C_TIMEOUT = 0x0702
+I2C_RDWR = 0x0707
+I2C_SMBUS = 0x0720
 I2C_M_WR = 0x00
 I2C_M_RD = 0x01
+
 
 class I2C:
 
@@ -48,13 +54,13 @@ class I2C:
         self._dev = None
 
     def get_funcs(self):
- 
+
         if self._dev is None:
             raise IOError("Device not open")
-        funcs = ctypes.c_ulong()        
+        funcs = ctypes.c_ulong()
         ret = fcntl.ioctl(self._dev.fileno(), I2C_FUNCS, funcs)
-        return {key : True if funcs.value & val else False
-                for key,val in FUNCS.iteritems()}
+        return {key: True if funcs.value & val else False
+                for key, val in FUNCS.iteritems()}
 
     def set_addr(self, addr):
         self.addr = int(addr)
@@ -82,10 +88,10 @@ class I2C:
         ret = fcntl.ioctl(self._dev.fileno(), I2C_RDWR, rdwr)
         if ret != 1:
             raise IOError("Tried to send 1 message but %d sent" % ret, ret)
-        return [ord(c) for c in read_data]        
+        return [ord(c) for c in read_data]
 
     def write(self, data, addr=None):
-      
+
         if self._dev is None:
             raise IOError("Device not open")
         if addr is None:
@@ -106,7 +112,7 @@ class I2C:
         return ret
 
     def rdwr(self, data, nRead, addr=None):
- 
+
         if self._dev is None:
             raise IOError("Device not open")
         if addr is None:
@@ -131,5 +137,4 @@ class I2C:
         ret = fcntl.ioctl(self._dev.fileno(), I2C_RDWR, rdwr)
         if ret != 2:
             raise IOError("Tried to send 2 messages but %d sent" % ret, ret)
-        return [ord(c) for c in read_data]        
-
+        return [ord(c) for c in read_data]
