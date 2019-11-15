@@ -203,6 +203,9 @@ try:
     b1 = bytes(bus.rdwr([0x88], 24, ADDR_BMP))
     dig_T = struct.unpack_from('<Hhh', b1, 0)
     dig_P = struct.unpack_from('<Hhhhhhhhh', b1, 6)
+
+
+
 except:
     print('no bmp280')
     ADDR_BMP = 0
@@ -404,6 +407,7 @@ def controlrelays(channel, value, retries=0):
             print('crc8 error set controlrelays')
             i2cerror += 1
             controlrelays(channel, value)
+            
     except Exception as e:  # potential inifinite loop - count repeats and break after n
         print('error setting channels: {}'.format(e))
         if retries < 25:
@@ -496,6 +500,7 @@ def controlbacklight(value):
 def controlled(rgbvalues, retries=0):
     global i2cerror
     if len(rgbvalues) == 3:
+        time.sleep(0.1)
         crc = crc8(0, 0x8C)
         rgb = [0x8C]
         for value in rgbvalues:
@@ -506,11 +511,12 @@ def controlled(rgbvalues, retries=0):
         rgb.append(crc)
         try:
             bus.write(rgb, ADDR_32U4)
+            time.sleep(0.1)
             crca = bus.read(1, ADDR_32U4)
-            time.sleep(0.001)
             if ([crc] != crca):
                 print('control rgb led crc8 error')
-
+                print(rgb)
+                print(crca)
         except Exception as e:  # potential inifinite loop - count repeats and break after n
             print('error setting led: {}'.format(e))
             i2cerror += 1
@@ -591,7 +597,7 @@ def get_status():
             eg_object.tempoffset = config.daytempdelta[int(
                 time.strftime("%H"))]
             if eg_object.tempoffset > 0:
-                eg_object.tempoffsetstr = str('+' + eg_object.tempoffset)
+                eg_object.tempoffsetstr = '+' + str(eg_object.tempoffset)
             elif eg_object.tempoffset < 0:
                 eg_object.tempoffsetstr = str(eg_object.tempoffset)
             else:
@@ -601,11 +607,11 @@ def get_status():
             eg_object.tempoffset = config.weektempdelta[datetime.date.today(
             ).weekday()][int(time.strftime('%H'))]
             if eg_object.tempoffset > 0:
-                eg_object.tempoffsetstr = str('+' + eg_object.tempoffset)
+                eg_object.tempoffsetstr = '+' + str( eg_object.tempoffset)
             elif eg_object.tempoffset < 0:
                 eg_object.tempoffsetstr = str(eg_object.tempoffset)
             else:
-                eg_object.tempoffsetstr = ''
+                eg_object.tempoffsetstr = ' '
 
         else:
             eg_object.tempoffset = 0
