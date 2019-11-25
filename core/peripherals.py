@@ -129,7 +129,7 @@ TOUCHINT = 26
 
 
 bus = i2c.I2C(2)
-bus.set_timeout(3)
+#bus.set_timeout(3)
 
 
 try:
@@ -429,10 +429,11 @@ def read_one_byte(addr_val):  # utility function for brevity
         else:
             print('crc 1 error ' + ' 0x{:02x}'.format(addr_val))
             i2cerror += 1
+            time.sleep(0.1)
             return read_one_byte(addr_val)
     except Exception as e:  # potential inifinite loop - count repeats and break after n
         print('i2c error ' + '0x{:02x}'.format(addr_val))
-
+        time.sleep(0.1)
         return read_one_byte(addr_val)
 
 
@@ -451,12 +452,14 @@ def read_two_bytes(addr_val):  # utility function for brevity
         else:
             print('crc 2 error 0x{:02x}'.format(addr_val))
             i2cerror += 1
+            time.sleep(0.1)
             return read_two_bytes(addr_val)
 
     except Exception as e:  # potential inifinite loop - count repeats and break after n
 
         print('i2c error 0x{:02x}'.format(addr_val))
         i2cerror += 1
+        time.sleep(0.1)
         return read_two_bytes(addr_val)
 
 
@@ -500,8 +503,11 @@ def controlbacklight(value):
 
 def controlled(rgbvalues, retries=0):
     global i2cerror
-    if len(rgbvalues) == 3:
-        time.sleep(0.1)
+
+    if len(rgbvalues) == 3: 
+      if eg_object.led != rgbvalues:
+
+        time.sleep(0.01)
         crc = crc8(0, 0x8C)
         rgb = [0x8C]
         for value in rgbvalues:
@@ -510,16 +516,23 @@ def controlled(rgbvalues, retries=0):
             rgb.append(value)
             crc = crc8(crc, value)
         rgb.append(crc)
-        try:
+        try: 
             bus.write(rgb, ADDR_32U4)
-            time.sleep(0.1)
-            crca = bus.read(1, ADDR_32U4)
+            time.sleep(0.05)
+            crca = False
+            while (crca == False):
+              try:
+                   crca = bus.read(1, ADDR_32U4)
+              except: pass
             if ([crc] != crca):
                 print('control rgb led crc8 error')
-                print(rgb)
-                print(crca)
+                controlled(rgbvalues) 
+            else:
+              eg_object.led = rgbvalues
         except Exception as e:  # potential inifinite loop - count repeats and break after n
             print('error setting led: {}'.format(e))
+            time.sleep(0.1)
+            controlled(rgbvalues)
             i2cerror += 1
     else:
         print('error, wrong rgbvalues for controlled')
@@ -554,7 +567,7 @@ def get_infrared():
 
     if (gpio.input(TOUCHINT) == 0 and ADDR_MLX):
         try:
-            time.sleep(0.001)
+            time.sleep(0.1)
             b = bus.rdwr([0x26], 2, ADDR_MLX)
             value = float(((b[0] | b[1] << 8) * 0.02) - 273.15)
             if (-50 < value < 80):
@@ -564,7 +577,7 @@ def get_infrared():
             value = float(((b[0] | b[1] << 8) * 0.02) - 273.15)
             if (-50 < value < 80):
                 eg_object.mlxobj = value
-            time.sleep(0.001)
+            time.sleep(0.1)
 
             # compensate own self heating
             if (eg_object.mlxamb > eg_object.mlxobj):
@@ -641,6 +654,8 @@ def get_status():
             crc = crc8(crc, b[0])
             crc = crc8(crc, b[1])
             crc = crc8(crc, b[2])
+
+            bus.read(1,ADDR_32U4)
 
             if (crc != b[3]):
                 print('crc8 error read rgb led')
@@ -729,6 +744,7 @@ def get_sensors():  # readout all sensor values, system, and atmega vars
                                          (read_two_bytes(READ_RELAIS1CURRENT) - 2)) / 185)
             eg_object.atmega_temp = read_two_bytes(
                 READ_ATMEGA_TEMP) * 0.558 - 142.5
+            time.sleep(0.01)
             eg_object.atmega_volt = read_two_bytes(READ_ATMEGA_VOLT)
             eg_object.a0 = read_two_bytes(READ_A0)
             time.sleep(0.05)
