@@ -29,7 +29,7 @@ allowedips = list('192.168.1.31')
 
 
 max_backlight = 31  # possible values  0 .. 31
-
+min_backlight = 1
 
 HYSTERESIS = 0.5  # in degree
 
@@ -54,7 +54,7 @@ weekdays = ['Montag', 'Dienstag', 'Mittwoch',
 
 # day / week temperature curves, only save delta t from setting temperature (to keep  user interface easy)
 
-daytempcurve = 1
+daytempcurve = 0
 daytempdelta = [-2,  # 0:00  - 1:00
                 -2,  # 1:00  - 2:00
                 -2,  # 2:00  - 3:00
@@ -94,8 +94,8 @@ subslide = None
 
 # configurate your slides here
 autoslidetm = 10
-autoslides = ['thermostat', 'weather', 'ical2']
-slides = ['thermostat', 'weather', 'ical2', 'status', 'shutter',
+autoslides = []
+slides = ['overview','thermostat', 'weather', 'ical2', 'status', 'shutter',
           'livegraph', 'amperemeter', 'rrdgraph', 'settings']
 autoslideints = []
 

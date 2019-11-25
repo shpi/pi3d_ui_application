@@ -34,11 +34,16 @@ class ServerHandler(BaseHTTPRequestHandler):
 
                         self.send_header('Content-type', 'image/png')
                         self.end_headers()
-                        os.popen('rm /media/ramdisk/screenshot.png')
-                        time.sleep(0.01)
-                        while (os.path.exists("/media/ramdisk/screenshot.png") == False):
+                        try: 
+                            os.popen('rm /media/ramdisk/screenshot.png')
                             time.sleep(0.1)
+                        except: pass
+                        
+                        while (os.path.exists("/media/ramdisk/screenshot.png") == False):
+                            time.sleep(0.15)
+                            print('sleep while waiting for screenshot')
                         # self.wfile.write(screenshot.getvalue())
+                        time.sleep(4)
                         with open('/media/ramdisk/screenshot.png', 'rb') as content_file:
                             self.wfile.write(content_file.read())
 
@@ -99,8 +104,7 @@ class ServerHandler(BaseHTTPRequestHandler):
                                     else:
                                         if key.startswith('relais'):
                                             channel = int(key[-1])
-                                            peripherals.controlrelays(
-                                                channel, (int)(value))
+                                            peripherals.controlrelays(channel, value)
                                 except Exception as e:
                                     message += 'Excepton:{}>{};'.format(key, e)
                                 finally:

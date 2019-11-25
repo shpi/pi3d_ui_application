@@ -744,7 +744,7 @@ def get_sensors():  # readout all sensor values, system, and atmega vars
             try:
                 time.sleep(0.001)
                 bus.write([0xAC, 0x00, 0x00], ADDR_AHT10)
-                time.sleep(0.3)
+                time.sleep(0.4)
                 temp = bus.read(6, ADDR_AHT10)
                 eg_object.humidity = (temp[1] << 12 | temp[2] << 4 | (
                     temp[3] & 0xf0) >> 4) * 100.0 / (1 << 20)

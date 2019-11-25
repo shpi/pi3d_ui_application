@@ -5,7 +5,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import time
-import sys
+
 
 try:
     from _thread import start_new_thread
@@ -23,7 +23,7 @@ import rrdtool
 import pi3d
 import importlib
 
-from io import BytesIO
+
 from PIL import Image
 
 import core.graphics as graphics
@@ -152,7 +152,7 @@ def sensor_thread():
                 peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight
 
             else:
-                peripherals.eg_object.backlight_level = 0
+                peripherals.eg_object.backlight_level = config.min_backlight
 
         if peripherals.eg_object.backlight_level != last_backlight_level:
             print('set backlight:' + str(peripherals.eg_object.backlight_level))
@@ -195,7 +195,7 @@ def sensor_thread():
                 sht_temp = peripherals.eg_object.sht_temp
             else:
                 sht_temp = 0
-            if peripherals.eg_object.motion:
+            if now - peripherals.eg_object.lastmotion < 10:
                 motion = 1
             else:
                 motion = 0
@@ -204,7 +204,8 @@ def sensor_thread():
                 peripherals.eg_object.act_temp, peripherals.eg_object.gputemp, peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
                 sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj, (0.0), getattr(
                     peripherals.eg_object, 'relais' + (str)(config.heatingrelay)),
-                getattr(peripherals.eg_object, 'relais' + (str)(config.coolingrelay)), motion, peripherals.eg_object.humidity, peripherals.eg_object.a4)
+                getattr(peripherals.eg_object, 'relais' + (str)(config.coolingrelay)), int(motion), peripherals.eg_object.humidity, peripherals.eg_object.a4)
+
 
             print(temperatures_str)
             rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
@@ -214,7 +215,7 @@ def sensor_thread():
                     0.03 * peripherals.eg_object.a4)
                 greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(
                     0.02*(400 - peripherals.eg_object.a4))
-                peripherals.controlled([redvalue, greenvalue, 0])
+                peripherals.controlled([redvalue, greenvalue, 1])
 
 
 autoslide = time.time() + config.autoslidetm
@@ -307,6 +308,10 @@ while graphics.DISPLAY.loop_running():
     while (peripherals.eg_object.backlight_level == 0):
         time.sleep(0.1)
         now = time.time()
+        if (os.path.exists("/media/ramdisk/screenshot.png") == False):
+            print('make screenshot')
+            pi3d.screenshot("/media/ramdisk/screenshot.png")
+
 
     if (os.path.exists("/media/ramdisk/screenshot.png") == False):
         print('make screenshot')
