@@ -494,7 +494,8 @@ def controlbacklight(value):
             controlbacklight(value)
 
     except Exception as e:
-        print(e)
+        print(e) 
+        controlbacklight(value)
 
 
 def controlled(rgbvalues, retries=0):
