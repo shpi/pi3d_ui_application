@@ -49,6 +49,11 @@ def crc8(crc, n):
 def i2crecover():
     try:
         addr = 3
+        bus.read(1,0x2A)
+        bus.read(1,0x2A)
+        bus.read(1,0x2A)
+        bus.read(1,0x2A)
+
         while([0x00] == bus.read(1, addr)):
             addr += 1
             if (addr > 119):
@@ -56,7 +61,7 @@ def i2crecover():
             #print(str(i) + '.', end = "")
         time.sleep(0.01)
     except:
-        time.sleep(0.1)
+        time.sleep(0.01)
         pass
 
 
@@ -87,7 +92,9 @@ VALS = {  # various aliases for off and on
     'CLICK': 0x01,
 }
 
-
+COLOR_RED = 0x94
+COLOR_GREEN = 0x95
+COLOR_BLUE = 0x96
 READ_A0 = 0x00
 READ_A1 = 0x01
 READ_A2 = 0x02
@@ -556,50 +563,49 @@ def controlbacklight(value,retries=0):
           controlbacklight(value)
           
 
-
-def controlled(rgbvalues, retries=0):
+def controlledcolor (rgbvalue,channel,retries=0):
     global i2cerr,i2csucc
+    try:
+        rgbvalue = int(rgbvalue)
+        crc = crc8(0, channel)
+        crc = crc8(crc, rgbvalue)
+        bus.write([channel, rgbvalue, crc], ADDR_32U4)
+        crca = bus.read(1, ADDR_32U4)
 
-    if len(rgbvalues) == 3: 
-      if eg_object.led != rgbvalues:
-
-        crc = crc8(0, 0x8C)
-        rgb = [0x8C]
-        for value in rgbvalues:
-            value = int(value)  # variable int value
-            assert -1 < value < 256, 'value outside 0..255'
-            rgb.append(value)
-            crc = crc8(crc, value)
-        rgb.append(crc)
-        try: 
-            bus.write(rgb, ADDR_32U4)
-            crca = False
-            while (crca == False):
-              try:
-                   crca = bus.read(1, ADDR_32U4)
-              except: pass
-            if ([crc] != crca):
-                i2cerr +=1
-                if retries < 10:
-                   time.sleep(0.1)
-                   controlled(rgbvalues,retries+1)
-                else:
-                 print('control rgb led crc8 missmatch, retry')
-                 i2crecover()
-                 controlled(rgbvalues) 
-            else:
-              i2csucc +=1
-              eg_object.led = rgbvalues
-        except Exception as e:  # potential inifinite loop - count repeats and break after n
+        if ([crc] != crca):
             i2cerr +=1
             if retries < 10:
-                time.sleep(0.1)
-                controlled(rgbvalues,retries+1)
+               time.sleep(0.1)
+               controlledcolor(rgbvalue,channel,retries+1)
             else:
-             print('i2c blocked setting led: {}'.format(e))
-             i2crecover()
-             controlled(rgbvalues)
-            
+              if crca == 0xFF: print('crc is 0xff, please check if u installed lates avr firmware, we changed LED control in atmega')
+              else:
+               print('control led crc missmatch, retry')
+               i2crecover()
+               controlledvolot(rgbvalue,channel)
+        else: i2csucc +=1
+    except:
+        i2cerr +=1
+        if retries < 10:
+          time.sleep(0.1)
+          controlbacklight(value,retries+1)
+        else:
+          print('control backlight crc error')
+          i2crecover()
+          controlbacklight(value)
+
+
+
+
+
+
+def controlled(rgbvalues):
+    if len(rgbvalues) == 3:
+        controlledcolor(rgbvalues[0],COLOR_RED)
+        controlledcolor(rgbvalues[1],COLOR_GREEN)
+        controlledcolor(rgbvalues[2],COLOR_BLUE)
+        eg_object.led = rgbvalues
+
     else:
         print('error, wrong rgbvalues for controlled')
 

@@ -11,7 +11,19 @@ import core.graphics as graphics
 import core.peripherals as peripherals
 import core.iwlist as iwlist
 
-wifinetworkstext = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', 'Please choose your WIFI-network' , font_size=42, shadow_radius=4,justify='L', background_color=(0,0,0,30), color= (255,255,255,255),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
+try:
+    unichr
+except NameError:
+    unichr = chr
+
+
+controlx= pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE01E), font_size=65,shadow_radius=4, 
+                        background_color=(0,0,0,0), color= (255,255,255,255),
+                        camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
+controlx.sprite.position(335, 196, 1)
+
+
+wifinetworkstext = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', 'Choose your WIFI-network:' , font_size=42, shadow_radius=4,justify='L', background_color=(0,0,0,30), color= (255,255,255,255),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
 wifinetworkstext.sprite.position(0, 200, 1)
 wifinetworks = None
 selectednetwork = None
@@ -19,11 +31,11 @@ selectednetwork = None
 def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = False):
        global wifinetworks,selectednetwork
        wifinetworkstext.draw()
+       controlx.draw()
        if wifinetworks == None:
         actnetwork = 0
         wifinetworks = iwlist.scan()
-        
-        
+ 
         for network in wifinetworks:
          if network['essid'] == '': network['essid'] = 'hidden'
          wifinetworks[actnetwork]['string'] = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf','SSID: '+(str)(network['essid']) + ', Enc:' + (str)(network['enc']) + '  Ch:' + (str)(network['ch']) , font_size=32,shadow_radius=4,justify='L', background_color=(0,0,0,30), color= (255,255,255,255),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
@@ -35,8 +47,13 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
          if peripherals.touch_pressed:
            peripherals.touch_pressed = False
            activity = True
-           selectednetwork = abs((int)((peripherals.lasty - 100)/80))
-           if -1 <  selectednetwork  <  len(wifinetworks):
+           if peripherals.clicked(335,196):
+              config.subslide= None
+              wifinetworks = None
+           
+           else:
+            selectednetwork = abs((int)((peripherals.lasty - 100)/80))
+            if -1 <  selectednetwork  <  len(wifinetworks):
               peripherals.eg_object.usertextshow = 'Please enter WIFI password.'
               peripherals.eg_object.usertext = ''
               config.subslide = 'wifikeyboard'

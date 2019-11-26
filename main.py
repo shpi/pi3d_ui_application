@@ -300,16 +300,15 @@ while graphics.DISPLAY.loop_running():
 
     if (textchange):
         textchange = False
+
     if (activity == False) & (slide_offset == 0):
         time.sleep(0.1)
     activity = False
 
-    while (peripherals.eg_object.backlight_level == 0):
+    if (peripherals.eg_object.backlight_level <= config.min_backlight):
         time.sleep(0.1)
         now = time.time()
-        if (os.path.exists("/media/ramdisk/screenshot.png") == False):
-            print('make screenshot')
-            pi3d.screenshot("/media/ramdisk/screenshot.png")
+        
 
 
     if (os.path.exists("/media/ramdisk/screenshot.png") == False):

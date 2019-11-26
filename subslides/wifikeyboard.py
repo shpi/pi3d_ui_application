@@ -178,7 +178,7 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
         #print(eg_object.usertext)
         file = open('/etc/wpa_supplicant/wpa_supplicant.conf','w') 
         file.write('country=US\n') 
-        file.write('ctrl_interface=/var/run/wpa_supplicant GROUP=netdev\n') 
+        file.write('ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n') 
         file.write('update_config=1\n') 
         file.write('network={\n') 
         file.write('ssid="' + wifisetup.wifinetworks[wifisetup.selectednetwork]['essid'] + '"\n') 
@@ -200,13 +200,16 @@ def inloop(x = 0, y = 0, touch_pressed = False, textchange = False,activity = Fa
 
         file.write('}') 
         file.close() 
-        #os.popen('sudo wpa_cli -i wlan0 reconfigure')
+        os.popen('sudo wpa_cli -i wlan0 reconfigure')
+        os.popen('sudo wpa_action wlan0 stop')
+        os.popen('sudo wpa_action wlan0 reload')
         os.popen('sudo ifdown wlan0')
         os.popen('sudo ifup wlan0')
-
-
-        #sudo systemctl daemon-reload
-        #sudo systemctl restart dhcpcd
+        os.popen('sudo systemctl daemon-reload')
+        os.popen('systemctl restart dhcpcd')
+        #sudo wpa_action wlan0 stop
+        #sudo wpa_action wlan0 reload
+        #sudo ifup wlan0
         #sudo systemctl reenable wpa_supplicant.service
         #sudo systemctl restart wpa_supplicant.service
         #sudo systemctl restart dhcpcd.service
