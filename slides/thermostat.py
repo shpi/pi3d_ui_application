@@ -102,6 +102,12 @@ def inloop(textchange=False, activity=False, offset=0):
 
     global controls_alpha
 
+    if offset != 0:
+        offset = graphics.slider_change(text.text, offset)
+        if offset == 0:
+            textchange = True
+
+
     if textchange:
 
         if peripherals.eg_object.tempoffset > 0:
@@ -240,10 +246,6 @@ def inloop(textchange=False, activity=False, offset=0):
         if config.heatingrelay or config.coolingrealy:
             set_temp_block.colouring.set_colour([1, 1, 1])
 
-    if offset != 0:
-        offset = graphics.slider_change(text.text, offset)
-        if offset == 0:
-            text.regen()
 
     text.draw()
 

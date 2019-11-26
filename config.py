@@ -32,7 +32,7 @@ max_backlight = 31  # possible values  0 .. 31
 min_backlight = 1
 
 HYSTERESIS = 0.5  # in degree
-
+set_temp = 23
 coolingrelay = 0  # 1 #off
 heatingrelay = 1  # 3 #on relay3
 shutterdown = 2  # 1  #on

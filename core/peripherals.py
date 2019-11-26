@@ -31,7 +31,7 @@ if int(os_touchdriver) > 1:
     touch_file = open("/dev/input/event1", "rb")
 
 
-i2cerror, xc, yc, lastx, lasty, touch_pressed, lasttouch = 0, 0, 0, 0, 0, 0, 0
+startmotion, i2cerr, i2csucc, xc, yc, lastx, lasty, touch_pressed, lasttouch = time.time(), 0, 0, 0, 0, 0, 0, 0, 0
 
 
 def crc8(crc, n):
@@ -54,8 +54,9 @@ def i2crecover():
             if (addr > 119):
                 addr = 3
             #print(str(i) + '.', end = "")
-
+        time.sleep(0.01)
     except:
+        time.sleep(0.1)
         pass
 
 
@@ -254,9 +255,9 @@ class EgClass(object):
     humidity = 0.0
 
     motion = False
-    set_temp = 23.0
+    set_temp = config.set_temp
     backlight_level = 0
-
+    i2cerrorrate = 0
     gputemp = 0
     cputemp = 0
     act_temp = 0.0
@@ -286,6 +287,7 @@ class EgClass(object):
 eg_object = EgClass()
 
 
+
 def alert(value=1):
     if value and (int)(time.time()) % 2 == 0:
         controlrelays(4, 1)
@@ -312,7 +314,7 @@ def motion_detected(channel):
             mqttclient.publish("motion", 'ON')
     else:
 
-        print(time.time() - startmotion)
+        print('motion time: ' + str(time.time() - startmotion))
         eg_object.motion = False
         if config.startmqttclient:
             mqttclient.publish("motion", 'OFF')
@@ -383,6 +385,7 @@ def touch_debounce(channel):
 
 
 def clicksound():
+    global i2cerr,i2csucc
     try:
         crc = crc8(0, BUZZER)
         crc = crc8(crc, VALS['CLICK'])
@@ -390,13 +393,13 @@ def clicksound():
         crca = bus.read(1, ADDR_32U4)
         time.sleep(0.001)
         if ([crc] != crca):
-            print('crc8 error set clicksound')
+            i2cerr +=1
+        else: i2csucc +=1
     except:
-        print('clicksound error')
-
+        pass
 
 def controlrelays(channel, value, retries=0):
-    global i2cerror
+    global i2cerr,i2csucc
     try:
         crc = crc8(0, RELAYCHANNEL[channel-1])
         crc = crc8(crc, VALS[value])
@@ -404,19 +407,29 @@ def controlrelays(channel, value, retries=0):
         crca = bus.read(1, ADDR_32U4)
 
         if ([crc] != crca):
-            print('crc8 error set controlrelays')
-            i2cerror += 1
-            controlrelays(channel, value)
-            
-    except Exception as e:  # potential inifinite loop - count repeats and break after n
-        print('error setting channels: {}'.format(e))
-        if retries < 25:
-            i2cerror += 1
+            i2cerr +=1
+            if retries > 10: 
+              print('crc8 error: set relays')
+              i2crecover()
+              controlrelays(channel,value)
+            else:
+              time.sleep(0.1)
+              controlrelays(channel, value,retries+1)
+        else: 
+            i2csucc += 1 
+   
+    except Exception as e: 
+        if retries < 10:
+            i2cerr += 1
+            time.sleep(0.1)
             controlrelays(channel, value, retries + 1)
+        else: 
+            print('i2c blocked setting channels: {}'.format(e))
+            i2crecover()
+            controlrelays(channel,value)
 
-
-def read_one_byte(addr_val):  # utility function for brevity
-    global i2cerror
+def read_one_byte(addr_val,retries=0):  # utility function for brevity
+    global i2cerr,i2csucc
     crc = 0
     try:
         crc = crc8(crc, addr_val)
@@ -425,20 +438,30 @@ def read_one_byte(addr_val):  # utility function for brevity
         crc = crc8(crc, b[0])
         time.sleep(0.001)
         if (crc == b[1]):
+            i2csucc +=1
             return b[0]
         else:
-            print('crc 1 error ' + ' 0x{:02x}'.format(addr_val))
-            i2cerror += 1
+          i2cerr +=1
+          if retries < 10:
             time.sleep(0.1)
+            return read_one_byte(addr_val,retries+1)
+          else:
+            print('crc missmatch ' + ' 0x{:02x}'.format(addr_val))
+            i2crecover()
             return read_one_byte(addr_val)
     except Exception as e:  # potential inifinite loop - count repeats and break after n
-        print('i2c error ' + '0x{:02x}'.format(addr_val))
-        time.sleep(0.1)
+       i2cerr +=1
+       if retries < 10:
+           time.sleep(0.1)
+           return read_one_byte(addr_val,retries+1)
+       else:
+        print('i2c blocked ' + '0x{:02x}'.format(addr_val))
+        i2crecover()
         return read_one_byte(addr_val)
 
 
-def read_two_bytes(addr_val):  # utility function for brevity
-    global i2cerror
+def read_two_bytes(addr_val,retries=0):  # utility function for brevity
+    global i2cerr,i2csucc
     crc = 0
     try:
         crc = crc8(crc, addr_val)
@@ -448,22 +471,31 @@ def read_two_bytes(addr_val):  # utility function for brevity
         crc = crc8(crc, b[1])
         time.sleep(0.001)
         if (crc == b[2]):
+            i2csucc +=1
             return b[0] | (b[1] << 8)
         else:
-            print('crc 2 error 0x{:02x}'.format(addr_val))
-            i2cerror += 1
+          i2cerr += 1
+          if retries < 10:
             time.sleep(0.1)
+            return read_two_bytes(addr_val,retries+1)
+          else:
+            print('crc 2 missmatch 0x{:02x}'.format(addr_val))
+            i2crecover()
             return read_two_bytes(addr_val)
 
     except Exception as e:  # potential inifinite loop - count repeats and break after n
-
-        print('i2c error 0x{:02x}'.format(addr_val))
-        i2cerror += 1
-        time.sleep(0.1)
+      i2cerr +=1
+      if retries < 10:
+       time.sleep(0.1)
+       return  read_two_bytes(addr_val,retries+1)
+      else:
+        print('i2c bus blocked 0x{:02x}'.format(addr_val))
+        i2crecover()
         return read_two_bytes(addr_val)
 
 
-def controlvent(value):
+def controlvent(value,retries=0):
+    global i2cerr,i2csucc
     try:
         value = int(value)  # variable int value
         assert -1 < value < 256, 'value outside 0..255'
@@ -471,43 +503,66 @@ def controlvent(value):
         crc = crc8(crc, value)
         bus.write([VENT_PWM, value, crc], ADDR_32U4)
         crca = bus.read(1, ADDR_32U4)
-        time.sleep(0.001)
         if ([crc] != crca):
-            print('control vent crc8 error')
-            i2recover()
-            controlvent(value)
+            i2cerr +=1
+            if retries < 10:
+             time.sleep(0.1)
+             controlvent(value,retries+1)
+            else:
+             print('control vent crc missmatch')
+             i2crecover()
+             controlvent(value)
+        else: 
+             i2csucc +=1
     except Exception as e:
-        print(e)
+        i2cerr +=1
+        if retries < 10:
+           time.sleep(0.1)
+           controlvent(value,retries+1)
+        else:
+           print('control vent i2c error')
+           i2crecover()
+           conrolvent(value)
 
 
-def controlbacklight(value):
-    global i2cerror
+def controlbacklight(value,retries=0):
+    global i2cerr,i2csucc
     os.popen('sudo chrt --rr 99 ' + config.installpath +
              'bin/backlight {}'.format(value))  # needs sudo because of timing
     try:
         crc = crc8(0, BACKLIGHT_LEVEL)
         crc = crc8(crc, value)
-        time.sleep(0.001)
         bus.write([BACKLIGHT_LEVEL, value, crc], ADDR_32U4)
         crca = bus.read(1, ADDR_32U4)
 
         if ([crc] != crca):
-            print('control backlight crc8 error')
-            i2cerror += 1
-            controlbacklight(value)
-
-    except Exception as e:
-        print(e) 
-        controlbacklight(value)
+            i2cerr +=1
+            if retries < 10:
+               time.sleep(0.1)
+               controlbacklight(value,retries+1)
+            else:
+              print('control backlight crc missmatch, retry')
+              i2crecover()
+              controlbacklight(value)
+        else: i2csucc +=1
+    except:
+        i2cerr +=1
+        if retries < 10:
+          time.sleep(0.1)
+          controlbacklight(value,retries+1)
+        else:
+          print('control backlight crc error')
+          i2crecover()
+          controlbacklight(value)
+          
 
 
 def controlled(rgbvalues, retries=0):
-    global i2cerror
+    global i2cerr,i2csucc
 
     if len(rgbvalues) == 3: 
       if eg_object.led != rgbvalues:
 
-        time.sleep(0.01)
         crc = crc8(0, 0x8C)
         rgb = [0x8C]
         for value in rgbvalues:
@@ -518,22 +573,33 @@ def controlled(rgbvalues, retries=0):
         rgb.append(crc)
         try: 
             bus.write(rgb, ADDR_32U4)
-            time.sleep(0.05)
             crca = False
             while (crca == False):
               try:
                    crca = bus.read(1, ADDR_32U4)
               except: pass
             if ([crc] != crca):
-                print('control rgb led crc8 error')
-                controlled(rgbvalues) 
+                i2cerr +=1
+                if retries < 10:
+                   time.sleep(0.1)
+                   controlled(rgbvalues,retries+1)
+                else:
+                 print('control rgb led crc8 missmatch, retry')
+                 i2crecover()
+                 controlled(rgbvalues) 
             else:
+              i2csucc +=1
               eg_object.led = rgbvalues
         except Exception as e:  # potential inifinite loop - count repeats and break after n
-            print('error setting led: {}'.format(e))
-            time.sleep(0.1)
-            controlled(rgbvalues)
-            i2cerror += 1
+            i2cerr +=1
+            if retries < 10:
+                time.sleep(0.1)
+                controlled(rgbvalues,retries+1)
+            else:
+             print('i2c blocked setting led: {}'.format(e))
+             i2crecover()
+             controlled(rgbvalues)
+            
     else:
         print('error, wrong rgbvalues for controlled')
 
@@ -594,7 +660,9 @@ def get_infrared():
 
 
 def get_status():
+    global i2csucc, i2cerr
     try:
+        eg_object.i2cerrorrate = int(100 / (i2csucc / i2cerr))
         eg_object.useddisk = os.popen(
             "df | grep root  | awk '{print $5}'").readline().strip()
         eg_object.load = float(os.getloadavg()[0])

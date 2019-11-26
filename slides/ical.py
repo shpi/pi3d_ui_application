@@ -1,14 +1,12 @@
 import core.peripherals as peripherals
 import core.graphics as graphics
 import config
-import random
 import time
 import os
 import sys
 import pi3d
-from random import randint
 import numpy as np
-import math
+
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 

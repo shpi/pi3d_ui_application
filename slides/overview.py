@@ -49,7 +49,7 @@ background.set_alpha(0.7)
 ball = pi3d.Disk(radius=150, sides=36, z=2.5, rx=90, camera=graphics.CAMERA) # default orientated in x,z plane so rotate
 ball.set_shader(graphics.MATSH)
 ball.set_material((1, 1, 1))
-ball.set_alpha(0.1)
+ball.set_alpha(0.3)
 
 
 line = pi3d.Lines(vertices=shape, line_width=6, strip=True)

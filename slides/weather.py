@@ -17,7 +17,7 @@ import time
 import datetime
 
 import numpy as np
-import math
+
 
 try:
     import pyowm
@@ -214,7 +214,7 @@ def init():
             temp.append([actualy, temperatures['temp']*3, 2])
             actualy += step
 
-        lastvalue = 0
+
 
         line = pi3d.Lines(vertices=temp, line_width=2, y=-220, strip=True)
         line.set_shader(graphics.MATSH)

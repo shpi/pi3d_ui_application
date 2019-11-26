@@ -116,9 +116,8 @@ textchange = True
 sfg, sbg = None, None
 now = time.time()
 
-
 def sensor_thread():
-    global textchange, a, sbg, sfg, now
+    global textchange, a, sbg, sfg
     last_backlight_level = 0
     iFiles, nFi = get_files()
     pic_num = nFi - 1
@@ -128,7 +127,7 @@ def sensor_thread():
     nexttm = 0
 
     while True:
-
+        now = time.time()
         if now > nexttm:                                     # change background
             nexttm = now + config.TMDELAY
 
@@ -209,13 +208,13 @@ def sensor_thread():
 
             print(temperatures_str)
             rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
-
+            print('i2c crc error:' + str(peripherals.eg_object.i2cerrorrate)+'%')
             if config.show_airquality:
                 redvalue = 255 if peripherals.eg_object.a4 > 600 else int(
                     0.03 * peripherals.eg_object.a4)
                 greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(
                     0.02*(400 - peripherals.eg_object.a4))
-                peripherals.controlled([redvalue, greenvalue, 1])
+                peripherals.controlled([redvalue, greenvalue, 0])
 
 
 autoslide = time.time() + config.autoslidetm

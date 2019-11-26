@@ -98,8 +98,8 @@ class I2C:
             addr = self.addr
         if addr is None:
             raise ValueError("No slave address specified!")
-        if len(data) > 32767:
-            raise ValueError("Cannot write more than 32767 bytes at a time.")
+        if len(data) > 5:
+            raise ValueError("Cannot write more than 5 bytes at a time.")
         write_msg = I2C_MSG_S(addr, I2C_M_WR, len(data), None)
         if sys.version < '3':
             write_msg.buf = "".join(chr(x & 0xFF) for x in data)

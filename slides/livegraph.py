@@ -17,7 +17,7 @@ import time
 
 
 import numpy as np
-import math
+
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
