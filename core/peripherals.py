@@ -582,17 +582,17 @@ def controlledcolor (rgbvalue,channel,retries=0):
               else:
                print('control led crc missmatch, retry')
                i2crecover()
-               controlledvolot(rgbvalue,channel)
+               controlledcolor(rgbvalue,channel)
         else: i2csucc +=1
     except:
         i2cerr +=1
         if retries < 10:
           time.sleep(0.1)
-          controlbacklight(value,retries+1)
+          controlledcolor(rgbvalue,channel,retries+1)
         else:
           print('control backlight crc error')
           i2crecover()
-          controlbacklight(value)
+          controlledcolor(rgbvalue,channel)
 
 
 
