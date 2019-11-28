@@ -3,9 +3,9 @@
 
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-import os
+import os,sys
 import time
-
+import math
 
 try:
     from _thread import start_new_thread
@@ -31,8 +31,10 @@ import core.peripherals as peripherals
 
 import config
 # make 4M ramdisk for graph
-os.popen('sudo mkdir /media/ramdisk')
-os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
+if not os.path.isdir('/media/ramdisk'):
+ os.popen('sudo mkdir /media/ramdisk')
+ os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
+
 # os.chdir('/media/ramdisk')
 
 
@@ -108,7 +110,7 @@ if config.starthttpserver:
         #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
         littleserver.timeout = 0.1
     except:
-        print('server error')
+        print('http server error')
 
 
 slide_offset = 0  # change by touch and slide
@@ -206,9 +208,14 @@ def sensor_thread():
                 getattr(peripherals.eg_object, 'relais' + (str)(config.coolingrelay)), int(motion), peripherals.eg_object.humidity, peripherals.eg_object.a4)
 
 
-            print(temperatures_str)
+            
+            sys.stdout.write('\r')
+            sys.stdout.write(temperatures_str)
+            
             rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
-            print('i2c crc error:' + str(peripherals.eg_object.i2cerrorrate)+'%')
+            sys.stdout.write(' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ' )
+            sys.stdout.flush()
+
             if config.show_airquality:
                 redvalue = 255 if peripherals.eg_object.a4 > 600 else int(
                     0.03 * peripherals.eg_object.a4)
@@ -223,7 +230,7 @@ peripherals.eg_object.slide = config.slide
 
 start_new_thread(sensor_thread, ())
 
-
+movesfg = 0
 time.sleep(1)
 
 while graphics.DISPLAY.loop_running():
@@ -240,12 +247,27 @@ while graphics.DISPLAY.loop_running():
 
         sfg.draw()
 
+    
+    if (config.slideparallax == 1) & (abs(movesfg) > 0):  # only do something if offset
+            if abs(movesfg) < 1:  # needs to be > min move distance
+             movesfg = 0
+            else:
+             movesfg -= math.copysign(0.3, movesfg)
+             sfg.positionX(int(-movesfg))
+
+
     if peripherals.touched():  # and (peripherals.lasttouch + 0.4 > time.time()):  # check if touch is pressed, to detect sliding
         x, y = peripherals.get_touch()
 
         activity = True
         if ((x != 400) and peripherals.lastx):  # catch 0,0 -> 400,-240
             movex = (peripherals.lastx - x)
+
+            if (config.slideparallax == 1) & (abs(movex) > 20):
+             movesfg = int( movex / 10)
+             movesfg -= math.copysign(2,movesfg)
+             sfg.positionX(-movesfg)
+
 
             if (abs(movex) > 40):  # calculate slider movement
                 slide_offset = movex
@@ -301,7 +323,7 @@ while graphics.DISPLAY.loop_running():
     if (textchange):
         textchange = False
 
-    if (activity == False) & (slide_offset == 0):
+    if (activity == False) &(movesfg == 0) & (slide_offset == 0):
         time.sleep(0.1)
     activity = False
 
@@ -312,7 +334,6 @@ while graphics.DISPLAY.loop_running():
 
 
     if (os.path.exists("/media/ramdisk/screenshot.png") == False):
-        print('make screenshot')
         pi3d.screenshot("/media/ramdisk/screenshot.png")
 
 

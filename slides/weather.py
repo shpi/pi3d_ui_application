@@ -42,6 +42,7 @@ grapharea.set_material((1.0, 1.0, 1.0))
 grapharea.set_alpha(0.3)
 grapharea2 = pi3d.Sprite(camera=graphics.CAMERA,
                          w=780, h=350, z=3.0, x=0, y=55)
+
 grapharea2.set_shader(graphics.MATSH)
 grapharea2.set_material((0, 0, 0))
 grapharea2.set_alpha(0.7)
@@ -52,7 +53,7 @@ error = False
 
 
 def init():
-    global seplines, degwind, weathericon, text, line, baroneedle, windneedle, linemin, linemax, acttemp, text, error
+    global snowline, rainline, seplines, degwind, weathericon, text, line, baroneedle, windneedle, linemin, linemax, acttemp, text, error
     try:
         owm = pyowm.OWM(API_key=config.owmkey, language=config.owmlanguage)
         place = owm.weather_at_place(config.owmcity)
@@ -101,9 +102,9 @@ def init():
         barometer = pi3d.TextBlock(50, -50, 0.1, 0.0, 10, text_format=unichr(0xE00B) + ' ' + str(
             weather.get_pressure()['press']) + ' hPa', size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
         text.add_text_block(barometer)
-        baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=(
-            (-2, 0, 0), (0, 7, 0), (2, 0, 0)), x=barometer.x+16, y=barometer.y - 6, z=0.1)
-        baroneedle.set_shader(graphics.MATSH)
+        #baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=(
+        #    (-2, 0, 0), (0, 7, 0), (2, 0, 0)), x=barometer.x+16, y=barometer.y - 6, z=0.1)
+        #baroneedle.set_shader(graphics.MATSH)
         normalizedpressure = (weather.get_pressure()['press'] - 950)
         if normalizedpressure < 0:
             normalizedpressure = 0
@@ -116,8 +117,8 @@ def init():
         if red > 1:
             red = 1
         barometer.colouring.set_colour([red, green, 0, 1.0])
-        baroneedle.set_material([red, green, 0])
-        baroneedle.rotateToZ(100 - (normalizedpressure*2))
+        #baroneedle.set_material([red, green, 0])
+        #baroneedle.rotateToZ(100 - (normalizedpressure*2))
 
         humidity = pi3d.TextBlock(50, 0, 0.1, 0.0, 10, text_format=unichr(0xE003) + ' ' + str(
             weather.get_humidity()) + '%', size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
@@ -146,12 +147,13 @@ def init():
         temp_max = []
         temp_min = []
         temp = []
-        seplines = []
+        seplinesarr = []
         icons = []
-
+        rainarr = []
+        snowarr = []
         maxdaytemp = -100
         mindaytemp = 100
-
+        
         for weather in f:
 
             if not os.path.exists('sprites/' + weather.get_weather_icon_name() + '.png'):
@@ -164,12 +166,10 @@ def init():
                                           shader=graphics.SHADER, camera=graphics.CAMERA, w=20, h=20, z=1, x=actualy, y=-220))
 
             if weather.get_reference_time('iso')[11:16] == '00:00':
-                line = pi3d.Lines(
-                    vertices=[[actualy, -50, 2], [actualy, 50, 2]], line_width=1, y=-180, strip=True)
-                line.set_shader(graphics.MATSH)
-                line.set_material((0, 0, 0))
-                line.set_alpha(0.9)
-                seplines.append(line)
+                seplinesarr.append([actualy, -50, 2])
+                seplinesarr.append([actualy, 50, 2])
+                seplinesarr.append([actualy, -50, 2])
+                                
             # if weather.get_reference_time('iso')[11:16] == '12:00':
                 day = weather.get_reference_time(timeformat='date').weekday()
                 if actualy < 300:
@@ -188,20 +188,17 @@ def init():
                 mindaytemp = 100
 
             if '3h' in weather.get_snow():
-                line = pi3d.Lines(vertices=[[actualy, -50, 2], [actualy, (-50+weather.get_snow()[
-                                  '3h']*30), 2]], line_width=3, y=-180, strip=True)
-                line.set_shader(graphics.MATSH)
-                line.set_material((0.5, 0.5, 1))
-                line.set_alpha(1)
-                seplines.append(line)
+                snowarr.append([actualy, (-50+weather.get_snow()['3h']*30),2])
+            else:
+                snowarr.append([actualy, -50 ,2])
+
 
             if '3h' in weather.get_rain():
-                line = pi3d.Lines(vertices=[[actualy, -50, 2], [actualy, (-50+weather.get_rain()[
-                                  '3h']*30), 2]], line_width=3, y=-180, strip=True)
-                line.set_shader(graphics.MATSH)
-                line.set_material((0, 0, 1))
-                line.set_alpha(1)
-                seplines.append(line)
+                rainarr.append([actualy, (-50+weather.get_rain()['3h']*30),2])
+            else:
+                rainarr.append([actualy, -50 ,2])
+
+
 
             temperatures = weather.get_temperature(unit='celsius')
             if temperatures['temp_max'] > maxdaytemp:
@@ -215,6 +212,20 @@ def init():
             actualy += step
 
 
+        snowline = pi3d.Lines(vertices=snowarr, line_width=3, y=-180, strip=True)
+        snowline.set_shader(graphics.MATSH)
+        snowline.set_material((0.5, 0.5, 1))
+        snowline.set_alpha(0.7)
+        rainline = pi3d.Lines(vertices=rainarr, line_width=3, y=-180, strip=True)
+        rainline.set_shader(graphics.MATSH)
+        rainline.set_material((0, 0, 1))
+        rainline.set_alpha(0.7)
+
+
+        seplines  = pi3d.Lines(vertices=seplinesarr, line_width=1, y=-180, strip=True)
+        seplines.set_shader(graphics.MATSH)
+        seplines.set_material((0, 0, 0))
+        seplines.set_alpha(0.9)
 
         line = pi3d.Lines(vertices=temp, line_width=2, y=-220, strip=True)
         line.set_shader(graphics.MATSH)
@@ -244,7 +255,7 @@ threehours = time.time() + (60*60*3)
 
 
 def inloop(textchange=False, activity=False, offset=0):
-    global seplines, degwind, threehours, weathericon, text, line, baroneedle, windneedle, linemin, linemax, error
+    global snowline, rainline, seplines, degwind, threehours, weathericon, text, line, baroneedle, windneedle, linemin, linemax, error
 
     if (time.time() > threehours) and offset == 0:
         start_new_thread(init, ())
@@ -259,16 +270,20 @@ def inloop(textchange=False, activity=False, offset=0):
 
     else:
         if (error == False):
-            weathericon.draw()
-            baroneedle.draw()
-            line.draw()
-            # linemin.draw()
-            # linemax.draw()
-            if degwind:
+            try:
+             weathericon.draw()
+             #baroneedle.draw()
+             line.draw()
+             # linemin.draw()
+             # linemax.draw()
+             if degwind:
                 windneedle.draw()
-            for subline in seplines:
-                subline.draw()
-            #for icon in icons: icon.draw()
+             seplines.draw()
+             snowline.draw()
+             rainline.draw()
+
+            except: pass
+             #for icon in icons: icon.draw()
 
     text.draw()
 

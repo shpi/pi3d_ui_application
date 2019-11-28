@@ -3,10 +3,10 @@ installpath = '/home/pi/zero_main_application/'
 demo = 1  # shows demo slides
 
 TMDELAY = 200  # delay for changing backgrounds
-INFRARED_TM = 5
+INFRARED_TM = 3
 SENSOR_TM = 10
 ICAL_TM = 3600  # update calenderslide every 3600 seconds
-
+slideparallax = 1
 slideshadow = 0  # shadow effect while manually sliding
 show_airquality = 1  # show airquality over LED
 # activate simple GET/POST server in python, be aware of  security issues
