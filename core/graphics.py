@@ -66,7 +66,7 @@ additional = [unichr(0xE000),  # arrow
               # chr(0xE02C), #settings2
               # chr(0xE02D), #storm
               unichr(0xE035),  # shutter
-              # chr(0xE034), #doublearrow
+              unichr(0xE034), #doublearrow
               # chr(0xE033), #usb
               # chr(0xE032), #magnet
               unichr(0xE031),  # phone
@@ -89,7 +89,7 @@ MATSH = pi3d.Shader("mat_flat")
 
 def tex_load(fname):
     slide = pi3d.ImageSprite(fname, shader=SHADER,
-                             camera=CAMERA, w=800, h=480, z=4)
+                             camera=CAMERA, w=880, h=528, z=4)
     slide.set_alpha(0)
     return slide
 
@@ -106,7 +106,7 @@ def slider_change(shape_obj, offset_val):
     return offset_val  # rather than using a global or passing ref to change
 
 
-pointFont = pi3d.Font(config.installpath + "fonts/opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=5, grid_size=12,
+pointFont = pi3d.Font(config.installpath + "fonts/opensans.ttf", shadow_radius=4, grid_size=12,
                       codepoints=mytext, add_codepoints=additional)
 pointFontbig = pi3d.Font(config.installpath + "fonts/opensans.ttf", shadow=(0, 0, 0, 255), shadow_radius=4,
                          grid_size=5, codepoints='0123456789:' + unichr(0xE000) + unichr(0xE035) + unichr(0xE001))

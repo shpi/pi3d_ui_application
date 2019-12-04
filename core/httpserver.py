@@ -26,7 +26,7 @@ class ServerHandler(BaseHTTPRequestHandler):
                 message = ''
                 self.send_response(200)
 
-                print(self.client_address[0])
+                print('http request from: ' + self.client_address[0])
 
                 for key, value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
 
@@ -41,7 +41,7 @@ class ServerHandler(BaseHTTPRequestHandler):
                         
                         while (os.path.exists("/media/ramdisk/screenshot.png") == False):
                             time.sleep(0.15)
-                            print('sleep while waiting for screenshot')
+                            
                         # self.wfile.write(screenshot.getvalue())
                         time.sleep(4)
                         with open('/media/ramdisk/screenshot.png', 'rb') as content_file:
@@ -115,7 +115,7 @@ class ServerHandler(BaseHTTPRequestHandler):
                         self.connection.close()
 
                 print(message)
-                print("-- %s seconds --" % (time.time() - start_time))
+                print("request finished in:  %s seconds" % (time.time() - start_time))
                 #self.wfile.write(bytes(message, "utf8"))
                 # self.connection.close()
             else:

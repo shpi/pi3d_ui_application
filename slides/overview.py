@@ -29,12 +29,12 @@ except NameError:
 shape = []
 #shape.append((0,0,2))
 
-for x in range(0,361):
- shape.append((150* sin(radians(x)) , 150 * cos(radians(x)), 2))
+for x in range(0,181):
+ shape.append((150* sin(radians(x*2)) , 150 * cos(radians(x*2)), 2))
 
- if x % 30 == 0:
-   shape.append((140* sin(radians(x)) , 140 * cos(radians(x)), 2))
-   shape.append((150* sin(radians(x)) , 150 * cos(radians(x)), 2))
+ if x % 15 == 0:
+   shape.append((140* sin(radians(x*2)) , 140 * cos(radians(x*2)), 2))
+   shape.append((150* sin(radians(x*2)) , 150 * cos(radians(x*2)), 2))
 
 #myTime = time.strftime("%-I:%M %p")
 #shape.append((0,0,2))
@@ -46,16 +46,21 @@ background.set_alpha(0.7)
 
 
 
-ball = pi3d.Disk(radius=150, sides=36, z=2.5, rx=90, camera=graphics.CAMERA) # default orientated in x,z plane so rotate
+ball = pi3d.Disk(radius=150, sides=20, z=2.5, rx=90, camera=graphics.CAMERA) # default orientated in x,z plane so rotate
 ball.set_shader(graphics.MATSH)
 ball.set_material((1, 1, 1))
 ball.set_alpha(0.6)
 
+dot = pi3d.Disk(radius=8, sides=20, z=0.1, rx=90, camera=graphics.CAMERA) # default orientated in x,z plane so rotate
+dot.set_shader(graphics.MATSH)
+dot.set_material((1, 0, 0))
+dot.set_alpha(1)
 
-line = pi3d.Lines(vertices=shape, line_width=6, strip=True)
+
+line = pi3d.Lines(vertices=shape, line_width=5, strip=True)
 line.set_shader(graphics.MATSH)
-line.set_material((0, 0, 0))
-line.set_alpha(0.9)
+line.set_material((0.3, 0.1, 0))
+line.set_alpha(1)
 
 
 seps = []
@@ -73,7 +78,7 @@ seperator.set_shader(graphics.MATSH)
 seperator.set_material((1, 1, 1))
 seperator.set_alpha(0.1)
 
-clock_sec = pi3d.Lines(vertices=[(0,0,2),(0,150,2)],line_width=3, strip=True)
+clock_sec = pi3d.Lines(vertices=[(0,0,1.2),(0,140,1.2)],line_width=3, strip=True)
 clock_sec.set_shader(graphics.MATSH)
 clock_sec.set_material((1,0,0))
 
@@ -83,13 +88,9 @@ clock_min.set_shader(graphics.MATSH)
 clock_min.set_material((0,0,0))
 
 
-
 clock_hour = pi3d.Lines(vertices=[(0,0,2),(0,70,2)],line_width=10, strip=True)
 clock_hour.set_shader(graphics.MATSH)
 clock_hour.set_material((0,0,0))
-
-
-
 
 text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=80, point_size=128) 
 
@@ -150,8 +151,8 @@ def inloop(textchange = False,activity = False, offset = 0):
      clock_hour.draw()
      clock_sec.rotateToZ(360-seconds*6)
      opengles.glLineWidth(GLfloat(clock_sec.buf[0].unib[11]))
-     clock_sec.draw()
- 
+     clock_sec.draw()     
+     dot.draw()
      if offset != 0:
          #graphics.slider_change(text2.text,offset)
          offset = graphics.slider_change(text.text, offset)

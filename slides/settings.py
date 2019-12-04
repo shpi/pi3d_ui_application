@@ -42,6 +42,15 @@ wifi = pi3d.TextBlock(-365, -170, 0.1, 0.0, 15, text_format=unichr(0xE016),
                       size=0.79, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text2.add_text_block(wifi)
 
+newtxt = pi3d.TextBlock(-300, -180, 0.1, 0.0, 15, text_format=unichr(0xE001),
+                        size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text2.add_text_block(newtxt)
+
+update = pi3d.TextBlock(-255, -225, 0.1, 90.0, 15, text_format=unichr(0xE034),
+                      size=0.79, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+text2.add_text_block(update)
+
+
 
 textblock = pi3d.TextBlock(-270, 0, 0.1, 0.0, 170, data_obj=peripherals.eg_object, attr="ssid",
                            text_format="SSID: {:s}", size=0.29, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
@@ -79,6 +88,13 @@ def inloop(textchange=False, activity=False, offset=0):
 
         elif peripherals.clicked(wifi.x, wifi.y):
             config.subslide = 'wifisetup'
+        elif peripherals.clicked(update.x, update.y):
+             import subprocess
+             process = subprocess.Popen(['git', 'pull', '-v', 'origin', 'master'], cwd='/home/pi/zero_main_application',stdout=subprocess.PIPE)
+             print(process.communicate()[0])
+             process2 = subprocess.Popen(['git', 'pull', '-v', 'origin', 'master'], cwd='/home/pi/zero_avr_firmware_std',stdout=subprocess.PIPE)
+             print(process2.communicate()[0])
+
 
     if offset != 0:
         offset = graphics.slider_change(text2.text, offset)

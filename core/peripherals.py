@@ -23,15 +23,17 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 os_touchdriver = os.popen('pgrep -f touchdriver.py -c').readline()
 
 if int(os_touchdriver) > 1:
-    print('os touch driver active')
     try:
         from _thread import start_new_thread
     except:
         from thread import start_new_thread
-    touch_file = open("/dev/input/event1", "rb")
+    try:
+     touch_file = open("/dev/input/event1", "rb")
+    except:
+     touch_file = open("/dev/input/event0", "rb")
 
 
-startmotion, i2cerr, i2csucc, xc, yc, lastx, lasty, touch_pressed, lasttouch = time.time(), 0, 0, 0, 0, 0, 0, 0, 0
+startmotion, i2cerr, i2csucc, xc, yc, lastx, lasty, touch_pressed, lasttouch = time.time(), 1, 1, 0, 0, 0, 0, 0, 0
 
 
 def crc8(crc, n):
@@ -146,7 +148,7 @@ try:
     bus.write([0x6e, 0b00001110], TOUCHADDR)
     bus.write([0x70, 0b00000000], TOUCHADDR)
 except:
-    print('no touchscreen found')
+    print('Error: no touchscreen found')
     TOUCHADDR = False
 
 
@@ -157,7 +159,7 @@ try:
 
 except:
     ADDR_32U4 = False
-    print('no ATmega found, seems to be a SHPI.zero lite?')
+    print('Hint: No ATmega found, seems to be a SHPI.zero lite?')
 
 
 # check for SHT3x
@@ -166,7 +168,7 @@ try:
     bus.write([0x01], ADDR_SHT)
 except:
     ADDR_SHT = False
-    print('no SHT found')
+    print('Hint: No SHT found')
 
 
 try:
@@ -177,36 +179,34 @@ try:
     bus.write([0xE1, 0x08, 0x00], ADDR_AHT10)
     response = bus.read(1, ADDR_AHT10)
     if (response[0] & 0x68 == 0x08):
-        print('AHT10 calibrated')
+        print('Hint: AHT10 calibrated')
     else:
-        print('AHT10 error occured')
+        print('Hint: AHT10 error occured')
     # time.sleep(0.5)
 
 except:
     ADDR_AHT10 = False
-    print('no AHT10 found')
+    print('Hint: no AHT10 found')
 
 # check for light sensor BH1750
 try:
     time.sleep(0.001)
     bus.write([0x01], ADDR_BH1750)  # power on BH1750
 except:
-    print('no BH1750')
+    print('Hint: No BH1750')
     ADDR_BH1750 = False
 
 
 # check for MLX90615
 try:
-    print('check mlx')
     time.sleep(0.001)
     bus.rdwr([0x26], 2, ADDR_MLX)
 except:
     ADDR_MLX = False
-    print('no MLX90615 found')
+    print('Hint: No MLX90615 found')
 
 # correction values for BMP280
 try:
-    print('check bmp')
     time.sleep(0.001)
     b1 = bytes(bus.rdwr([0x88], 24, ADDR_BMP))
     dig_T = struct.unpack_from('<Hhh', b1, 0)
@@ -215,7 +215,7 @@ try:
 
 
 except:
-    print('no bmp280')
+    print('Hint: No BMP280 found')
     ADDR_BMP = 0
 
 
@@ -315,13 +315,13 @@ def motion_detected(channel):
     global startmotion
     if gpio.input(channel):
         startmotion = time.time()
-        print('motion detected')
+        print('Motion detected!')
         eg_object.motion = True
         if config.startmqttclient:
             mqttclient.publish("motion", 'ON')
     else:
 
-        print('motion time: ' + str(time.time() - startmotion))
+        print('Motion time: ' + str(round(time.time() - startmotion,2)) + 's')
         eg_object.motion = False
         if config.startmqttclient:
             mqttclient.publish("motion", 'OFF')
@@ -590,7 +590,7 @@ def controlledcolor (rgbvalue,channel,retries=0):
           time.sleep(0.1)
           controlledcolor(rgbvalue,channel,retries+1)
         else:
-          print('control backlight crc error')
+          print('control led crc error')
           i2crecover()
           controlledcolor(rgbvalue,channel)
 
@@ -662,7 +662,7 @@ def get_infrared():
             eg_object.act_temp = np.nanmedian(infrared_vals)
 
         except Exception as e:
-            print('error MLX:' + str(e))
+            print('error MLX')
 
 
 def get_status():
