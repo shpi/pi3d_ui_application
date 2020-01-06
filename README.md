@@ -9,7 +9,7 @@ Create your own Slides simply by rename and modify one of our samples and add th
 
 Headless Wifi Setup needs root rights.
 
-Use "sudo crontab -e" or "rc.local" for autostart
+Use "sudo crontab -e" or "sudo nano /etc/rc.local" for autostart
 
 ## Slides
 
