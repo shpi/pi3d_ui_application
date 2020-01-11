@@ -24,12 +24,13 @@ import pi3d
 import importlib
 
 
-from PIL import Image
+
 
 import core.graphics as graphics
 import core.peripherals as peripherals
 
 import config
+
 # make 4M ramdisk for graph
 if not os.path.isdir('/media/ramdisk'):
  os.popen('sudo mkdir /media/ramdisk')
@@ -37,7 +38,7 @@ if not os.path.isdir('/media/ramdisk'):
 
 # os.chdir('/media/ramdisk')
 
-
+# create rrd database for sensor logging
 if not os.path.isfile('temperatures.rrd'):
     print('create rrd')
     rrdtool.create(
@@ -61,6 +62,7 @@ if not os.path.isfile('temperatures.rrd'):
         "RRA:MAX:0.5:10:1500",
         "RRA:MAX:0.5:60:1500")
 
+
 slides = []
 subslides = dict()
 
@@ -71,8 +73,8 @@ for slidestring in config.subslides:
     subslides[slidestring] = importlib.import_module('subslides.'+slidestring)
 
 
+# a = alphavalue of background, for sliding effect
 a = 0
-screenshot = None
 
 
 def get_files():
@@ -110,12 +112,12 @@ if config.starthttpserver:
         #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
         littleserver.timeout = 0.1
     except:
-        print('http server error')
+        print('cannot start http server - error')
 
 
 slide_offset = 0  # change by touch and slide
-textchange = True
-sfg, sbg = None, None
+textchange = True # for reloading text 
+sfg, sbg  = None, None  # sfg, sbg  two backrounds sprite for sliding
 now = time.time()
 
 def sensor_thread():
@@ -129,6 +131,7 @@ def sensor_thread():
     nexttm = 0
 
     while True:
+       try:
         now = time.time()
         if now > nexttm:                                     # change background
             nexttm = now + config.TMDELAY
@@ -162,8 +165,7 @@ def sensor_thread():
 
         if config.starthttpserver:
             littleserver.handle_request()
-        else:
-            time.sleep(0.1)
+      
 
         if config.startmqttclient:
             mqttclient.publishall()
@@ -196,7 +198,7 @@ def sensor_thread():
                 sht_temp = peripherals.eg_object.sht_temp
             else:
                 sht_temp = 0
-            if now - peripherals.eg_object.lastmotion < 10:
+            if now - peripherals.eg_object.lastmotion < 10: #only for rrd
                 motion = 1
             else:
                 motion = 0
@@ -216,12 +218,15 @@ def sensor_thread():
             sys.stdout.write(' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ' )
             sys.stdout.flush()
 
-            if config.show_airquality:
+            if config.show_airquality: #calculate rgb values for LED
                 redvalue = 255 if peripherals.eg_object.a4 > 600 else int(
                     0.03 * peripherals.eg_object.a4)
                 greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(
                     0.02*(400 - peripherals.eg_object.a4))
                 peripherals.controlled([redvalue, greenvalue, 0])
+
+       except:
+             pass  
 
 
 autoslide = time.time() + config.autoslidetm
@@ -230,8 +235,9 @@ peripherals.eg_object.slide = config.slide
 
 start_new_thread(sensor_thread, ())
 
-movesfg = 0
-time.sleep(1)
+movesfg = 0 # variable for parallax effect in sliding
+
+time.sleep(0.5) #wait for running sensor_thread first time, to init all variables
 
 while graphics.DISPLAY.loop_running():
 
@@ -269,22 +275,22 @@ while graphics.DISPLAY.loop_running():
              sfg.positionX(-movesfg)
 
 
-            if (abs(movex) > 40):  # calculate slider movement
+            if (abs(movex) > 30):  # calculate slider movement
                 slide_offset = movex
-
+                peripherals.touch_pressed = False  # to avoid clicking while sliding
     else:
         # autoslide demo mode
         if len(config.autoslides) and peripherals.eg_object.backlight_level > 0 and peripherals.lasttouch + 10 < now and now > autoslide:
             movex += 10
             slide_offset = movex
             if movex > 300:
-                autoslide = time.time() + config.autoslidetm
+                autoslide = now + config.autoslidetm
         else:
             movex = 0
             peripherals.lastx = 0
 
     # start sliding when there is enough touchmovement
-    if movex < -300 and peripherals.eg_object.slide > 0 and peripherals.lasttouch < (now - 0.1):
+    if movex < -200 and peripherals.eg_object.slide > 0 and peripherals.lasttouch < (now - 0.1):
         peripherals.lastx = 0
         movex = 0
         peripherals.eg_object.slide -= 1
@@ -320,15 +326,15 @@ while graphics.DISPLAY.loop_running():
         activity, slide_offset = slides[peripherals.eg_object.slide].inloop(
             textchange, activity, slide_offset)
 
-    if (textchange):
-        textchange = False
+    
+    textchange = False
 
-    if (activity == False) &(movesfg == 0) & (slide_offset == 0):
-        time.sleep(0.1)
+    if (activity == False) & (movesfg == 0) & (slide_offset == 0):
+        time.sleep(0.05)
     activity = False
 
     if (peripherals.eg_object.backlight_level <= config.min_backlight):
-        time.sleep(0.1)
+        time.sleep(0.05)
         now = time.time()
         
 

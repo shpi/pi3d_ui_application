@@ -601,7 +601,7 @@ def controlledcolor (rgbvalue,channel,retries=0):
 
 def controlled(rgbvalues):
     if len(rgbvalues) == 3:
-        controlledcolor(rgbvalues[0],COLOR_RED)
+        controlledcolor(rgbvalues[0],COLOR_RED) # splitted because of i2c master  clockstretching problems
         controlledcolor(rgbvalues[1],COLOR_GREEN)
         controlledcolor(rgbvalues[2],COLOR_BLUE)
         eg_object.led = rgbvalues
@@ -637,7 +637,7 @@ def coolingheating():
 def get_infrared():
     global infrared_vals,lasttouch
     #take values only if there is no motion or user touch interaction
-    if lasttouch < (time.time() - 60) and  eg_object.lastmotion < (time.time() - 10)  and (gpio.input(TOUCHINT) == 0 and ADDR_MLX):
+    if eg_object.lastmotion < (time.time() - 5)  and (gpio.input(TOUCHINT) == 0 and ADDR_MLX):
 
         try:
             time.sleep(0.1)
