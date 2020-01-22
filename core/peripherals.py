@@ -638,8 +638,7 @@ def get_infrared():
     global infrared_vals,lasttouch
     #take values only if there is no motion or user touch interaction
     if eg_object.lastmotion < (time.time() - 5)  and (gpio.input(TOUCHINT) == 0 and ADDR_MLX):
-
-        try:
+        #try:
             time.sleep(0.1)
             b = bus.rdwr([0x26], 2, ADDR_MLX)
             value = float(((b[0] | b[1] << 8) * 0.02) - 273.15)
@@ -650,7 +649,8 @@ def get_infrared():
             value = float(((b[0] | b[1] << 8) * 0.02) - 273.15)
             if (-50 < value < 80):
                 eg_object.mlxobj = value
-            time.sleep(0.1)
+
+            infrared_vals[:-1] = infrared_vals[1:]
 
             # compensate own self heating
             if (eg_object.mlxamb > eg_object.mlxobj):
@@ -659,11 +659,16 @@ def get_infrared():
             else:
                 infrared_vals[-1] = eg_object.mlxobj
 
-            infrared_vals[:-1] = infrared_vals[1:]
             eg_object.act_temp = np.nanmedian(infrared_vals)
 
-        except Exception as e:
-            print('error MLX')
+            try:
+             if (infrared_vals[-1] - 1) > infrared_vals[-2]:
+               eg_object.lastmotion = time.time()
+               #print('waked screen because of deltaT increase of MLX')
+            except:
+             pass
+        #except Exception as e:
+        #    print('error MLX')
 
 
 def get_status():
