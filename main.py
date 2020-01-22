@@ -24,8 +24,6 @@ import pi3d
 import importlib
 
 
-
-
 import core.graphics as graphics
 import core.peripherals as peripherals
 
@@ -73,7 +71,7 @@ for slidestring in config.subslides:
     subslides[slidestring] = importlib.import_module('subslides.'+slidestring)
 
 
-# a = alphavalue of background, for sliding effect
+# a = alphavalue of 2nd background, for transition effect
 a = 0
 
 
@@ -127,7 +125,6 @@ def sensor_thread():
     pic_num = nFi - 1
     sfg = graphics.tex_load(iFiles[pic_num])
     nextsensorcheck = 0
-    everysecond = 0
     nexttm = 0
 
     while True:
@@ -170,9 +167,8 @@ def sensor_thread():
         if config.startmqttclient:
             mqttclient.publishall()
 
-        if (now > everysecond):
-            peripherals.get_infrared()
-            everysecond = now + config.INFRARED_TM
+        peripherals.get_infrared()
+        
 
         if (now > nextsensorcheck):
 
@@ -208,6 +204,7 @@ def sensor_thread():
                 sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj, (0.0), getattr(
                     peripherals.eg_object, 'relais' + (str)(config.heatingrelay)),
                 getattr(peripherals.eg_object, 'relais' + (str)(config.coolingrelay)), int(motion), peripherals.eg_object.humidity, peripherals.eg_object.a4)
+            
 
 
             
@@ -219,10 +216,8 @@ def sensor_thread():
             sys.stdout.flush()
 
             if config.show_airquality: #calculate rgb values for LED
-                redvalue = 255 if peripherals.eg_object.a4 > 600 else int(
-                    0.03 * peripherals.eg_object.a4)
-                greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(
-                    0.02*(400 - peripherals.eg_object.a4))
+                redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
+                greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
                 peripherals.controlled([redvalue, greenvalue, 0])
 
        except:
@@ -269,7 +264,7 @@ while graphics.DISPLAY.loop_running():
         if ((x != 400) and peripherals.lastx):  # catch 0,0 -> 400,-240
             movex = (peripherals.lastx - x)
 
-            if (config.slideparallax == 1) & (abs(movex) > 20):
+            if (config.slideparallax) & (abs(movex) > 20):
              movesfg = int( movex / 10)
              movesfg -= math.copysign(2,movesfg)
              sfg.positionX(-movesfg)
@@ -299,7 +294,7 @@ while graphics.DISPLAY.loop_running():
             a = 0
         slide_offset += 400
 
-    if movex > 300 and peripherals.lasttouch < (now - 0.1):
+    if movex > 200 and peripherals.lasttouch < (now - 0.1):
         peripherals.lastx = 0
         movex = 0
         if peripherals.eg_object.slide < len(config.slides) - 1:
@@ -333,10 +328,6 @@ while graphics.DISPLAY.loop_running():
         time.sleep(0.05)
     activity = False
 
-    if (peripherals.eg_object.backlight_level <= config.min_backlight):
-        time.sleep(0.05)
-        now = time.time()
-        
 
 
     if (os.path.exists("/media/ramdisk/screenshot.png") == False):
