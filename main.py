@@ -278,7 +278,7 @@ while graphics.DISPLAY.loop_running():
         if len(config.autoslides) and peripherals.eg_object.backlight_level > 0 and peripherals.lasttouch + 10 < now and now > autoslide:
             movex += 10
             slide_offset = movex
-            if movex > 300:
+            if movex > 200:
                 autoslide = now + config.autoslidetm
         else:
             movex = 0
