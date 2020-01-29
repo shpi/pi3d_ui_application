@@ -53,8 +53,8 @@ error = False
 
 
 def init():
-    global snowline, rainline, seplines, degwind, weathericon, text, line, baroneedle, windneedle, linemin, linemax, acttemp, text, error
-    try:
+        global snowline, rainline, seplines, degwind, weathericon, text, line, baroneedle, windneedle, linemin, linemax, acttemp, text, error
+    
         owm = pyowm.OWM(API_key=config.owmkey, language=config.owmlanguage)
         place = owm.weather_at_place(config.owmcity)
         weather = place.get_weather()
@@ -69,14 +69,18 @@ def init():
             weekdays = ['monday', 'tuesday', 'wednesday',
                         'thursday', 'friday', 'saturday', 'sunday']
 
-        if not os.path.exists('sprites/' + weather.get_weather_icon_name() + '.png'):
+        if os.path.exists('sprites/' + weather.get_weather_icon_name() + '.png'):
 
-            import urllib.request
-            urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name(
-            ) + "@2x.png", "sprites/" + weather.get_weather_icon_name() + ".png")
+            weathericon = pi3d.ImageSprite(config.installpath + 'sprites/' + weather.get_weather_icon_name(
+            ) + '.png', shader=graphics.SHADER, camera=graphics.CAMERA, w=150, h=150, z=2, x=-220)
 
-        weathericon = pi3d.ImageSprite(config.installpath + 'sprites/' + weather.get_weather_icon_name(
-        ) + '.png', shader=graphics.SHADER, camera=graphics.CAMERA, w=150, h=150, z=2, x=-220)
+
+        #else:
+        #    import urllib.request
+        #    urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name(
+        #    ) + "@2x.png", "sprites/" + weather.get_weather_icon_name() + ".png")
+
+       
 
         city = pi3d.TextBlock(-390, 180, 0.1, 0.0, 150, text_format=place.get_location(
         ).get_name(), size=0.7, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
@@ -242,24 +246,25 @@ def init():
         # linemax.set_material((1,0,0))
         # linemax.set_alpha(0.9)
 
-    except:
+    #except:
 
-        error = pi3d.TextBlock(-390, 180, 0.1, 0.0, 150, text_format="OWM ERROR",
-                               size=0.7, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
-        text.add_text_block(error)
-        error = True
+    #    error = pi3d.TextBlock(-390, 180, 0.1, 0.0, 150, text_format="OWM ERROR",
+    #                           size=0.7, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    #    text.add_text_block(error)
+    #    error = True
 
 
 init()
-threehours = time.time() + (60*60*3)
+threehours = time.time() + (60*60*1)
 
 
 def inloop(textchange=False, activity=False, offset=0):
     global snowline, rainline, seplines, degwind, threehours, weathericon, text, line, baroneedle, windneedle, linemin, linemax, error
 
-    if (time.time() > threehours) and offset == 0:
+    if (time.time() > threehours):
+        print('new weather forecast')
         start_new_thread(init, ())
-        threehours = time.time() + (60*60*3)
+        threehours = time.time() + (60*60*1)
 
     grapharea2.draw()
     grapharea.draw()
