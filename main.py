@@ -232,7 +232,7 @@ start_new_thread(sensor_thread, ())
 
 movesfg = 0 # variable for parallax effect in sliding
 
-time.sleep(0.5) #wait for running sensor_thread first time, to init all variables
+time.sleep(1) #wait for running sensor_thread first time, to init all variables
 
 while graphics.DISPLAY.loop_running():
 
