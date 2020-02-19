@@ -59,10 +59,14 @@ def update_graph():
                         "LINE1:cooling#5555ff:Cooling",
                         "AREA:motion#00AA0070:Motion")
 
-
-    graph = pi3d.ImageSprite('/media/ramdisk/graph1.png',
-                             shader=graphics.SHADER, camera=graphics.CAMERA, w=800, h=480, z=1)
-
+    try:
+     graph = pi3d.ImageSprite('/media/ramdisk/graph1.png',shader=graphics.SHADER, camera=graphics.CAMERA, w=800, h=480, z=1)
+    except:
+     print('rrd graph sprite error')
+     graph = pi3d.Sprite(camera=graphics.CAMERA,w=800, h=480, z=1)
+     graph.set_shader(graphics.MATSH)
+     graph.set_material((1.0, 0.0, 0.0))
+     pass
 
 graphupdated = 0
 update_graph()

@@ -53,8 +53,8 @@ error = False
 
 
 def init():
-        global snowline, rainline, seplines, degwind, weathericon, text, line, baroneedle, windneedle, linemin, linemax, acttemp, text, error
-    
+       global snowline, rainline, seplines, degwind, weathericon, text, line, baroneedle, windneedle, linemin, linemax, acttemp, text, error
+       try:
         owm = pyowm.OWM(API_key=config.owmkey, language=config.owmlanguage)
         place = owm.weather_at_place(config.owmcity)
         weather = place.get_weather()
@@ -70,10 +70,14 @@ def init():
                         'thursday', 'friday', 'saturday', 'sunday']
 
         if os.path.exists('sprites/' + weather.get_weather_icon_name() + '.png'):
-
+           try:
             weathericon = pi3d.ImageSprite(config.installpath + 'sprites/' + weather.get_weather_icon_name(
             ) + '.png', shader=graphics.SHADER, camera=graphics.CAMERA, w=150, h=150, z=2, x=-220)
-
+           except:
+            print('weathericon error')
+            weathericon =  pi3d.Sprite(camera=graphics.CAMERA, w=150, h=150, z=2, x=-220)
+            weathericon.set_shader(graphics.MATSH)
+            weathericon.set_material((1.0, 0.0, 0.0))
 
         #else:
         #    import urllib.request
@@ -160,14 +164,11 @@ def init():
         
         for weather in f:
 
-            if not os.path.exists('sprites/' + weather.get_weather_icon_name() + '.png'):
+            #if not os.path.exists('sprites/' + weather.get_weather_icon_name() + '.png'):
 
-                import urllib.request
-                urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name(
-                ) + "@2x.png", "sprites/" + weather.get_weather_icon_name() + ".png")
-
-            icons.append(pi3d.ImageSprite('sprites/' + weather.get_weather_icon_name() + '.png',
-                                          shader=graphics.SHADER, camera=graphics.CAMERA, w=20, h=20, z=1, x=actualy, y=-220))
+                #import urllib.request
+                #urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name() + "@2x.png", "sprites/" + weather.get_weather_icon_name() + ".png")
+            #icons.append(pi3d.ImageSprite('sprites/' + weather.get_weather_icon_name() + '.png',shader=graphics.SHADER, camera=graphics.CAMERA, w=20, h=20, z=1, x=actualy, y=-220))
 
             if weather.get_reference_time('iso')[11:16] == '00:00':
                 seplinesarr.append([actualy, -50, 2])
@@ -235,7 +236,9 @@ def init():
         line.set_shader(graphics.MATSH)
         line.set_material((0, 0, 0))
         line.set_alpha(0.9)
-
+       except:
+        print('owm error')
+        pass
         #linemin = pi3d.Lines(vertices=temp_min, line_width=1,y=-220, strip=True)
         # linemin.set_shader(graphics.MATSH)
         # linemin.set_material((0,0,1))

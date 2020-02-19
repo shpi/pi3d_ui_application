@@ -88,8 +88,14 @@ MATSH = pi3d.Shader("mat_flat")
 
 
 def tex_load(fname):
-    slide = pi3d.ImageSprite(fname, shader=SHADER,
+    try:
+     slide = pi3d.ImageSprite(fname, shader=SHADER,
                              camera=CAMERA, w=880, h=528, z=4)
+    except:
+     slide = pi3d.Sprite(camera=CAMERA,w=800, h=480, z=4)
+     slide.set_shader(graphics.MATSH)
+     slide.set_material((1.0, 0.0, 0.0))
+     print('error loading image '+fname)
     slide.set_alpha(0)
     return slide
 

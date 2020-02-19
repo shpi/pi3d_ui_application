@@ -36,8 +36,10 @@ if not os.path.isdir('/media/ramdisk'):
 
 # os.chdir('/media/ramdisk')
 
-# create rrd database for sensor logging
-if not os.path.isfile('temperatures.rrd'):
+
+def rrdcreate():
+    os.popen('sudo rm temperatures.rrd')
+    time.sleep(1)
     print('create rrd')
     rrdtool.create(
         "temperatures.rrd",
@@ -60,6 +62,9 @@ if not os.path.isfile('temperatures.rrd'):
         "RRA:MAX:0.5:10:1500",
         "RRA:MAX:0.5:60:1500")
 
+
+if not os.path.isfile('temperatures.rrd'):
+  rrdcreate()
 
 slides = []
 subslides = dict()
@@ -212,6 +217,8 @@ def sensor_thread():
             sys.stdout.write(temperatures_str)
             
             rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
+            
+
             sys.stdout.write(' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ' )
             sys.stdout.flush()
 
@@ -331,7 +338,9 @@ while graphics.DISPLAY.loop_running():
 
 
     if (os.path.exists("/media/ramdisk/screenshot.png") == False):
-        pi3d.screenshot("/media/ramdisk/screenshot.png")
-
+        try:
+           pi3d.screenshot("/media/ramdisk/screenshot.png")
+        except:
+           print('error screenshot creation')
 
 graphics.DISPLAY.destroy()
