@@ -52,14 +52,14 @@ error = False
 def init():
         global snowline, rainline, seplines, degwind, weathericon, text, line, baroneedle, windneedle, linemin, linemax, acttemp, text, error
     
-        owm = pyowm.OWM(API_key=config.owmkey, language=config.owmlanguage)
-        place = owm.weather_at_place(config.owmcity)
+        owm = pyowm.OWM(API_key=config.OWMKEY, language=config.OWMLANGUAGE)
+        place = owm.weather_at_place(config.OWMCITY)
         weather = place.get_weather()
 
         text.text_blocks = []
         text._first_free_char = 0
 
-        if config.owmlanguage == 'de':
+        if config.OWMLANGUAGE == 'de': #TODO this needs untangling from stuff in config
             weekdays = ['Montag', 'Dienstag', 'Mittwoch',
                         'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
         else:
@@ -137,7 +137,7 @@ def init():
         else:
             degwind = False
 
-        fc = owm.three_hours_forecast(config.owmcity)
+        fc = owm.three_hours_forecast(config.OWMCITY)
         f = fc.get_forecast()
 
         step = 780 / (len(f))

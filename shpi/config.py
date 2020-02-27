@@ -1,19 +1,19 @@
 installpath = '/home/pi/zero_main_application/'
 
-demo = 1  # shows demo slides
+DEMO = True  # shows demo slides
 
 TMDELAY = 200  # delay for changing backgrounds
 INFRARED_TM = 3
 SENSOR_TM = 10
 ICAL_TM = 3600  # update calenderslide every 3600 seconds
-slideparallax = 1
-slideshadow = 0  # shadow effect while manually sliding
-show_airquality = 1  # show airquality over LED
+SLIDE_PARALLAX = True
+SLIDE_SHADOW = False  # shadow effect while manually sliding
+SHOW_AIRQUALITY = True  # show airquality over LED
 # activate simple GET/POST server in python, be aware of  security issues
-starthttpserver = 1
+START_HTTP_SERVER = True
 HTTP_PORT = 9000
-shuttertimer = 30  # timer for auto deactivation of shutter relais
-startmqttclient = 0
+SHUTTERTIMER = 30  # timer for auto deactivation of shutter relais
+START_MQTT_CLIENT = True
 MQTT_USER = ''
 MQTT_PW = ''
 MQTT_SERVER = "mqtt.eclipse.org"
@@ -21,39 +21,38 @@ MQTT_PORT = 1883
 MQTT_PATH = "shpi"
 MQTT_QOS = 1
 
-motionthreshold = 4  # threshold in seconds of movement
+MOTION_THRESHOLD = 4  # threshold in seconds of movement
 
-backlight_auto = 60  # timer for backlight auto off, 0 for always on
+BACKLIGHT_AUTO = 60  # timer for backlight auto off, 0 for always on
 # for check in server , not implemented so far
-allowedips = list('192.168.1.31')
+ALLOWEDDIPS = list('192.168.1.31')
 
 
-max_backlight = 31  # possible values  0 .. 31
-min_backlight = 1
+MAX_BACKLIGHT = 31  # possible values  0 .. 31
+MIN_BACKLIGHT = 1
 
 HYSTERESIS = 0.5  # in degree
 set_temp = 23
-coolingrelay = 0   #off
-heatingrelay = 1  #on relay 1
-shutterdown = 2  #relay 2
-shutterup = 3  # relay 3   #  4... buzzer, 5 d13, 6 hwb
-lightrelay = 0 #off
-ventrelay = 0 #off
-minhumiditythreshold = 0
-maxhumiditythreshold = 0
-airqualitythreshold = 0
+COOLINGRELAY = 0   #off
+HEATINGRELAY = 1  #on relay 1
+SHUTTERDOWN = 2  #relay 2
+SHUTTERUP = 3  # relay 3   #  4... buzzer, 5 d13, 6 hwb
+LIGHTRELAY = 0 #off
+VENTRELAY = 0 #off
+MIN_HUMIDITY_THRESHOLD = 0
+MAX_HUMIDITY_THRESHOLD = 0
+AIR_QUALITY_THRESHOLD = 0
 
-icallink = 'muellkalender.ics'  # also http possible
+ICALLINK = 'muellkalender.ics'  # also http possible
 
-owmkey = '20f7aab0a600927a8486b220200ee694'
-owmlanguage = 'de'
-owmcity = 'Berlin, DE'
+OWMKEY = '20f7aab0a600927a8486b220200ee694'
+OWMLANGUAGE = 'de'
+OWMCITY = 'Berlin, DE'
 
-weekdays = ['Montag', 'Dienstag', 'Mittwoch',
+WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch',
             'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 
 # day / week temperature curves, only save delta t from setting temperature (to keep  user interface easy)
-
 daytempcurve = 0
 daytempdelta = [-2,  # 0:00  - 1:00
                 -2,  # 1:00  - 2:00
@@ -92,7 +91,7 @@ weektempdelta = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 slide = 0
 subslide = None
 
-# configurate your slides here
+# configure your slides here
 autoslidetm = 10
 autoslides = []
 slides = ['overview','thermostat', 'weather', 'ical2', 'status', 'shutter',
@@ -107,7 +106,7 @@ for autoslide in autoslides:
         i += 1
 
 
-if demo:
+if DEMO:
     slides.append('demo_floorplan')
     slides.append('demo_remote_button')
 

@@ -28,10 +28,10 @@ lasticalrefresh = 0
 def init():
     global text6, actualy, displayheight
 
-    if config.icallink.startswith('http'):
-        icalfile = requests.get(config.icallink).text #TODO httprequest stuff needed here?
+    if config.ICALLINK.startswith('http'):
+        icalfile = requests.get(config.ICALLINK).text #TODO httprequest stuff needed here?
     else:
-        icalfile = open(resource_filename("shpi", config.icallink), 'r')
+        icalfile = open(resource_filename("shpi", config.ICALLINK), 'r')
 
     gcal = Calendar.from_ical(icalfile.read())
     components = gcal.walk()

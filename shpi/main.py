@@ -5,31 +5,31 @@ import os
 import sys
 import time
 import math
+import threading
+import numpy as np
+import rrdtool
+import pi3d
+import importlib
 from pkg_resources import resource_filename
 
-try:
+from . import config
+from .core import graphics
+from .core import peripherals
+
+"""try:
     from _thread import start_new_thread
 except:
-    from thread import start_new_thread
+    from thread import start_new_thread"""
 
 try:
     unichr
 except NameError:
     unichr = chr
 
-import numpy as np
-import rrdtool
-import pi3d
-import importlib
-
-from . import config
-from .core import graphics
-from .core import peripherals
-
 # make 4M ramdisk for graph
 if not os.path.isdir('/media/ramdisk'):
- os.popen('sudo mkdir /media/ramdisk')
- os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
+    os.popen('sudo mkdir /media/ramdisk')
+    os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
 
 # os.chdir('/media/ramdisk')
 
@@ -67,10 +67,8 @@ for slidestring in config.slides:
 for slidestring in config.subslides:
     subslides[slidestring] = importlib.import_module("shpi.subslides." + slidestring)
 
-
-# a = alphavalue of 2nd background, for transition effect
-a = 0
-
+# bg_alpha = alphavalue of 2nd background, for transition effect
+bg_alpha = 0
 
 def get_files():
     file_list = []
@@ -83,14 +81,14 @@ def get_files():
     # random.shuffle(file_list)
     return file_list, len(file_list)
 
-if config.startmqttclient:
+if config.START_MQTT_CLIENT:
     from .core import mqttclient
     try:
         mqttclient.init()
     except:
         pass
 
-if config.starthttpserver:
+if config.START_HTTP_SERVER:
     try:
         # ThreadingHTTPServer for python 3.7
         from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -113,7 +111,7 @@ sfg, sbg  = None, None  # sfg, sbg  two backrounds sprite for sliding
 now = time.time()
 
 def sensor_thread():
-    global textchange, a, sbg, sfg
+    global textchange, bg_alpha, sbg, sfg
     last_backlight_level = 0
     iFiles, nFi = get_files()
     pic_num = nFi - 1
@@ -122,154 +120,137 @@ def sensor_thread():
     nexttm = 0
 
     while True:
-       try:
-        now = time.time()
-        if now > nexttm:                                     # change background
-            nexttm = now + config.TMDELAY
+        try:
+            now = time.time()
+            if now > nexttm:                 # change background
+                nexttm = now + config.TMDELAY
+                sbg = sfg
+                sbg.positionZ(5)
+                pic_num = (pic_num + 1) % nFi
+                sfg = graphics.tex_load(iFiles[pic_num])
+                bg_alpha = 0
 
-            sbg = sfg
-            sbg.positionZ(5)
-            pic_num = (pic_num + 1) % nFi
-            sfg = graphics.tex_load(iFiles[pic_num])
-            a = 0
+            if peripherals.eg_object.alert:
+                peripherals.alert()
+            elif config.subslide == 'alert': # alert == 0
+                peripherals.alert(0)
+                config.subslide = None
+                if config.START_MQTT_CLIENT:
+                    mqttclient.publish('alert', 'off')
 
-        if peripherals.eg_object.alert:
-            peripherals.alert()
-        elif config.subslide == 'alert':  # alert == 0
-            peripherals.alert(0)
-            config.subslide = None
-            if config.startmqttclient:
-                mqttclient.publish('alert', 'off')
+            if config.BACKLIGHT_AUTO:
+                if now < peripherals.eg_object.lastmotion + config.BACKLIGHT_AUTO:
+                    peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight
+                else:
+                    peripherals.eg_object.backlight_level = config.MIN_BACKLIGHT
 
-        if config.backlight_auto:
+            if peripherals.eg_object.backlight_level != last_backlight_level:
+                print('set backlight:' + str(peripherals.eg_object.backlight_level))
+                peripherals.controlbacklight(peripherals.eg_object.backlight_level)
+                last_backlight_level = peripherals.eg_object.backlight_level
 
-            if now < peripherals.eg_object.lastmotion + config.backlight_auto:
-                peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight
+            if config.START_HTTP_SERVER:
+                littleserver.handle_request()
 
-            else:
-                peripherals.eg_object.backlight_level = config.min_backlight
+            if config.START_MQTT_CLIENT:
+                mqttclient.publishall()
 
-        if peripherals.eg_object.backlight_level != last_backlight_level:
-            print('set backlight:' + str(peripherals.eg_object.backlight_level))
-            peripherals.controlbacklight(peripherals.eg_object.backlight_level)
-            last_backlight_level = peripherals.eg_object.backlight_level
+            peripherals.get_infrared()
 
-        if config.starthttpserver:
-            littleserver.handle_request()
-      
+            if (now > nextsensorcheck):
+                peripherals.get_sensors()
+                nextsensorcheck = now + config.SENSOR_TM
+                if config.COOLINGRELAY != 0 and config.COOLINGRELAY == config.HEATINGRELAY:
+                    peripherals.coolingheating()
+                else:
+                    if config.COOLINGRELAY != 0:
+                        peripherals.cooling()
+                    if config.HEATINGRELAY != 0:
+                        peripherals.heating()
 
-        if config.startmqttclient:
-            mqttclient.publishall()
+                peripherals.get_status()
+                textchange = True
+                if hasattr(peripherals.eg_object, 'bmp280_temp'):
+                    bmp280_temp = peripherals.eg_object.bmp280_temp
+                else:
+                    bmp280_temp = 0
 
-        peripherals.get_infrared()
-        
+                if hasattr(peripherals.eg_object, 'sht_temp'):
+                    sht_temp = peripherals.eg_object.sht_temp
+                else:
+                    sht_temp = 0
 
-        if (now > nextsensorcheck):
+                if now - peripherals.eg_object.lastmotion < 10: #only for rrd
+                    motion = 1
+                else:
+                    motion = 0
 
-            peripherals.get_sensors()
-            nextsensorcheck = now + config.SENSOR_TM
+                temperatures_str = 'N:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:d}:{:d}:{:d}:{:.2f}:{:d}'.format(
+                    peripherals.eg_object.act_temp, peripherals.eg_object.gputemp,
+                    peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
+                    sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,
+                    0.0, getattr(peripherals.eg_object, 'relais{}'.format(config.HEATINGRELAY)),
+                    getattr(peripherals.eg_object, 'relais{}'.format(config.COOLINGRELAY)),
+                    motion, peripherals.eg_object.humidity, peripherals.eg_object.a4)
 
-            if config.coolingrelay and config.coolingrelay == config.heatingrelay:
-                peripherals.coolingheating()
-            else:
-                if config.coolingrelay:
-                    peripherals.cooling()
-                if config.heatingrelay:
-                    peripherals.heating()
+                sys.stdout.write('\r')
+                sys.stdout.write(temperatures_str)
+                rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
+                sys.stdout.write(' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ' )
+                sys.stdout.flush()
 
-            peripherals.get_status()
-            textchange = True
-            if hasattr(peripherals.eg_object, 'bmp280_temp'):
-                bmp280_temp = peripherals.eg_object.bmp280_temp
-            else:
-                bmp280_temp = 0
+                if config.SHOW_AIRQUALITY: #calculate rgb values for LED
+                    redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
+                    greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
+                    peripherals.controlled([redvalue, greenvalue, 0])
 
-            if hasattr(peripherals.eg_object, 'sht_temp'):
-                sht_temp = peripherals.eg_object.sht_temp
-            else:
-                sht_temp = 0
-            if now - peripherals.eg_object.lastmotion < 10: #only for rrd
-                motion = 1
-            else:
-                motion = 0
-
-            temperatures_str = 'N:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:d}:{:d}:{:d}:{:.2f}:{:d}'.format(
-                peripherals.eg_object.act_temp, peripherals.eg_object.gputemp, peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
-                sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj, (0.0), getattr(
-                    peripherals.eg_object, 'relais' + (str)(config.heatingrelay)),
-                getattr(peripherals.eg_object, 'relais' + (str)(config.coolingrelay)), int(motion), peripherals.eg_object.humidity, peripherals.eg_object.a4)
-            
-
-
-            
-            sys.stdout.write('\r')
-            sys.stdout.write(temperatures_str)
-            
-            rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
-            sys.stdout.write(' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ' )
-            sys.stdout.flush()
-
-            if config.show_airquality: #calculate rgb values for LED
-                redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
-                greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
-                peripherals.controlled([redvalue, greenvalue, 0])
-
-       except:
-             pass  
-
+        except Exception as e:
+            print('error: {}'.format(e))
 
 autoslide = time.time() + config.autoslidetm
-
 peripherals.eg_object.slide = config.slide
 
-start_new_thread(sensor_thread, ())
+#start_new_thread(sensor_thread, ())
+t = threading.Thread(target=sensor_thread)
+t.start()
 
 movesfg = 0 # variable for parallax effect in sliding
-
 time.sleep(1) #wait for running sensor_thread first time, to init all variables
 
 while graphics.DISPLAY.loop_running():
-
     now = time.time()
-
     if not config.subslide:
-
-        if a < 1.0:                                              # fade to new background
+        if bg_alpha < 1.0:                                              # fade to new background
             activity = True  # we calculate   more frames, when there is activity, otherwise we add sleep.time at end
-            a += 0.01
+            bg_alpha += 0.01
             sbg.draw()
-            sfg.set_alpha(a)
-
+            sfg.set_alpha(bg_alpha)
         sfg.draw()
 
-    
-    if (config.slideparallax == 1) & (abs(movesfg) > 0):  # only do something if offset
-            if abs(movesfg) < 1:  # needs to be > min move distance
-             movesfg = 0
-            else:
-             movesfg -= math.copysign(0.3, movesfg)
-             sfg.positionX(int(-movesfg))
-
+    if config.SLIDE_PARALLAX and abs(movesfg) > 0:  # only do something if offset
+        if abs(movesfg) < 1:  # needs to be > min move distance
+            movesfg = 0
+        else:
+            movesfg -= math.copysign(0.3, movesfg)
+            sfg.positionX(int(-movesfg))
 
     if peripherals.touched():  # and (peripherals.lasttouch + 0.4 > time.time()):  # check if touch is pressed, to detect sliding
         x, y = peripherals.get_touch()
-
         activity = True
         if ((x != 400) and peripherals.lastx):  # catch 0,0 -> 400,-240
             movex = (peripherals.lastx - x)
-
-            if (config.slideparallax) & (abs(movex) > 20):
-             movesfg = int( movex / 10)
-             movesfg -= math.copysign(2,movesfg)
-             sfg.positionX(-movesfg)
-
+            if config.SLIDE_PARALLAX and abs(movex) > 20:
+                movesfg = int( movex / 10)
+                movesfg -= math.copysign(2,movesfg)
+                sfg.positionX(-movesfg)
 
             if (abs(movex) > 30):  # calculate slider movement
                 slide_offset = movex
                 peripherals.touch_pressed = False  # to avoid clicking while sliding
     else:
         # autoslide demo mode
-        if len(config.autoslides) and peripherals.eg_object.backlight_level > 0 and peripherals.lasttouch + 10 < now and now > autoslide:
+        if (len(config.autoslides) and peripherals.eg_object.backlight_level > 0 and
+            peripherals.lasttouch + 10 < now and now > autoslide):
             movex += 10
             slide_offset = movex
             if movex > 200:
@@ -284,8 +265,8 @@ while graphics.DISPLAY.loop_running():
         movex = 0
         peripherals.eg_object.slide -= 1
         sbg.set_alpha(0)
-        if config.slideshadow:
-            a = 0
+        if config.SLIDE_SHADOW:
+            bg_alpha = 0
         slide_offset += 400
 
     if movex > 200 and peripherals.lasttouch < (now - 0.1):
@@ -293,39 +274,29 @@ while graphics.DISPLAY.loop_running():
         movex = 0
         if peripherals.eg_object.slide < len(config.slides) - 1:
             peripherals.eg_object.slide += 1
-
         else:
             peripherals.eg_object.slide = 0
 
-        if (not peripherals.touched() and len(config.autoslideints)):
+        if not peripherals.touched() and len(config.autoslideints):
             config.autoslideints = np.roll(config.autoslideints, 1)
             peripherals.eg_object.slide = config.autoslideints[0]
-
         else:
             sbg.set_alpha(0)
-            if config.slideshadow:
-                a = 0
+            if config.SLIDE_SHADOW:
+                bg_alpha = 0
         slide_offset -= 400
 
     if config.subslide != None:
         activity = subslides[config.subslide].inloop(textchange, activity)
-
     elif -1 < peripherals.eg_object.slide < len(config.slides):
-
         activity, slide_offset = slides[peripherals.eg_object.slide].inloop(
             textchange, activity, slide_offset)
 
-    
     textchange = False
-
     if (activity == False) & (movesfg == 0) & (slide_offset == 0):
         time.sleep(0.05)
     activity = False
-
-
-
     if (os.path.exists("/media/ramdisk/screenshot.png") == False):
         pi3d.screenshot("/media/ramdisk/screenshot.png")
-
 
 graphics.DISPLAY.destroy()

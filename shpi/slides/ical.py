@@ -25,10 +25,10 @@ except ImportError:
 text6 = None
 
 
-if config.icallink.startswith('http'):
-    icalfile = requests.get(config.icallink).text
+if config.ICALLINK.startswith('http'):
+    icalfile = requests.get(config.ICALLINK).text #TODO requests
 else:
-    icalfile = open(resource_filename("shpi", config.icallink), 'r')
+    icalfile = open(resource_filename("shpi", config.ICALLINK), 'r')
 
 gcal = Calendar(icalfile.readlines())
 actualy = 0

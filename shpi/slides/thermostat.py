@@ -22,7 +22,7 @@ temp_block = pi3d.TextBlock(-350, 50, 0.1, 0.0, 15, data_obj=peripherals.eg_obje
                             text_format=unichr(0xE021) + u"{:2.1f}°C", size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(temp_block)
 
-if config.heatingrelay or config.coolingrelay:
+if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
     set_temp_block = pi3d.TextBlock(-340, -30, 0.1, 0.0, 15, data_obj=peripherals.eg_object, text_format=unichr(0xE005) + u" {:2.1f}°C", attr="set_temp",
                                     size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(set_temp_block)
@@ -62,7 +62,7 @@ motiondetection = pi3d.TextBlock(290, -175, 0.1, 0.0, 15, text_format=unichr(
     0xE01C), size=0.79, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(motiondetection)
 
-if config.heatingrelay:
+if config.HEATINGRELAY != 0:
     newtxt = pi3d.TextBlock(145, -180, 0.1, 0.0, 15, text_format=unichr(
         0xE001), size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(newtxt)
@@ -70,7 +70,7 @@ if config.heatingrelay:
         0xE004), size=0.79, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(heating)
 
-if config.coolingrelay:
+if config.COOLINGRELAY != 0:
     newtxt = pi3d.TextBlock(20, -180, 0.1, 0.0, 15, text_format=unichr(0xE001),
                             size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(newtxt)
@@ -125,14 +125,14 @@ def inloop(textchange=False, activity=False, offset=0):
 
         cloud.colouring.set_colour([red, green, 0, 1.0])
 
-        if config.coolingrelay:
-            if getattr(peripherals.eg_object, 'relais' + (str)(config.coolingrelay)):
+        if config.COOLINGRELAY != 0:
+            if getattr(peripherals.eg_object, 'relais{}'.format(config.COOLINGRELAY)):
                 cooling.colouring.set_colour([0, 0, 1])
             else:
                 cooling.colouring.set_colour([1, 1, 1])
 
-        if config.heatingrelay:
-            if getattr(peripherals.eg_object, 'relais' + (str)(config.heatingrelay)):
+        if config.HEATINGRELAY != 0:
+            if getattr(peripherals.eg_object, 'relais{}'.format(config.HEATINGRELAY)):
                 heating.colouring.set_colour([1, 1, 0])
             else:
                 heating.colouring.set_colour([1, 1, 1])
@@ -165,7 +165,7 @@ def inloop(textchange=False, activity=False, offset=0):
     if peripherals.touch_pressed:
         peripherals.touch_pressed = False
 
-        if config.heatingrelay or config.coolingrelay:
+        if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
 
             if peripherals.clicked(increaseTemp.x, increaseTemp.y):
                 controls_alpha = 1
@@ -231,7 +231,7 @@ def inloop(textchange=False, activity=False, offset=0):
     if controls_alpha > 0.3:
         activity = True
         controls_alpha -= 0.01
-    if config.heatingrelay or config.coolingrelay:
+    if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
         increaseTemp.colouring.set_colour(alpha=controls_alpha)
         decreaseTemp.colouring.set_colour(alpha=controls_alpha)
         set_temp_block.colouring.set_colour(alpha=controls_alpha)
@@ -239,7 +239,7 @@ def inloop(textchange=False, activity=False, offset=0):
 
     if controls_alpha < 0.3:
 
-        if config.heatingrelay or config.coolingrealy:
+        if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
             set_temp_block.colouring.set_colour([1, 1, 1])
 
 

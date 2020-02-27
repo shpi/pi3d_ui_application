@@ -1,31 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import os,sys
+import os
+import sys
 import time
 import math
+import threading
+import numpy as np
+import rrdtool
+import pi3d
+import importlib
+from pkg_resources import resource_filename
 
-try:
+from . import config
+from .core import graphics
+from .core import peripherals
+
+'''try:
     from _thread import start_new_thread
 except:
-    from thread import start_new_thread
+    from thread import start_new_thread'''
 
 try:
     unichr
 except NameError:
     unichr = chr
-
-
-import numpy as np
-import rrdtool
-import importlib
-
-
-import core.peripherals as peripherals
-
-import config
 
 # make 4M ramdisk for graph
 if not os.path.isdir('/media/ramdisk'):
@@ -79,34 +78,32 @@ a = 0
 
 
 def get_files():
-
     file_list = []
     extensions = ['.png', '.jpg', '.jpeg']
-    for root, dirnames, filenames in os.walk(config.installpath + 'backgrounds'):
+    for root, _dirnames, filenames in os.walk(resource_filename("shpi", "backgrounds")):
         for filename in filenames:
             ext = os.path.splitext(filename)[1].lower()
             if ext in extensions and not filename.startswith('.'):
                 file_list.append(os.path.join(root, filename))
     # random.shuffle(file_list)
-
     return file_list, len(file_list)
 
 
-if config.startmqttclient:
-    import core.mqttclient as mqttclient
+if config.START_MQTT_CLIENT:
+    from .core import mqttclient
     try:
         mqttclient.init()
     except:
         pass
 
-if config.starthttpserver:
+if config.START_HTTP_SERVER:
     try:
         # ThreadingHTTPServer for python 3.7
         from http.server import BaseHTTPRequestHandler, HTTPServer
     except:
         from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
-    from core.httpserver import ServerHandler
+    from .core import ServerHandler
 
     try:
         littleserver = HTTPServer(("0.0.0.0", config.HTTP_PORT), ServerHandler)
@@ -135,27 +132,27 @@ while True:
         elif config.subslide == 'alert':  # alert == 0
             peripherals.alert(0)
             config.subslide = None
-            if config.startmqttclient:
+            if config.START_MQTT_CLIENT:
                 mqttclient.publish('alert', 'off')
 
-        if config.backlight_auto:
+        if config.BACKLIGHT_AUTO:
 
-            if now < peripherals.eg_object.lastmotion + config.backlight_auto:
+            if now < peripherals.eg_object.lastmotion + config.BACKLIGHT_AUTO:
                 peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight
 
             else:
-                peripherals.eg_object.backlight_level = config.min_backlight
+                peripherals.eg_object.backlight_level = config.MIN_BACKLIGHT
 
         if peripherals.eg_object.backlight_level != last_backlight_level:
             print('set backlight:' + str(peripherals.eg_object.backlight_level))
             peripherals.controlbacklight(peripherals.eg_object.backlight_level)
             last_backlight_level = peripherals.eg_object.backlight_level
 
-        if config.starthttpserver:
+        if config.START_HTTP_SERVER:
             littleserver.handle_request()
       
 
-        if config.startmqttclient:
+        if config.START_MQTT_CLIENT:
             mqttclient.publishall()
 
         peripherals.get_infrared()
@@ -166,12 +163,12 @@ while True:
             peripherals.get_sensors()
             nextsensorcheck = now + config.SENSOR_TM
 
-            if config.coolingrelay and config.coolingrelay == config.heatingrelay:
+            if config.COOLINGRELAY != 0 and config.COOLINGRELAY == config.HEATINGRELAY:
                 peripherals.coolingheating()
             else:
-                if config.coolingrelay:
+                if config.COOLINGRELAY != 0:
                     peripherals.cooling()
-                if config.heatingrelay:
+                if config.HEATINGRELAY != 0:
                     peripherals.heating()
 
             peripherals.get_status()
@@ -193,8 +190,8 @@ while True:
             temperatures_str = 'N:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:.2f}:{:d}:{:d}:{:d}:{:.2f}:{:d}'.format(
                 peripherals.eg_object.act_temp, peripherals.eg_object.gputemp, peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
                 sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj, (0.0), getattr(
-                    peripherals.eg_object, 'relais' + (str)(config.heatingrelay)),
-                getattr(peripherals.eg_object, 'relais' + (str)(config.coolingrelay)), int(motion), peripherals.eg_object.humidity, peripherals.eg_object.a4)
+                    peripherals.eg_object, 'relais{}'.format(config.HEATINGRELAY)),
+                getattr(peripherals.eg_object, 'relais{}'.format(config.COOLINGRELAY)), int(motion), peripherals.eg_object.humidity, peripherals.eg_object.a4)
             
 
 
@@ -208,7 +205,7 @@ while True:
             sys.stdout.write(' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ' )
             sys.stdout.flush()
 
-            if config.show_airquality: #calculate rgb values for LED
+            if config.SHOW_AIRQUALITY: #calculate rgb values for LED
                 redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
                 greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
                 peripherals.controlled([redvalue, greenvalue, 0])

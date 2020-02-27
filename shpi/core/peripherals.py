@@ -272,7 +272,7 @@ class EgClass(object):
     relais2 = 0
     relais3 = 0
     lastmotion = time.time()
-    max_backlight = config.max_backlight
+    max_backlight = config.MAX_BACKLIGHT
     usertext = ''
     usertextshow = '|'
     alert = 0
@@ -300,13 +300,13 @@ def motion_detected(channel):
         startmotion = time.time()
         print('Motion detected!')
         eg_object.motion = True
-        if config.startmqttclient:
+        if config.START_MQTT_CLIENT:
             mqttclient.publish("motion", 'ON')
     else:
 
         print('Motion time: ' + str(round(time.time() - startmotion,2)) + 's')
         eg_object.motion = False
-        if config.startmqttclient:
+        if config.START_MQTT_CLIENT:
             mqttclient.publish("motion", 'OFF')
 
     eg_object.lastmotion = time.time()
@@ -583,24 +583,24 @@ def controlled(rgbvalues):
 
 def heating():
     if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp + eg_object.tempoffset:
-        controlrelays(config.heatingrelay, 1)
+        controlrelays(config.HEATINGRELAY, 1)
 
     elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp + eg_object.tempoffset:
-        controlrelays(config.heatingrelay, 0)
+        controlrelays(config.HEATINGRELAY, 0)
 
 
 def cooling():
     if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp + eg_object.tempoffset:
-        controlrelays(config.coolingrelay, 1)
+        controlrelays(config.COOLINGRELAY, 1)
     elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp + eg_object.tempoffset:
-        controlrelays(config.coolingrelay, 0)
+        controlrelays(config.COOLINGRELAY, 0)
 
 
 def coolingheating():
     if eg_object.set_temp + eg_object.tempoffset - config.HYSTERESIS < eg_object.act_temp < eg_object.set_temp + eg_object.tempoffset + config.HYSTERESIS:
-        controlrelays(config.heatingrelay, 0)
+        controlrelays(config.HEATINGRELAY, 0)
     else:
-        controlrelays(config.heatingrelay, 1)
+        controlrelays(config.HEATINGRELAY, 1)
 
 
 def get_infrared():
