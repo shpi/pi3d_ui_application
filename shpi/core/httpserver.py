@@ -91,9 +91,8 @@ class ServerHandler(BaseHTTPRequestHandler):
                                         value = value.split(',')
                                         peripherals.controlled(value)
 
-                                    https://setuptools.readthedocs.io/en/latest/pkg_resources.htmlelif key in ('alert'):
-                                        peripherals.eg_object.alert = int(
-                                            value)
+                                    elif key in ('alert'):
+                                        peripherals.eg_object.alert = int(value)
 
                                     elif key in ('buzzer'):
                                         value = int(value)
