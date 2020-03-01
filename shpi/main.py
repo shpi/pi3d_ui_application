@@ -16,11 +16,6 @@ from . import config
 from .core import graphics
 from .core import peripherals
 
-"""try:
-    from _thread import start_new_thread
-except:
-    from thread import start_new_thread"""
-
 try:
     unichr
 except NameError:
@@ -206,19 +201,25 @@ def sensor_thread():
 
         except Exception as e:
             print('error: {}'.format(e))
+        time.sleep(0.2)
 
 autoslide = time.time() + config.autoslidetm
 peripherals.eg_object.slide = config.slide
 
-#start_new_thread(sensor_thread, ())
 t = threading.Thread(target=sensor_thread)
 t.start()
 
 movesfg = 0 # variable for parallax effect in sliding
 time.sleep(1) #wait for running sensor_thread first time, to init all variables
-
+f = 0
+start = time.time()
 while graphics.DISPLAY.loop_running():
+    f += 1
     now = time.time()
+    if f % 500 == 0:
+        print('FPS={:.1f}'.format(f / (now - start)))
+        f = 0
+        start = now
     if not config.subslide:
         if bg_alpha < 1.0:                                              # fade to new background
             activity = True  # we calculate   more frames, when there is activity, otherwise we add sleep.time at end
@@ -293,10 +294,10 @@ while graphics.DISPLAY.loop_running():
             textchange, activity, slide_offset)
 
     textchange = False
-    if (activity == False) & (movesfg == 0) & (slide_offset == 0):
+    if not activity and (movesfg == 0) and (slide_offset == 0):
         time.sleep(0.05)
     activity = False
-    if (os.path.exists("/media/ramdisk/screenshot.png") == False):
+    if not os.path.exists("/media/ramdisk/screenshot.png"):
         pi3d.screenshot("/media/ramdisk/screenshot.png")
 
 graphics.DISPLAY.destroy()

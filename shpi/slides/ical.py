@@ -6,11 +6,7 @@ import numpy as np
 from pkg_resources import resource_filename
 
 from .. import config
-from ..core import  peripherals #TODO needed?
 from ..core import graphics
-
-#sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 
 try:
     from ics import Calendar
@@ -21,9 +17,7 @@ try:
 except ImportError:
     exit("Please run: (sudo) pip3 install arrow")
 
-
 text6 = None
-
 
 if config.ICALLINK.startswith('http'):
     icalfile = requests.get(config.ICALLINK).text #TODO requests
@@ -45,7 +39,6 @@ def init():
     actualy = -100
 
     for e in list(gcal.timeline.start_after(arrow.now().floor('day'))):
-
         if count < 5:
             size = 0.79
             titles = pi3d.TextBlock(-390, ((displayheight/2) + actualy - (graphics.pointFont.height*size*0.5)), 0.1, 0.0, 30,
@@ -91,10 +84,8 @@ def init():
 
             actualy -= 20
             count += 1
-
         else:
             break
-
 
 background2 = pi3d.Sprite(camera=graphics.CAMERA, w=780, h=460, z=2, x=0, y=0)
 background2.set_shader(graphics.MATSH)
@@ -111,15 +102,11 @@ lowerboarder.set_shader(graphics.MATSH)
 lowerboarder.set_material((0.0, 0.0, 0.0))
 lowerboarder.set_alpha(0.0)
 
-
 scrolloffset = 0
 updown = 0
 
-
 def inloop(textchange=False, activity=False, offset=0):
-
     global actualy, scrolloffset, updown, displayheight, lasticalrefresh
-
     if lasticalrefresh < time.time():
         init()
         lasticalrefresh = time.time() + config.ICAL_TM
@@ -127,18 +114,15 @@ def inloop(textchange=False, activity=False, offset=0):
     if offset != 0:
         offset = graphics.slider_change(text6.text, offset)
     if offset == 0:
-
         background2.draw()
         lowerboarder.draw()
         upperboarder.draw()
-
         if actualy < -displayheight:
             if scrolloffset < actualy + displayheight:
                 updown = 1
             if scrolloffset > 0:
                 updown = 0
-
-            if updown:
+            if updown != 0:
                 scrolloffset += 15
             else:
                 scrolloffset -= 1

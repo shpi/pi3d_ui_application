@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import pi3d
 import math
 import os
@@ -8,7 +7,6 @@ import sys
 from pkg_resources import resource_filename
 
 from .. import config
-#sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 try:
     unichr

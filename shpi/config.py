@@ -27,7 +27,6 @@ BACKLIGHT_AUTO = 60  # timer for backlight auto off, 0 for always on
 # for check in server , not implemented so far
 ALLOWEDDIPS = list('192.168.1.31')
 
-
 MAX_BACKLIGHT = 31  # possible values  0 .. 31
 MIN_BACKLIGHT = 1
 
@@ -109,6 +108,5 @@ for autoslide in autoslides:
 if DEMO:
     slides.append('demo_floorplan')
     slides.append('demo_remote_button')
-
 
 subslides = ['videostream', 'intercom', 'wifisetup', 'wifikeyboard', 'alert']

@@ -9,13 +9,11 @@ from .. import config
 from ..core import  peripherals
 from ..core import graphics
 
-#sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 text3 = pi3d.PointText(graphics.pointFont, graphics.CAMERA,
                        max_chars=820, point_size=64)  # slider3 Inputs
 
 def add_to_text3(x, y, n_ch, text_format, attr=None, space=0.6, colour=(1.0, 1.0, 1.0, 1.0)):
-    '''convenience function to avoid too much repitition'''
+    """Convenience function to avoid too much repitition."""
     newtxt = pi3d.TextBlock(x, y, 0.1, 0.0, n_ch, data_obj=peripherals.eg_object, attr=attr, text_format=text_format,
                             size=0.5, spacing="C", space=space, colour=colour)
     text3.add_text_block(newtxt)

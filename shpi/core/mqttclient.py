@@ -4,23 +4,13 @@ import sys
 from .. import config
 from ..core import peripherals
 
-"""sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-try:
-    import core.peripherals as peripherals
-except:
-    pass"""
-
 try:
     import paho.mqtt.publish as mqtt_publish # NB this insn't used PG
     import paho.mqtt.client as mqtt
 except ImportError:
     exit("Please run: (sudo) pip3 install paho-mqtt")
 
-
 client = None
-
-
 def publishall():
     global client
     try:
@@ -34,7 +24,6 @@ def publishall():
     except:
         pass
 
-
 def publish(path, value):
     global client
     try:
@@ -42,10 +31,8 @@ def publish(path, value):
     except:
         pass
 
-
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc): #TODO unused arguments
     print("Connected to MQTT broker")
-
 
 def on_message(client, userdata, message):
     if config.MQTT_SERVER != "mqtt.eclipse.org":  # deactivate for demo server
@@ -68,7 +55,6 @@ def on_message(client, userdata, message):
                 print('unknown:' + message.topic + ' message:' + msg)
 
         if message.topic == (config.MQTT_PATH + "/set/buzzer"):
-
             if msg == 'ON':
                 peripherals.controlrelays(4, 1)
                 publish("buzzer", 'ON')
@@ -79,7 +65,6 @@ def on_message(client, userdata, message):
                 print('unknown:' + message.topic + ' message:' + msg)
 
         if message.topic == (config.MQTT_PATH + "/set/d13"):
-
             if msg == 'ON':
                 peripherals.controlrelays(5, 1)
                 publish("d13", 'ON')
@@ -90,7 +75,6 @@ def on_message(client, userdata, message):
                 print('unknown:' + message.topic + ' message:' + msg)
 
         if message.topic == (config.MQTT_PATH + "/set/alert"):
-
             if msg == 'ON':
                 peripherals.eg_object.alert = 1
                 publish("alert", 'ON')
@@ -100,23 +84,25 @@ def on_message(client, userdata, message):
                 print('unknown:' + message.topic + ' message:' + msg)
 
         if message.topic == (config.MQTT_PATH + "/set/max_backlight"):
-            assert 0 < (int)(msg) < 32, 'value outside 1..31'
-            peripherals.eg_object.max_backlight = (int)(msg)
-            peripherals.controlbacklight((int)(msg))
+            msg_i = int(msg)
+            assert 0 < msg_i < 32, 'value outside 1..31'
+            peripherals.eg_object.max_backlight = msg_i
+            peripherals.controlbacklight(msg_i)
 
         if message.topic == (config.MQTT_PATH + "/set/vent_pwm"):
-            assert -1 < (int)(msg) < 256, 'value outside 0..255'
-            peripherals.controlvent((int)(msg))
+            msg_i = int(msg)
+            assert -1 < msg_i < 256, 'value outside 0..255'
+            peripherals.controlvent(msg_i)
 
         if message.topic == (config.MQTT_PATH + "/set/set_temp"):
-            assert 0 < (float)(msg) < 50, 'value outside 1..50'
-            peripherals.eg_object.set_temp = (float)(msg)
+            msg_f = float(msg)
+            assert 0 < msg_f < 50, 'value outside 1..50'
+            peripherals.eg_object.set_temp = msg_f
 
         if message.topic == (config.MQTT_PATH + "/set/led"):
             value = msg.split(',')
             if len(value) == 3:
                 peripherals.controlled(value)
-
 
 def init():
     global client
@@ -133,8 +119,7 @@ def init():
     client.subscribe(config.MQTT_PATH + "/set/d13", qos=config.MQTT_QOS)
     #client.subscribe(MQTT_PATH + "/hwb", qos=0)
     client.subscribe(config.MQTT_PATH + "/set/alert", qos=config.MQTT_QOS)
-    client.subscribe(config.MQTT_PATH + "/set/max_backlight",
-                     qos=config.MQTT_QOS)
+    client.subscribe(config.MQTT_PATH + "/set/max_backlight", qos=config.MQTT_QOS)
     client.subscribe(config.MQTT_PATH + "/set/set_temp", qos=config.MQTT_QOS)
     client.subscribe(config.MQTT_PATH + "/set/vent_pwm", qos=config.MQTT_QOS)
     client.subscribe(config.MQTT_PATH + "/set/led", qos=config.MQTT_QOS)

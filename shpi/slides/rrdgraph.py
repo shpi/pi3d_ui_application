@@ -1,28 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import sys
 import os
 import pi3d
 import time
 import rrdtool
+import threading
 
 from .. import config
 from ..core import  peripherals
 from ..core import graphics
 
-try:
-    from _thread import start_new_thread
-except:
-    from thread import start_new_thread
-
-#sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 graph = None
 
 def update_graph():
     global graph
-
     rrdtool.graph("/media/ramdisk/graph1.png", "--full-size-mode", "--font", "DEFAULT:13:", "--color", "BACK#ffffffC0", "--color", "CANVAS#ffffff00",
                   "--color", "SHADEA#ffffff00", "--color", "SHADEB#ffffff00", "--width", "800", "--height", "480",
                         #"--rigid", "--upper-limit" ,"40",
@@ -56,25 +48,21 @@ def update_graph():
                         "LINE1:cooling#5555ff:Cooling",
                         "AREA:motion#00AA0070:Motion")
 
-
     graph = pi3d.ImageSprite('/media/ramdisk/graph1.png',
                              shader=graphics.SHADER, camera=graphics.CAMERA, w=800, h=480, z=1)
-
 
 graphupdated = 0
 update_graph()
 
-
 def inloop(textchange=False, activity=False, offset=0):
-
     global graphupdated, graph
-
     if graphupdated < time.time():
         graphupdated = time.time() + 60
-        start_new_thread(update_graph, ())
-
+        t = threading.Thread(target=update_graph)
+        t.start()
     if offset != 0:
         offset = graphics.slider_change(graph, offset)
+
     graph.draw()
 
     return activity, offset

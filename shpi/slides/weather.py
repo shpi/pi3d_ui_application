@@ -1,16 +1,11 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-try:
- from _thread import start_new_thread
-except:
- from thread  import start_new_thread
-
 import pi3d
 import sys
 import os
 import time
 import datetime
+import threading
 import numpy as np
 from pkg_resources import resource_filename
 
@@ -27,9 +22,6 @@ try:
     unichr
 except NameError:
     unichr = chr
-
-#sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 
 threehours = time.time()
 
@@ -50,8 +42,9 @@ text = pi3d.PointText(graphics.pointFont, graphics.CAMERA,
 error = False
 
 def init():
-        global snowline, rainline, seplines, degwind, weathericon, text, line, baroneedle, windneedle, linemin, linemax, acttemp, text, error
-    
+        global snowline, rainline, seplines, degwind, weathericon, text, line, windneedle, acttemp, text, error
+        #global baroneedle, linemin, linemax
+
         owm = pyowm.OWM(API_key=config.OWMKEY, language=config.OWMLANGUAGE)
         place = owm.weather_at_place(config.OWMCITY)
         weather = place.get_weather()
@@ -196,8 +189,6 @@ def init():
             else:
                 rainarr.append([actualy, -50 ,2])
 
-
-
             temperatures = weather.get_temperature(unit='celsius')
             if temperatures['temp_max'] > maxdaytemp:
                 maxdaytemp = temperatures['temp_max']
@@ -209,16 +200,15 @@ def init():
             temp.append([actualy, temperatures['temp']*3, 2])
             actualy += step
 
-
         snowline = pi3d.Lines(vertices=snowarr, line_width=3, y=-180, strip=True)
         snowline.set_shader(graphics.MATSH)
         snowline.set_material((0.5, 0.5, 1))
         snowline.set_alpha(0.7)
+
         rainline = pi3d.Lines(vertices=rainarr, line_width=3, y=-180, strip=True)
         rainline.set_shader(graphics.MATSH)
         rainline.set_material((0, 0, 1))
         rainline.set_alpha(0.7)
-
 
         seplines  = pi3d.Lines(vertices=seplinesarr, line_width=1, y=-180, strip=True)
         seplines.set_shader(graphics.MATSH)
@@ -247,17 +237,18 @@ def init():
     #    text.add_text_block(error)
     #    error = True
 
-
 init()
 threehours = time.time() + (60*60*1)
 
-
 def inloop(textchange=False, activity=False, offset=0):
-    global snowline, rainline, seplines, degwind, threehours, weathericon, text, line, baroneedle, windneedle, linemin, linemax, error
+    global snowline, rainline, seplines, degwind, threehours, weathericon, text, line, windneedle, error
+    #global baroneedle, linemin, linemax
 
     if (time.time() > threehours):
         print('new weather forecast')
-        start_new_thread(init, ())
+        #start_new_thread(init, ())
+        t = threading.Thread(target=init)
+        t.start()
         threehours = time.time() + (60*60*1)
 
     grapharea2.draw()
@@ -268,21 +259,22 @@ def inloop(textchange=False, activity=False, offset=0):
         offset = graphics.slider_change(text.text, offset)
 
     else:
-        if (error == False):
+        if not error:
             try:
-             weathericon.draw()
-             #baroneedle.draw()
-             line.draw()
-             # linemin.draw()
-             # linemax.draw()
-             if degwind:
-                windneedle.draw()
-             seplines.draw()
-             snowline.draw()
-             rainline.draw()
+                weathericon.draw()
+                #baroneedle.draw()
+                line.draw()
+                # linemin.draw()
+                # linemax.draw()
+                if degwind:
+                    windneedle.draw()
+                seplines.draw()
+                snowline.draw()
+                rainline.draw()
 
-            except: pass
-             #for icon in icons: icon.draw()
+            except Exception as e:
+                print('error: {}'.format(e))
+                #for icon in icons: icon.draw()
 
     text.draw()
 

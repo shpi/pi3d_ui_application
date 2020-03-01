@@ -37,7 +37,7 @@ class ServerHandler(BaseHTTPRequestHandler):
                             time.sleep(0.1)
                         except: pass
                         
-                        while (os.path.exists("/media/ramdisk/screenshot.png") == False):
+                        while not os.path.exists("/media/ramdisk/screenshot.png"):
                             time.sleep(0.15)
                             
                         # self.wfile.write(screenshot.getvalue())

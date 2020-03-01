@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import os
 import sys
 import pi3d
@@ -8,8 +7,6 @@ import pi3d
 from .. import config
 from ..core import  peripherals
 from ..core import graphics
-
-#sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 try:
     unichr
@@ -97,9 +94,7 @@ if 'intercom' in config.subslides:
 controls_alpha = 1
 
 def inloop(textchange=False, activity=False, offset=0):
-
     global controls_alpha
-
     if offset != 0:
         offset = graphics.slider_change(text.text, offset)
         if offset == 0:
@@ -164,9 +159,7 @@ def inloop(textchange=False, activity=False, offset=0):
 
     if peripherals.touch_pressed:
         peripherals.touch_pressed = False
-
         if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
-
             if peripherals.clicked(increaseTemp.x, increaseTemp.y):
                 controls_alpha = 1
                 peripherals.eg_object.set_temp += 0.5
@@ -180,19 +173,16 @@ def inloop(textchange=False, activity=False, offset=0):
 
         if peripherals.clicked(-330, -180):
             config.subslide = 'videostream'
-
             try:
                 os.popen('killall omxplayer.bin')
             except:
                 pass
-
             os.popen(
                 'omxplayer --threshold 0.5  --display 4 rtsp://username:pass@192.168.1.5:554/mpeg4cif --win "0 0 800 450"')
             # loading time depends on keyframes in stream, only h264 recommended!
 
         if 'intercom' in config.subslides and peripherals.clicked(-230, -180):
             config.subslide = 'intercom'
-
             try:
                 os.popen('killall omxplayer.bin')
                 os.popen('killall raspivid')
@@ -238,10 +228,8 @@ def inloop(textchange=False, activity=False, offset=0):
         offset_temp_block.colouring.set_colour(alpha=controls_alpha)
 
     if controls_alpha < 0.3:
-
         if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
             set_temp_block.colouring.set_colour([1, 1, 1])
-
 
     text.draw()
 
