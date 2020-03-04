@@ -33,7 +33,7 @@ httpbutton.status = 'unknown'  # on init status is unknown
 
 def get_button_status():
     try:
-        a = urlopen('http://blabla/relais1')
+        a = urlopen('http://blabla/relay1')
     except:
         print('Error httpbutton')
         httpbutton.status = 'error'
@@ -71,7 +71,7 @@ def inloop(textchange=False, activity=False, offset=0):
     if peripherals.clicked(httpbutton.x,httpbutton.y):
         if httpbutton.status == 'OFF':
            try:
-                _a = urlopen('http://blabla/relais1=1')
+                _a = urlopen('http://blabla/relay1=1')
            except:
                 print('error httpbutton')
            else:
@@ -83,7 +83,7 @@ def inloop(textchange=False, activity=False, offset=0):
                 #if a.read() == 'OK':       check content 
         elif httpbutton.status == 'ON':
             try:
-                a = urlopen('http://blabla/relais1=0')
+                _a = urlopen('http://blabla/relay1=0')
             except:
                 print('error httpbutton')
             else: 
@@ -91,12 +91,12 @@ def inloop(textchange=False, activity=False, offset=0):
                 httpbutton.colouring.set_colour([1,0,0])  #we change color of button to red
                 httpbutton.status = 'OFF'  
     if offset != 0:
-            graphics.slider_change(text2.text,offset)
-            offset = graphics.slider_change(text.text, offset)
-            if offset == 0:
-                httpbutton.status = 'unknown'
-                text.regen()
-                text2.regen()
+        graphics.slider_change(text2.text,offset)
+        offset = graphics.slider_change(text.text, offset)
+        if offset == 0:
+            httpbutton.status = 'unknown'
+            text.regen()
+            text2.regen()
 
     text.draw()
     text2.draw()

@@ -66,42 +66,7 @@ class ServerHandler(BaseHTTPRequestHandler):
 
                             if (value != ''):
                                 try:  # its better to split in different functions, to achieve easier compatibility with shpi lite
-                                    if key in ('backlight_level'):
-                                        # variable int value
-                                        value = int(value)
-                                        assert -1 < value < 32, 'value outside 0..31'
-                                        peripherals.controlbacklight(value)
-
-                                    elif key in ('vent_pwm'):
-                                        # variable int value
-                                        value = int(value)
-                                        assert -1 < value < 256, 'value outside 0..255'
-                                        peripherals.controlvent(value)
-
-                                    elif key in ('slide'):
-                                        # variable int value
-                                        value = int(value)
-                                        assert - \
-                                            1 < value < len(
-                                                config.slides), 'value outside 0..255'
-                                        peripherals.eg_object.slide = value
-
-                                    elif key in ('led'):
-                                        # variable int value
-                                        value = value.split(',')
-                                        peripherals.controlled(value)
-
-                                    elif key in ('alert'):
-                                        peripherals.eg_object.alert = int(value)
-
-                                    elif key in ('buzzer'):
-                                        value = int(value)
-                                        peripherals.controlrelays(4, value)
-
-                                    else:
-                                        if key.startswith('relais'):
-                                            channel = int(key[-1])
-                                            peripherals.controlrelays(channel, value)
+                                    peripherals.control(key, value)
                                 except Exception as e:
                                     message += 'Excepton:{}>{};'.format(key, e)
                                 finally:
@@ -136,4 +101,4 @@ class ServerHandler(BaseHTTPRequestHandler):
             super().end_headers()
         except BrokenPipeError as e:
             self.connection.close()
-            print('error: ', e)
+            print('httpserver error: {}'.format(e))

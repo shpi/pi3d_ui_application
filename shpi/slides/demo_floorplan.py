@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import sys
 import os
 import pi3d
@@ -10,21 +9,16 @@ from .. import config
 from ..core import  peripherals
 from ..core import graphics
 
-#sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
 try:
     unichr
 except NameError:
     unichr = chr
 
-
 text = pi3d.PointText(graphics.pointFont, graphics.CAMERA,
                       max_chars=35, point_size=256)
-
 temp_block = pi3d.TextBlock(-200, -100, 0.1, 0.0, 15, data_obj=peripherals.eg_object, attr="act_temp",
                             text_format=unichr(0xE021) + u" {:2.1f}°C", size=0.2, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
 text.add_text_block(temp_block)
-
 
 officearea = pi3d.Sprite(camera=graphics.CAMERA,
                          w=380, h=220, z=3, x=-70, y=110)
@@ -41,31 +35,27 @@ storagearea = pi3d.Sprite(camera=graphics.CAMERA,
 storagearea.set_shader(graphics.MATSH)
 storagearea.set_material((0.0, 0.0, 1.0))
 
-
 floorplan = pi3d.ImageSprite(resource_filename("shpi", "sprites/floorplan.png"),
-                             shader=graphics.SHADER, camera=graphics.CAMERA, w=539, h=450, x=0, y=0, z=2.0)
+                shader=graphics.SHADER, camera=graphics.CAMERA, w=539, h=450, x=0, y=0, z=2.0)
 doorneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=(
     (0, 0, 0), (60, 0, 0)), material=(1.0, 0.3, 0.0), line_width=20, x=-13.0, y=-220.0, z=1.0)
 doorneedle.set_shader(graphics.MATSH)
 
-windowneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=(
-    (0, 0, 0), (45, 0, 0)), material=(0, 1, 0.0), line_width=10, x=-180.0, y=217.0, z=1.0)
+windowneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=((0, 0, 0), (45, 0, 0)),
+                material=(0, 1, 0.0), line_width=10, x=-180.0, y=217.0, z=1.0)
 windowneedle.set_shader(graphics.MATSH)
 rotate = 0
 
-
 def inloop(textchange=False, activity=False, offset=0):
     global rotate
-
     if textchange:
         text.regen()
-
-    rotate = rotate+1
+    rotate += 1
     if rotate > 90:
         rotate = 0
     doorneedle.rotateToZ(rotate)  # open  rotate 0 closed
-    doorneedle.set_material([rotate*1.1*0.01, 0, 0])
-    windowneedle.set_material([rotate*1.1*0.01, 100-rotate*1.1*0.01, 0])
+    doorneedle.set_material([rotate * 1.1 * 0.01, 0, 0])
+    windowneedle.set_material([rotate * 1.1 * 0.01, 100 - rotate * 1.1 * 0.01, 0])
     windowneedle.rotateToZ(-rotate)
 
     if offset == 0:
@@ -79,7 +69,7 @@ def inloop(textchange=False, activity=False, offset=0):
 
     officearea.set_alpha(0.01 * rotate)
     kitchenarea.set_alpha(1 - 0.01 * rotate)
-    storagearea.set_alpha(0.01*rotate)
+    storagearea.set_alpha(0.01 * rotate)
 
     if offset != 0:
         offset = graphics.slider_change(floorplan, offset)

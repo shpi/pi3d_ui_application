@@ -64,11 +64,11 @@ All vars from eg_object (core/peripherals.py) are accessible.
 
 - [X] HTTP Server
 
-*          http://ipshpi:port/?relais1     -> relais1:1;
+*          http://ipshpi:port/?relay1     -> relay1:1;
 
-*          http://ipshpi:port/?relais2     -> relais2:0;
+*          http://ipshpi:port/?relay2     -> relay2:0;
 
-*          http://ipshpi:port/?relais1=1   -> relais1:1;relais1>1;   SETS Relais1 !
+*          http://ipshpi:port/?relay1=1   -> relay1:1;relay1>1;   SETS relay1 !
 
 *          http://ipshpi:port/?led=255,255,255  ->   led>['255', '255', '255']; SETS RGB LED
           
@@ -76,11 +76,11 @@ All vars from eg_object (core/peripherals.py) are accessible.
 #### MQTT Client
 - [X] MQTT Client - start with START_MQTT_CLIENT = True in config.py
 
-* published channels: <sup><sub>atmega_volt, d13, hwb, a0, a1, a2, a3, a4, a5, a7, atmega_temp, vent_rpm, vent_pwm, atmega_ram, buzzer, relais1current, mlxamb, mlxobj, bmp280_temp, pressure, lightlevel, sht_temp, humidity, motion, set_temp, backlight_level, gputemp, cputemp, act_temp, useddisk, load, freespace, wifistrength, ipaddress, led_red, led_green, led_blue, ssid, uhrzeit, relais1, relais2, relais3, lastmotion, max_backlight, usertext, usertextshow, alert</sub></sup>
+* published channels: <sup><sub>atmega_volt, d13, hwb, a0, a1, a2, a3, a4, a5, a7, atmega_temp, vent_rpm, vent_pwm, atmega_ram, buzzer, relay1current, mlxamb, mlxobj, bmp280_temp, pressure, lightlevel, sht_temp, humidity, motion, set_temp, backlight_level, gputemp, cputemp, act_temp, useddisk, load, freespace, wifistrength, ipaddress, led_red, led_green, led_blue, ssid, uhrzeit, relay1, relay2, relay3, lastmotion, max_backlight, usertext, usertextshow, alert</sub></sup>
 
 
-* subscribed channels for remote control of SHPI (set/): <sup><sub>relais1, relais2, relais3, buzzer, d13, alert, max_backlight, set_temp, vent_pwm, led</sub></sup>
-* USE: ON | OFF for relais1, relais2, relais3,buzzer d13, alert
+* subscribed channels for remote control of SHPI (set/): <sup><sub>relay1, relay2, relay3, buzzer, d13, alert, max_backlight, set_temp, vent_pwm, led</sub></sup>
+* USE: ON | OFF for relay1, relay2, relay3,buzzer d13, alert
 * USE: 1 .. 31 for max_backlight
 * USE: 0.0 .. 88.5 for set_temp
 * USE: 0 .. 255 for vent_pwm

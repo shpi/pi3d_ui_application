@@ -141,7 +141,7 @@ def sensor_thread():
 
             if peripherals.eg_object.backlight_level != last_backlight_level:
                 print('set backlight:' + str(peripherals.eg_object.backlight_level))
-                peripherals.controlbacklight(peripherals.eg_object.backlight_level)
+                peripherals.control_backlight_level(peripherals.eg_object.backlight_level)
                 last_backlight_level = peripherals.eg_object.backlight_level
 
             if config.START_HTTP_SERVER:
@@ -184,8 +184,8 @@ def sensor_thread():
                     peripherals.eg_object.act_temp, peripherals.eg_object.gputemp,
                     peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
                     sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,
-                    0.0, getattr(peripherals.eg_object, 'relais{}'.format(config.HEATINGRELAY)),
-                    getattr(peripherals.eg_object, 'relais{}'.format(config.COOLINGRELAY)),
+                    0.0, getattr(peripherals.eg_object, 'relay{}'.format(config.HEATINGRELAY)),
+                    getattr(peripherals.eg_object, 'relay{}'.format(config.COOLINGRELAY)),
                     motion, peripherals.eg_object.humidity, peripherals.eg_object.a4)
 
                 sys.stdout.write('\r')
@@ -197,10 +197,10 @@ def sensor_thread():
                 if config.SHOW_AIRQUALITY: #calculate rgb values for LED
                     redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
                     greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
-                    peripherals.controlled([redvalue, greenvalue, 0])
+                    peripherals.control_led([redvalue, greenvalue, 0])
 
         except Exception as e:
-            print('error: {}'.format(e))
+            print('sensor_thread error: {}'.format(e))
         time.sleep(0.2)
 
 autoslide = time.time() + config.autoslidetm

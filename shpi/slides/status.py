@@ -61,9 +61,9 @@ add_to_text3(50, 30, 20, text_format="{:3d}",
 add_to_text3(100, 30, 20, text_format="{:3d}",
              attr="led_blue", colour=(0.0, 0.0, 1.0, 1.0))
 
-add_to_text3(-50, 0, 20, text_format="R1:    {:1d}", attr="relais1")
-add_to_text3(-50, -30, 20, text_format="R2:    {:1d}", attr="relais2")
-add_to_text3(-50, -60, 20, text_format="R3:    {:1d}", attr="relais3")
+add_to_text3(-50, 0, 20, text_format="R1:    {:1d}", attr="relay1")
+add_to_text3(-50, -30, 20, text_format="R2:    {:1d}", attr="relay2")
+add_to_text3(-50, -60, 20, text_format="R3:    {:1d}", attr="relay3")
 add_to_text3(-50, -90, 20, text_format="D13:   {:1d}", attr="d13")
 add_to_text3(-50, -120, 20, text_format="HWB:   {:1d}", attr="hwb")
 add_to_text3(-50, -150, 20, text_format="Buzzer:{:1d}", attr="buzzer")
@@ -77,7 +77,7 @@ add_to_text3(120, -150, 20, text_format="A5:    {:3d}", attr="a5")
 add_to_text3(120, -180, 20, text_format="A7:    {:3d}", attr="a7")
 
 add_to_text3(
-    50, -210, 20, text_format="Current R1:{:2.1f}A", attr="relais1current")
+    50, -210, 20, text_format="Current R1:{:2.1f}A", attr="relay1current")
 
 background = pi3d.Sprite(camera=graphics.CAMERA, w=780, h=460, z=2, x=0, y=0)
 background.set_shader(graphics.MATSH)

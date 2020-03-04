@@ -72,13 +72,13 @@ def inloop(textchange=False, activity=False, offset=0):
             peripherals.eg_object.max_backlight += 1
             if peripherals.eg_object.max_backlight > 31:
                 peripherals.eg_object.max_backlight = 31
-            peripherals.controlbacklight(peripherals.eg_object.max_backlight)
+            peripherals.control_backlight_level(peripherals.eg_object.max_backlight)
             text2.regen()
         elif peripherals.clicked(Down.x, Down.y):
             peripherals.eg_object.max_backlight -= 1
             if peripherals.eg_object.max_backlight < 1:
                 peripherals.eg_object.max_backlight = 1
-            peripherals.controlbacklight(peripherals.eg_object.max_backlight)
+            peripherals.control_backlight_level(peripherals.eg_object.max_backlight)
             text2.regen()
         elif peripherals.clicked(wifi.x, wifi.y):
             config.subslide = 'wifisetup'

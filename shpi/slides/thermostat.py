@@ -121,13 +121,13 @@ def inloop(textchange=False, activity=False, offset=0):
         cloud.colouring.set_colour([red, green, 0, 1.0])
 
         if config.COOLINGRELAY != 0:
-            if getattr(peripherals.eg_object, 'relais{}'.format(config.COOLINGRELAY)):
+            if getattr(peripherals.eg_object, 'relay{}'.format(config.COOLINGRELAY)):
                 cooling.colouring.set_colour([0, 0, 1])
             else:
                 cooling.colouring.set_colour([1, 1, 1])
 
         if config.HEATINGRELAY != 0:
-            if getattr(peripherals.eg_object, 'relais{}'.format(config.HEATINGRELAY)):
+            if getattr(peripherals.eg_object, 'relay{}'.format(config.HEATINGRELAY)):
                 heating.colouring.set_colour([1, 1, 0])
             else:
                 heating.colouring.set_colour([1, 1, 1])

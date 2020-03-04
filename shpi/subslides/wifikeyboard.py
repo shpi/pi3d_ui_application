@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import sys
 import os
 import time
@@ -12,7 +11,6 @@ from ..core import peripherals
 from ..core import graphics
 from ..subslides import wifisetup
 
-#sys.path.insert(1, os.path.join(sys.path[0], '..'))
 try:
     unichr
 except NameError:

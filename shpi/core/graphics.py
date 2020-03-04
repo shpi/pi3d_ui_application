@@ -82,13 +82,11 @@ CAMERA = pi3d.Camera(is_3d=False)
 SHADER = pi3d.Shader("uv_flat")
 MATSH = pi3d.Shader("mat_flat")
 
-
 def tex_load(fname):
     slide = pi3d.ImageSprite(fname, shader=SHADER,
                              camera=CAMERA, w=880, h=528, z=4)
     slide.set_alpha(0)
     return slide
-
 
 def slider_change(shape_obj, offset_val):
     abs_offset = abs(offset_val)
@@ -106,4 +104,3 @@ pointFont = pi3d.Font(font_path, shadow_radius=4, grid_size=12,
                       codepoints=mytext, add_codepoints=additional)
 pointFontbig = pi3d.Font(font_path, shadow=(0, 0, 0, 255), shadow_radius=4,
                          grid_size=5, codepoints='0123456789:' + unichr(0xE000) + unichr(0xE035) + unichr(0xE001))
-

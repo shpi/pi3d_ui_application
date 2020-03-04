@@ -15,8 +15,6 @@ from .. import config
 from ..core import i2c
 from ..core import mqttclient
 
-""" Definitions
-"""
 VALS = {  # various aliases for off and on
     '0': 0x00, 0: 0x00, 'OFF': 0x00,
     '1': 0xFF, 1: 0xFF, 'ON': 0xFF,
@@ -38,16 +36,16 @@ READ_D13 = 0x10
 READ_HWB = 0x11
 READ_BUZZER = 0x12
 READ_VENT_PWM = 0x13
-READ_RELAIS1CURRENT = 0x14
+READ_RELAY1CURRENT = 0x14
 READ_ATMEGA_TEMP = 0x0A
 READ_ATMEGA_RAM = 0x0B
-READ_RELAIS1 = 0x0D
-READ_RELAIS2 = 0x0E
-READ_RELAIS3 = 0x0F
+READ_RELAY1 = 0x0D
+READ_RELAY2 = 0x0E
+READ_RELAY3 = 0x0F
 BACKLIGHT_LEVEL = 0x87
-RELAIS1 = 0x8D
-RELAIS2 = 0x8E
-RELAIS3 = 0x8F
+RELAY1 = 0x8D
+RELAY2 = 0x8E
+RELAY3 = 0x8F
 D13 = 0x90
 BUZZER = 0x92
 VENT_PWM = 0x93
@@ -67,6 +65,7 @@ BACKLIGHT = 19
 TOUCHINT = 26
 
 def crc8(crc, n):
+    """ CRC checksum algorithm """
     data = crc ^ n
     for _i in range(0, 8):
         if ((data & 0x80) != 0x00):
@@ -92,7 +91,6 @@ def i2crecover():
         time.sleep(0.01)
     except:
         time.sleep(0.01)
-        pass
 
 def touchloop():
     global xc, yc, lastx, lasty, touch_pressed, touch_file, lasttouch
@@ -117,14 +115,14 @@ def touchloop():
 
 def alert(value=1):
     if value and (int)(time.time()) % 2 == 0:
-        controlrelays(4, 1)
-        controlled([255, 0, 0])
-        controlbacklight(1)
+        control_relay(4, 1)
+        control_led([255, 0, 0])
+        control_backlight_level(1)
         config.subslide = 'alert'
     else:
-        controlrelays(4, 0)
-        controlled([0, 0, 0])
-        controlbacklight(eg_object.max_backlight)
+        control_relay(4, 0)
+        control_led([0, 0, 0])
+        control_backlight_level(eg_object.max_backlight)
 
 def touched():
     return gpio.input(TOUCHINT)
@@ -138,7 +136,6 @@ def motion_detected(channel):
         if config.START_MQTT_CLIENT:
             mqttclient.publish("motion", 'ON')
     else:
-
         print('Motion time: ' + str(round(time.time() - startmotion,2)) + 's')
         eg_object.motion = False
         if config.START_MQTT_CLIENT:
@@ -147,7 +144,7 @@ def motion_detected(channel):
     eg_object.lastmotion = time.time()
 
 def get_touch():
-    global xc, yc, os_touchdriver
+    global xc, yc
     #global mouse, x_off, y_off
     if int(os_touchdriver) > 1:
         return xc, yc
@@ -215,37 +212,7 @@ def clicksound():
     except:
         pass
 
-def controlrelays(channel, value, retries=0):
-    global i2cerr, i2csucc
-    try:
-        crc = crc8(0, RELAYCHANNEL[channel-1])
-        crc = crc8(crc, VALS[value])
-        bus.write([RELAYCHANNEL[channel-1], VALS[value], crc], ADDR_32U4)
-        crca = bus.read(1, ADDR_32U4)
-
-        if ([crc] != crca):
-            i2cerr +=1
-            if retries > 10: 
-              print('crc8 error: set relays')
-              i2crecover()
-              controlrelays(channel,value)
-            else:
-              time.sleep(0.1)
-              controlrelays(channel, value,retries+1)
-        else: 
-            i2csucc += 1 
-   
-    except Exception as e: 
-        if retries < 10:
-            i2cerr += 1
-            time.sleep(0.1)
-            controlrelays(channel, value, retries + 1)
-        else: 
-            print('i2c blocked setting channels: {}'.format(e))
-            i2crecover()
-            controlrelays(channel,value)
-
-def read_one_byte(addr_val,retries=0):  # utility function for brevity
+def read_one_byte(addr_val, retries=0):  # utility function for brevity
     global i2cerr, i2csucc
     crc = 0
     try:
@@ -258,25 +225,17 @@ def read_one_byte(addr_val,retries=0):  # utility function for brevity
             i2csucc +=1
             return b[0]
         else:
-          i2cerr +=1
-          if retries < 10:
-            time.sleep(0.1)
-            return read_one_byte(addr_val,retries+1)
-          else:
-            print('crc missmatch ' + ' 0x{:02x}'.format(addr_val))
-            i2crecover()
-            return read_one_byte(addr_val)
+            raise Exception("crc missmatch 0x{:02x}".format(addr_val))
     except Exception as e:  # potential inifinite loop - count repeats and break after n
-       i2cerr +=1
-       if retries < 10:
-           time.sleep(0.1)
-           return read_one_byte(addr_val,retries+1)
-       else:
-        print('i2c blocked ' + '0x{:02x}'.format(addr_val))
-        i2crecover()
-        return read_one_byte(addr_val)
+        i2cerr += 1
+        if retries < 10:
+            time.sleep(0.1)
+            return read_one_byte(addr_val, retries + 1)
+        else:
+            msg = "read_one_byte error: {}".format(e)
+            print(msg) #TODO return something on error and cope at receiving end
 
-def read_two_bytes(addr_val,retries=0):  # utility function for brevity
+def read_two_bytes(addr_val, retries=0):  # utility function for brevity
     global i2cerr, i2csucc
     crc = 0
     try:
@@ -290,146 +249,148 @@ def read_two_bytes(addr_val,retries=0):  # utility function for brevity
             i2csucc +=1
             return b[0] | (b[1] << 8)
         else:
-          i2cerr += 1
-          if retries < 10:
+            raise Exception("crc 2 missmatch 0x{:02x}".format(addr_val))
+    except Exception as e:  # potential inifinite loop - count repeats and break after n
+        i2cerr += 1
+        if retries < 10:
             time.sleep(0.1)
             return read_two_bytes(addr_val,retries+1)
-          else:
-            print('crc 2 missmatch 0x{:02x}'.format(addr_val))
-            i2crecover()
-            return read_two_bytes(addr_val)
-
-    except Exception as e:  # potential inifinite loop - count repeats and break after n
-      i2cerr +=1
-      if retries < 10:
-       time.sleep(0.1)
-       return read_two_bytes(addr_val,retries+1)
-      else:
-        print('i2c bus blocked 0x{:02x}'.format(addr_val))
-        i2crecover()
-        return read_two_bytes(addr_val)
-
-def controlvent(value,retries=0):
-    global i2cerr, i2csucc
-    try:
-        value = int(value)  # variable int value
-        assert -1 < value < 256, 'value outside 0..255'
-        crc = crc8(0, VENT_PWM)
-        crc = crc8(crc, value)
-        bus.write([VENT_PWM, value, crc], ADDR_32U4)
-        crca = bus.read(1, ADDR_32U4)
-        if ([crc] != crca):
-            i2cerr +=1
-            if retries < 10:
-             time.sleep(0.1)
-             controlvent(value,retries+1)
-            else:
-             print('control vent crc missmatch')
-             i2crecover()
-             controlvent(value)
-        else: 
-             i2csucc +=1
-    except Exception as e:
-        i2cerr +=1
-        if retries < 10:
-           time.sleep(0.1)
-           controlvent(value, retries + 1)
         else:
-           print('control vent i2c error: {}'.format(e))
-           i2crecover()
-           controlvent(value)
+            msg = "read_two_bytes error: {}".format(e)
+            print(msg)
 
-def controlbacklight(value,retries=0):
-    global i2cerr, i2csucc
-    file_path = resource_filename("shpi", "bin/backlight")
-    os.popen('sudo chrt --rr 99 {} {}'.format(file_path, value))  # needs sudo because of timing
-    try:
-        crc = crc8(0, BACKLIGHT_LEVEL)
-        crc = crc8(crc, value)
-        bus.write([BACKLIGHT_LEVEL, value, crc], ADDR_32U4)
-        crca = bus.read(1, ADDR_32U4)
-
-        if ([crc] != crca):
-            i2cerr +=1
-            if retries < 10:
-               time.sleep(0.1)
-               controlbacklight(value,retries+1)
-            else:
-              print('control backlight crc missmatch, retry')
-              i2crecover()
-              controlbacklight(value)
-        else: i2csucc +=1
-    except:
-        i2cerr +=1
-        if retries < 10:
-          time.sleep(0.1)
-          controlbacklight(value,retries+1)
-        else:
-          print('control backlight crc error')
-          i2crecover()
-          controlbacklight(value)
-          
-def controlledcolor (rgbvalue,channel,retries=0):
-    global i2cerr, i2csucc
-    try:
-        rgbvalue = int(rgbvalue)
-        crc = crc8(0, channel)
-        crc = crc8(crc, rgbvalue)
-        bus.write([channel, rgbvalue, crc], ADDR_32U4)
-        crca = bus.read(1, ADDR_32U4)
-
-        if ([crc] != crca):
-            i2cerr +=1
-            if retries < 10:
-               time.sleep(0.1)
-               controlledcolor(rgbvalue,channel,retries+1)
-            else:
-              if crca == 0xFF: print('crc is 0xff, please check if u installed lates avr firmware, we changed LED control in atmega')
-              else:
-               print('control led crc missmatch, retry')
-               i2crecover()
-               controlledcolor(rgbvalue,channel)
-        else: i2csucc +=1
-    except:
-        i2cerr +=1
-        if retries < 10:
-          time.sleep(0.1)
-          controlledcolor(rgbvalue,channel,retries+1)
-        else:
-          print('control led crc error')
-          i2crecover()
-          controlledcolor(rgbvalue,channel)
-
-def controlled(rgbvalues):
-    if len(rgbvalues) == 3:
-        controlledcolor(rgbvalues[0],COLOR_RED) # splitted because of i2c master  clockstretching problems
-        controlledcolor(rgbvalues[1],COLOR_GREEN)
-        controlledcolor(rgbvalues[2],COLOR_BLUE)
-        eg_object.led = rgbvalues
-
+def control(attribute, value):
+    """ finds and calls control function with name control_`attribute`
+    if the last char of attribute is 0-9 then it's split from the name and passed as
+    an argument to the function:
+      relay2 => control_relay(2,...
+    """
+    if attribute[-1].isnumeric() and not attribute[-2].isnumeric():
+        num = int(attribute[-1])
+        attribute = attribute[:-1]
     else:
-        print('error, wrong rgbvalues for controlled')
+        num = -1
+    func_name = 'control_{}'.format(attribute)
+    if func_name in globals():
+        if num == -1:
+            return globals()[func_name](value)
+        else:
+            return globals()[func_name](num, value)
+    else:
+        return None #TODO error logging
 
-        # cooling & heating function
+def write_32u4(addr, value, description, retries=0):
+    """ generic function writing and checking crc8 on ADDR_32U4
+    """
+    global i2cerr, i2csucc
+    try:
+        crc = crc8(0, addr)
+        crc = crc8(crc, value)
+        bus.write([addr, value, crc], ADDR_32U4)
+        crca = bus.read(1, ADDR_32U4)
+        if ([crc] != crca):
+            if crca == 0xFF:
+                raise Exception("crc is 0xff, please check if u installed lates avr firmware, we changed LED control in atmega")
+            else:
+                raise Exception("crc8 mismatch")
+        else: 
+            i2csucc += 1 
+    except Exception as e: 
+        if retries < 10: # try recursively 10 times
+            i2cerr += 1
+            time.sleep(0.1)
+            write_32u4(addr, value, description, retries+1)
+        else: 
+            msg = "{} error: {}".format(description, e)
+            print(msg) #TODO logging
+            return (False, msg)
+    return (True, value)
+
+def control_relay(channel, value):
+    if value not in VALS:
+        return (False, "unknown VAL for value {}!".format(value))
+    return write_32u4(RELAYCHANNEL[channel-1], VALS[value], "relay{}".format(channel))
+
+def control_vent_pwm(value):
+    value = int(value)  # variable int value
+    if not (-1 < value < 256):
+        return (False, "value outside 0..255")
+    return write_32u4(VENT_PWM, value, "vent_pwm")
+
+def control_backlight_level(value):
+    file_path = resource_filename("shpi", "bin/backlight")
+    try:
+        value = int(value)
+        assert -1 < value <= config.MAX_BACKLIGHT, "value outside permitted range"
+        os.popen('sudo chrt --rr 99 {} {}'.format(file_path, value))  # needs sudo because of timing
+        return write_32u4(BACKLIGHT_LEVEL, value, "backlight_level")
+    except Exception as e:
+        return (False, "backlight_level error: {}".format(e))
+
+def control_led_color(channel, rgbvalue):
+    return write_32u4(channel, int(rgbvalue), "led_color")
+
+def control_led(rgbvalues):
+    if type(rgbvalues) not in (list, tuple):
+        rgbvalues = rgbvalues.split(",")
+    if len(rgbvalues) == 3:
+        control_led_color(COLOR_RED, rgbvalues[0]) # splitted because of i2c master  clockstretching problems
+        control_led_color(COLOR_GREEN, rgbvalues[1])
+        control_led_color(COLOR_BLUE, rgbvalues[2])
+        eg_object.led = rgbvalues
+        return (True, rgbvalues)
+    else:
+        return (False, "error, wrong rgbvalues for control_led")
+
+def control_alert(value):
+    value = int(value)
+    eg_object.alert = value #TODO error catching?
+    return(True, value)
+
+def control_buzzer(value):
+    return control_relay(4, value)
+
+def control_slide(value):
+    value = int(value)
+    if not (-1 < value < len(config.slides)):
+        return (False, "value outside number of slides")
+    eg_object.slide = value
+    return (True, value)
+
+def control_d13(value):
+    return control_relay(5, value)
+
+def control_max_backlight(value):
+    value = int(value)
+    if not (-1 < value < 32):
+        return (False, "value outside 0 to 31")
+    eg_object.max_backlight = value
+    return (True, value)
+
+def control_set_temp(value):
+    value = float(value)
+    if not (0.0 < value < 50.0):
+        return (False, "value outside 0.0 to 50.0")
+    eg_object.set_temp = value
+    return (True, value)
 
 def heating():
     if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp + eg_object.tempoffset:
-        controlrelays(config.HEATINGRELAY, 1)
-
+        control_relay(config.HEATINGRELAY, 1)
     elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp + eg_object.tempoffset:
-        controlrelays(config.HEATINGRELAY, 0)
+        control_relay(config.HEATINGRELAY, 0)
 
 def cooling():
     if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp + eg_object.tempoffset:
-        controlrelays(config.COOLINGRELAY, 1)
+        control_relay(config.COOLINGRELAY, 1)
     elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp + eg_object.tempoffset:
-        controlrelays(config.COOLINGRELAY, 0)
+        control_relay(config.COOLINGRELAY, 0)
 
 def coolingheating():
     if eg_object.set_temp + eg_object.tempoffset - config.HYSTERESIS < eg_object.act_temp < eg_object.set_temp + eg_object.tempoffset + config.HYSTERESIS:
-        controlrelays(config.HEATINGRELAY, 0)
+        control_relay(config.HEATINGRELAY, 0)
     else:
-        controlrelays(config.HEATINGRELAY, 1)
+        control_relay(config.HEATINGRELAY, 1)
 
 def get_infrared():
     global infrared_vals, lasttouch
@@ -462,13 +423,10 @@ def get_infrared():
                 if (infrared_vals[-1] - 1) > infrared_vals[-2]:
                     eg_object.lastmotion = time.time()
                     #print('waked screen because of deltaT increase of MLX')
-            except:
-                pass
-        #except Exception as e:
-        #    print('error MLX')
+            except Exception as e:
+                print('infrared error:{}'.format(e))
 
 def get_status():
-    global i2csucc, i2cerr
     try:
         eg_object.i2cerrorrate = int(100 / (i2csucc / i2cerr))
         eg_object.useddisk = os.popen(
@@ -510,10 +468,10 @@ def get_status():
             eg_object.backlight_level = read_one_byte(READ_BACKLIGHT_LEVEL)
             eg_object.vent_pwm = read_one_byte(READ_VENT_PWM)
             time.sleep(0.05)
-            eg_object.relais1 = 1 if read_one_byte(READ_RELAIS1) == 255 else 0
-            eg_object.relais2 = 1 if read_one_byte(READ_RELAIS2) == 255 else 0
+            eg_object.relay1 = 1 if read_one_byte(READ_RELAY1) == 255 else 0
+            eg_object.relay2 = 1 if read_one_byte(READ_RELAY2) == 255 else 0
             time.sleep(0.05)
-            eg_object.relais3 = 1 if read_one_byte(READ_RELAIS3) == 255 else 0
+            eg_object.relay3 = 1 if read_one_byte(READ_RELAY3) == 255 else 0
             eg_object.d13 = 1 if read_one_byte(READ_D13) == 255 else 0
             time.sleep(0.05)
             eg_object.hwb = 1 if read_one_byte(READ_HWB) == 255 else 0
@@ -565,7 +523,7 @@ def get_sensor_sht_temp_humidity():
                 time.sleep(0.05)
                 data = bus.read(6, ADDR_SHT)
                 eg_object.sht_temp = float(
-                    ((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45)
+                    ((data[0] * 256.0 + data[1]) * 175) / 65535.0 - 45)
                 eg_object.humidity = 100 * (data[3] * 256 + data[4]) / 65535.0
             except Exception as e:
                 print('error SHT: {}'.format(e))
@@ -595,7 +553,7 @@ def get_sensor_bmp_temp_pressure():
                          (data[2] & 0xF0)) / 16
                 adc_t = ((data[3] * 65536) + (data[4] * 256) +
                          (data[5] & 0xF0)) / 16
-                adc_h = data[6] * 256 + data[7]
+                _adc_h = data[6] * 256 + data[7]
                 var1 = ((adc_t) / 16384.0 - (dig_T[0]) / 1024.0) * (dig_T[1])
                 var2 = (((adc_t) / 131072.0 - (dig_T[0]) / 8192.0) * (
                     (adc_t)/131072.0 - (dig_T[0])/8192.0)) * (dig_T[2])
@@ -607,8 +565,8 @@ def get_sensor_bmp_temp_pressure():
                     var2 = var1 * var1 * (dig_P[5]) / 32768.0
                     var2 = var2 + var1 * (dig_P[4]) * 2.0
                     var2 = (var2 / 4.0) + ((dig_P[3]) * 65536.0)
-                    var1 = ((dig_P[2]) * var1 * var1 /
-                            524288.0 + (dig_P[1]) * var1) / 524288.0
+                    var1 = (dig_P[2] * var1 * var1 / 524288.0
+                          + dig_P[1] * var1) / 524288.0
                     var1 = (1.0 + var1 / 32768.0) * (dig_P[0])
                     p = 1048576.0 - adc_p
                     p = (p - (var2 / 4096.0)) * 6250.0 / var1
@@ -623,8 +581,8 @@ def get_sensor_32u4():
     if (gpio.input(TOUCHINT) == 0):
         if ADDR_32U4 != 0:
             time.sleep(0.07)
-            eg_object.relais1current = (((5000/1024) *
-                                         (read_two_bytes(READ_RELAIS1CURRENT) - 2)) / 185)
+            factor = 5000.0 / 1024.0 / 185.0
+            eg_object.relay1current = factor * (read_two_bytes(READ_RELAY1CURRENT) - 2)
             eg_object.atmega_temp = read_two_bytes(
                 READ_ATMEGA_TEMP) * 0.558 - 142.5
             time.sleep(0.01)
@@ -681,27 +639,23 @@ class EgClass(object):
         vent_pwm = 0
         atmega_ram = 0
         buzzer = 0
-        relais1current = 0.0
+        relay1current = 0.0
 
     # if ADDR_MLX:
     mlxamb = 0.0
     mlxobj = 0.0
-    relais0 = 0
+    relay0 = 0
     # if ADDR_BMP:
     bmp280_temp = 0.0
     pressure = 0.0
-
     # if ADDR_BH1750:
     lightlevel = 0.0
-
     # if ADDR_SHT:
     sht_temp = 0.0
     humidity = 0.0
-
     # if ADDR_AHT10:
     sht_temp = 0.0
     humidity = 0.0
-
     motion = False
     set_temp = config.set_temp
     backlight_level = 0
@@ -721,9 +675,9 @@ class EgClass(object):
     tempoffset = 0
     tempoffsetstr = " "
     uhrzeit = "00:00"
-    relais1 = 0
-    relais2 = 0
-    relais3 = 0
+    relay1 = 0
+    relay2 = 0
+    relay3 = 0
     lastmotion = time.time()
     max_backlight = config.MAX_BACKLIGHT
     usertext = ''

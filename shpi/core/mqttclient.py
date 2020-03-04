@@ -35,41 +35,46 @@ def on_connect(client, userdata, flags, rc): #TODO unused arguments
     print("Connected to MQTT broker")
 
 def on_message(client, userdata, message):
+    print("here")
     if config.MQTT_SERVER != "mqtt.eclipse.org":  # deactivate for demo server
         msg = message.payload.decode("utf-8")
         print("message received ", str(msg))
         print("message topic=", message.topic)
         print("message qos=", message.qos)
         print("message retain flag=", message.retain)
-
-        if message.topic.startswith(config.MQTT_PATH + "/set/relais"):
+        if message.topic.startswith(config.MQTT_PATH + "/set/"):
+            key = message.topic.split("/")[-1]
+            r = peripherals.control(key, msg)
+            print(r)
+        """
+        if message.topic.startswith(config.MQTT_PATH + "/set/relay"):
             channel = int(message.topic[-1])
             assert 0 < channel < 4, 'channel outside 1..3'
             if msg == 'ON':
-                peripherals.controlrelays(channel, 1)
-                publish("relais"+channel, 'ON')
+                peripherals.control_relay(channel, 1)
+                publish("relay"+channel, 'ON')
             elif msg == 'OFF':
-                peripherals.controlrelays(channel, 0)
-                publish("relais"+channel, 'OFF')
+                peripherals.control_relay(channel, 0)
+                publish("relay"+channel, 'OFF')
             else:
                 print('unknown:' + message.topic + ' message:' + msg)
 
         if message.topic == (config.MQTT_PATH + "/set/buzzer"):
             if msg == 'ON':
-                peripherals.controlrelays(4, 1)
+                peripherals.control_relay(4, 1)
                 publish("buzzer", 'ON')
             elif msg == 'OFF':
-                peripherals.controlrelays(4, 0)
+                peripherals.control_relay(4, 0)
                 publish("buzzer", 'OFF')
             else:
                 print('unknown:' + message.topic + ' message:' + msg)
 
         if message.topic == (config.MQTT_PATH + "/set/d13"):
             if msg == 'ON':
-                peripherals.controlrelays(5, 1)
+                peripherals.control_relay(5, 1)
                 publish("d13", 'ON')
             elif msg == 'OFF':
-                peripherals.controlrelays(5, 0)
+                peripherals.control_relay(5, 0)
                 publish("d13", 'OFF')
             else:
                 print('unknown:' + message.topic + ' message:' + msg)
@@ -87,12 +92,12 @@ def on_message(client, userdata, message):
             msg_i = int(msg)
             assert 0 < msg_i < 32, 'value outside 1..31'
             peripherals.eg_object.max_backlight = msg_i
-            peripherals.controlbacklight(msg_i)
+            peripherals.control_backlight_level(msg_i)
 
         if message.topic == (config.MQTT_PATH + "/set/vent_pwm"):
             msg_i = int(msg)
             assert -1 < msg_i < 256, 'value outside 0..255'
-            peripherals.controlvent(msg_i)
+            peripherals.control_vent(msg_i)
 
         if message.topic == (config.MQTT_PATH + "/set/set_temp"):
             msg_f = float(msg)
@@ -102,7 +107,7 @@ def on_message(client, userdata, message):
         if message.topic == (config.MQTT_PATH + "/set/led"):
             value = msg.split(',')
             if len(value) == 3:
-                peripherals.controlled(value)
+                peripherals.control_led(value)"""
 
 def init():
     global client
@@ -112,9 +117,9 @@ def init():
 
     client.connect(config.MQTT_SERVER, config.MQTT_PORT, 60)
     client.loop_start()
-    client.subscribe(config.MQTT_PATH + "/set/relais1", qos=config.MQTT_QOS)
-    client.subscribe(config.MQTT_PATH + "/set/relais2", qos=config.MQTT_QOS)
-    client.subscribe(config.MQTT_PATH + "/set/relais3", qos=config.MQTT_QOS)
+    client.subscribe(config.MQTT_PATH + "/set/relay1", qos=config.MQTT_QOS)
+    client.subscribe(config.MQTT_PATH + "/set/relay2", qos=config.MQTT_QOS)
+    client.subscribe(config.MQTT_PATH + "/set/relay3", qos=config.MQTT_QOS)
     client.subscribe(config.MQTT_PATH + "/set/buzzer", qos=config.MQTT_QOS)
     client.subscribe(config.MQTT_PATH + "/set/d13", qos=config.MQTT_QOS)
     #client.subscribe(MQTT_PATH + "/hwb", qos=0)
@@ -126,3 +131,4 @@ def init():
 
     client.on_connect = on_connect
     client.on_message = on_message
+    client.publish("shpi/set/set_temp", "here")

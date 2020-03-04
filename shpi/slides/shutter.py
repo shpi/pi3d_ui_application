@@ -71,22 +71,22 @@ def inloop(textchange=False, activity=False, offset=0):
             shuttertimer = 0
             peripherals.eg_object.uhrzeit = time.strftime("%H:%M")
             text2.regen()
-            peripherals.controlrelays(config.SHUTTERDOWN, 0)
-            peripherals.controlrelays(config.SHUTTERUP, 0)
+            peripherals.control_relay(config.SHUTTERDOWN, 0)
+            peripherals.control_relay(config.SHUTTERUP, 0)
             shutterDown.colouring.set_colour([1, 1, 1])
             shutterUp.colouring.set_colour([1, 1, 1])
 
     if peripherals.touch_pressed:
         peripherals.touch_pressed = False
         if peripherals.clicked(shutterUp.x, shutterUp.y):
-            peripherals.controlrelays(config.SHUTTERDOWN, 0)
-            peripherals.controlrelays(config.SHUTTERUP, 1)
+            peripherals.control_relay(config.SHUTTERDOWN, 0)
+            peripherals.control_relay(config.SHUTTERUP, 1)
             shuttertimer = time.time() + config.SHUTTERTIMER
             shutterUp.colouring.set_colour([0, 1, 0])
             shutterDown.colouring.set_colour([1, 1, 1])
         elif peripherals.clicked(shutterDown.x, shutterDown.y):
-            peripherals.controlrelays(config.SHUTTERUP, 0)
-            peripherals.controlrelays(config.SHUTTERDOWN, 1)
+            peripherals.control_relay(config.SHUTTERUP, 0)
+            peripherals.control_relay(config.SHUTTERDOWN, 1)
             shuttertimer = time.time() + config.SHUTTERTIMER
             shutterUp.colouring.set_colour([1, 1, 1])
             shutterDown.colouring.set_colour([0, 1, 0])
@@ -94,8 +94,8 @@ def inloop(textchange=False, activity=False, offset=0):
             shuttertimer = 0
             peripherals.eg_object.uhrzeit = time.strftime("%H:%M")
             text2.regen()
-            peripherals.controlrelays(config.SHUTTERDOWN, 0)
-            peripherals.controlrelays(config.SHUTTERUP, 0)
+            peripherals.control_relay(config.SHUTTERDOWN, 0)
+            peripherals.control_relay(config.SHUTTERUP, 0)
             shutterUp.colouring.set_colour([1, 1, 1])
             shutterDown.colouring.set_colour([1, 1, 1])
 
