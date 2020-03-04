@@ -412,8 +412,8 @@ def get_infrared():
 
             # compensate own self heating
             if (eg_object.mlxamb > eg_object.mlxobj):
-                infrared_vals[-1] = eg_object.mlxobj - \
-                    ((eg_object.mlxamb - eg_object.mlxobj) / 6)
+                infrared_vals[-1] = (eg_object.mlxobj
+                    - (eg_object.mlxamb - eg_object.mlxobj) / 6)
             else:
                 infrared_vals[-1] = eg_object.mlxobj
 
@@ -428,7 +428,7 @@ def get_infrared():
 
 def get_status():
     try:
-        eg_object.i2cerrorrate = int(100 / (i2csucc / i2cerr))
+        eg_object.i2cerrorrate = int(100 * i2cerr / i2csucc)
         eg_object.useddisk = os.popen(
             "df | grep root  | awk '{print $5}'").readline().strip()
         eg_object.load = float(os.getloadavg()[0])
@@ -500,18 +500,14 @@ def get_status():
         print(e)
 
 def get_sensor_uhrzeit():
-    if (gpio.input(TOUCHINT) == 0):
-        eg_object.uhrzeit = time.strftime("%H:%M")
+    eg_object.uhrzeit = time.strftime("%H:%M")
 
 def get_sensor_gputemp():
-    if (gpio.input(TOUCHINT) == 0):
-        eg_object.gputemp = float(os.popen(
-            "vcgencmd measure_temp").readline()[5:-3])
+    eg_object.gputemp = float(os.popen("vcgencmd measure_temp").readline()[5:-3])
 
 def get_sensor_cputemp():
-    if (gpio.input(TOUCHINT) == 0):
-        eg_object.cputemp = float(os.popen(
-            "cat /sys/class/thermal/thermal_zone0/temp").readline()) / 1000
+    eg_object.cputemp = float(os.popen(
+        "cat /sys/class/thermal/thermal_zone0/temp").readline()) / 1000
 
 def get_sensor_sht_temp_humidity():
     if (gpio.input(TOUCHINT) == 0):

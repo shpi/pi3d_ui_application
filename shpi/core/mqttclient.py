@@ -31,7 +31,7 @@ def publish(path, value):
     except:
         pass
 
-def on_connect(client, userdata, flags, rc): #TODO unused arguments
+def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker")
 
 def on_message(client, userdata, message):
