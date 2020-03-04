@@ -131,4 +131,3 @@ def init():
 
     client.on_connect = on_connect
     client.on_message = on_message
-    client.publish("shpi/set/set_temp", "here")
