@@ -4,6 +4,7 @@ import sys
 import os
 import time
 import pi3d
+import logging
 from pkg_resources import resource_filename
 
 from .. import config
@@ -175,8 +176,8 @@ def inloop(x=0, y=0, touch_pressed=False, textchange=False, activity=False):
         if 150 < peripherals.lasty <  240:
             if 192 < peripherals.lastx < 289:
                 config.subslide = None
-                #print(wifinetworks[calculateselectednetwork]['essid'])
-                #print(eg_object.usertext)
+                #logging.debug(wifinetworks[calculateselectednetwork]['essid'])
+                #logging.debug(eg_object.usertext)
                 with open('/etc/wpa_supplicant/wpa_supplicant.conf', 'w') as f:
                     #file = open('/etc/wpa_supplicant/wpa_supplicant.conf','w') 
                     f.write('country=US\n') 

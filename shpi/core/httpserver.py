@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import time
+import os
+import logging
+
 try:
     from http.server import BaseHTTPRequestHandler, HTTPServer
 except:
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-
-import time
-import os
 
 from .. import config
 from . import peripherals
@@ -24,7 +25,7 @@ class ServerHandler(BaseHTTPRequestHandler):
                 message = ''
                 self.send_response(200)
 
-                print('http request from: ' + self.client_address[0])
+                logging.debug('http request from: ' + self.client_address[0])
 
                 for key, value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
 
@@ -76,15 +77,15 @@ class ServerHandler(BaseHTTPRequestHandler):
                         self.wfile.write(bytes(message, "utf8"))
                         self.connection.close()
 
-                print(message)
-                print("request finished in:  %s seconds" % (time.time() - start_time))
+                logging.info(message)
+                logging.debug("request finished in:  %s seconds" % (time.time() - start_time))
                 #self.wfile.write(bytes(message, "utf8"))
                 # self.connection.close()
             else:
                 self.send_response(404)
                 self.connection.close()
         except Exception as e:
-            print(e)
+            logging.warning(e)
             self.send_response(400)
             self.connection.close()
 
@@ -101,4 +102,4 @@ class ServerHandler(BaseHTTPRequestHandler):
             super().end_headers()
         except BrokenPipeError as e:
             self.connection.close()
-            print('httpserver error: {}'.format(e))
+            logging.error('httpserver error: {}'.format(e))

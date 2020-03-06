@@ -4,23 +4,29 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import sys
 import time
-import math
-import threading
-import numpy as np
 import rrdtool
 import pi3d
 import importlib
-from pkg_resources import resource_filename
+import logging
+#from pkg_resources import resource_filename
 
 from . import config
+
+# start logging NOW before anything else can log something
+level = getattr(logging, config.LOG_LEVEL)
+if config.LOG_FILE is not None:
+    logging.basicConfig(filename=config.LOG_FILE, level=level)
+else:
+    logging.basicConfig(level=level) # defaults to screen
+
 from .core import graphics
 from .core import peripherals
-
+"""
 try:
     unichr
 except NameError:
     unichr = chr
-
+"""
 # make 4M ramdisk for graph
 if not os.path.isdir('/media/ramdisk'):
  os.popen('sudo mkdir /media/ramdisk')
@@ -31,7 +37,7 @@ if not os.path.isdir('/media/ramdisk'):
 def rrdcreate():
     os.popen('sudo rm temperatures.rrd')
     time.sleep(1)
-    print('create rrd')
+    logging.debug('create rrd')
     rrdtool.create(
         "temperatures.rrd",
         "--step", "60",
@@ -56,6 +62,7 @@ def rrdcreate():
 if not os.path.isfile('temperatures.rrd'):
   rrdcreate()
 
+""" # are slides and subslides relevant in nogui?
 slides = []
 subslides = dict()
 
@@ -78,13 +85,14 @@ def get_files():
                 file_list.append(os.path.join(root, filename))
     # random.shuffle(file_list)
     return file_list, len(file_list)
-
+"""
 if config.START_MQTT_CLIENT:
     from .core import mqttclient
     try:
         mqttclient.init()
     except Exception as e:
-        print("mqtt init failed: {}".format(e))
+        logging.warning("mqtt init failed: {}".format(e))
+
 if config.START_HTTP_SERVER:
     try:
         # ThreadingHTTPServer for python 3.7
@@ -99,7 +107,7 @@ if config.START_HTTP_SERVER:
         #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
         littleserver.timeout = 0.1
     except:
-        print('cannot start http server - error')
+        logging.warning('cannot start http server - error')
 
 now = time.time()
 last_backlight_level = 0
@@ -128,7 +136,7 @@ while True:
                 peripherals.eg_object.backlight_level = config.MIN_BACKLIGHT
 
         if peripherals.eg_object.backlight_level != last_backlight_level:
-            print('set backlight:' + str(peripherals.eg_object.backlight_level))
+            logging.info('set backlight:' + str(peripherals.eg_object.backlight_level))
             peripherals.control_backlight_level(peripherals.eg_object.backlight_level)
             last_backlight_level = peripherals.eg_object.backlight_level
 
@@ -141,7 +149,6 @@ while True:
         peripherals.get_infrared()
 
         if (now > nextsensorcheck):
-
             peripherals.get_sensors()
             nextsensorcheck = now + config.SENSOR_TM
 
@@ -159,7 +166,6 @@ while True:
                 bmp280_temp = peripherals.eg_object.bmp280_temp
             else:
                 bmp280_temp = 0
-
             if hasattr(peripherals.eg_object, 'sht_temp'):
                 sht_temp = peripherals.eg_object.sht_temp
             else:
@@ -175,11 +181,9 @@ while True:
                     peripherals.eg_object, 'relay{}'.format(config.HEATINGRELAY)),
                 getattr(peripherals.eg_object, 'relay{}'.format(config.COOLINGRELAY)), int(motion), peripherals.eg_object.humidity, peripherals.eg_object.a4)
 
-            sys.stdout.write('\r')
+            sys.stdout.write('\r') # not logged - maybe check against config.LOG_LEVEL
             sys.stdout.write(temperatures_str)
-            
             rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
-
             sys.stdout.write(' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ' )
             sys.stdout.flush()
 
@@ -189,4 +193,4 @@ while True:
                 peripherals.control_led([redvalue, greenvalue, 0])
         
     except Exception as e:
-        print("main loop failed: {}".format(e))
+        logging.error("main loop failed: {}".format(e))

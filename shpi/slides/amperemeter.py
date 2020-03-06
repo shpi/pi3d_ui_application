@@ -3,6 +3,7 @@
 import sys
 import os
 import pi3d
+import logging
 from pkg_resources import resource_filename
 
 from .. import config
@@ -38,6 +39,6 @@ def inloop(textchange=False, activity=False, offset=0):
         peripherals.eg_object.relay1current = FACTOR * (peripherals.read_two_bytes(0x14) - 2)
         text5.regen()
     except Exception as e:
-        print('error: {}'.format(e))
+        logging.error('error: {}'.format(e))
 
     return activity, offset

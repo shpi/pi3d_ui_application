@@ -1,10 +1,10 @@
-installpath = '/home/pi/zero_main_application/'
-
 DEMO = True  # shows demo slides
+LOG_FILE = None #"logfile.txt" # None logs to screen, filename logs (appends) to file
+LOG_LEVEL = "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
 
 TMDELAY = 200  # delay for changing backgrounds
-INFRARED_TM = 3
-SENSOR_TM = 10
+INFRARED_TM = 3 # s between checking infrared sensor
+SENSOR_TM = 10 # s between updating sensor values in peripherals.eg_object
 ICAL_TM = 3600  # update calenderslide every 3600 seconds
 SLIDE_PARALLAX = True
 SLIDE_SHADOW = False  # shadow effect while manually sliding
@@ -12,14 +12,14 @@ SHOW_AIRQUALITY = True  # show airquality over LED
 # activate simple GET/POST server in python, be aware of  security issues
 START_HTTP_SERVER = True
 HTTP_PORT = 9000
-SHUTTERTIMER = 30  # timer for auto deactivation of shutter relais
+SHUTTERTIMER = 30  # timer for auto deactivation of shutter relay
 START_MQTT_CLIENT = True
 MQTT_USER = ''
 MQTT_PW = ''
-MQTT_SERVER = "mqtt.eclipse.org"
+MQTT_SERVER = "test.mosquitto.org"
 MQTT_PORT = 1883
 MQTT_PATH = "shpi"
-MQTT_QOS = 1
+MQTT_QOS = 0
 
 MOTION_THRESHOLD = 4  # threshold in seconds of movement
 
@@ -103,7 +103,6 @@ for autoslide in autoslides:
         if sslide == autoslide:
             autoslideints.append(i)
         i += 1
-
 
 if DEMO:
     slides.append('demo_floorplan')

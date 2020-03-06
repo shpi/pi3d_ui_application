@@ -4,6 +4,7 @@ import sys
 import os
 import pi3d
 import json
+import logging
 
 from .. import config #TODO need this import?
 from ..core import  peripherals
@@ -35,7 +36,7 @@ def get_button_status():
     try:
         a = urlopen('http://blabla/relay1')
     except:
-        print('Error httpbutton')
+        logging.error('Error httpbutton')
         httpbutton.status = 'error'
     else:
         if a.getcode() == 200:
@@ -49,7 +50,7 @@ def get_button_status():
 
 ## solution for shelly:
 #     status = json.loads(content)
-#     print(status)
+#     logging.info(status)
 #     if status['ison']:
 #        httpbutton.status = 'ON'
 #        httpbutton.colouring.set_colour([0,1,0])
@@ -73,7 +74,7 @@ def inloop(textchange=False, activity=False, offset=0):
            try:
                 _a = urlopen('http://blabla/relay1=1')
            except:
-                print('error httpbutton')
+                logging.error('error httpbutton')
            else:
                 #if a.getcode() == 200:  #checks http status code 200 = OK
                 httpbutton.colouring.set_colour([0,1,0])  #we change color of button to green
@@ -85,7 +86,7 @@ def inloop(textchange=False, activity=False, offset=0):
             try:
                 _a = urlopen('http://blabla/relay1=0')
             except:
-                print('error httpbutton')
+                logging.error('error httpbutton')
             else: 
                 #if a.getcode() == 200:  #checks http status code 200 = OK
                 httpbutton.colouring.set_colour([1,0,0])  #we change color of button to red

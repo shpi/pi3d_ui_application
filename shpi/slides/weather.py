@@ -7,6 +7,7 @@ import time
 import datetime
 import threading
 import numpy as np
+import logging
 from pkg_resources import resource_filename
 
 from .. import config
@@ -80,8 +81,7 @@ def init():
     acttemp = pi3d.TextBlock(-350, -50, 0.1, 0.0, 10, text_format=str(weather.get_temperature(
         unit='celsius')['temp']) + u'°C',  size=0.9, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(acttemp)
-    #acttemp = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', str(weather.get_temperature(unit='celsius')['temp']) + '°C'   , font_size=42, shadow_radius=1,justify='L', color= (255,255,255,255),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
-    #acttemp.sprite.position(-210, -50, 1)
+
     sunriset = weather.get_sunrise_time(
         timeformat='date') + datetime.timedelta(hours=2)
     sunsett = weather.get_sunset_time(
@@ -244,7 +244,7 @@ def inloop(textchange=False, activity=False, offset=0):
     global snowline, rainline, seplines, degwind, threehours, weathericon, text, line, windneedle, error
     #global baroneedle, linemin, linemax
     if (time.time() > threehours):
-        print('new weather forecast')
+        logging.info('new weather forecast')
         #start_new_thread(init, ())
         t = threading.Thread(target=init)
         t.start()
@@ -270,7 +270,7 @@ def inloop(textchange=False, activity=False, offset=0):
                 snowline.draw()
                 rainline.draw()
             except Exception as e:
-                print('error: {}'.format(e))
+                logging.error('error: {}'.format(e))
                 #for icon in icons: icon.draw()
 
     text.draw()

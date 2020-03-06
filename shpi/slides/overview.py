@@ -8,7 +8,7 @@ import time
 import json
 
 from .. import config
-from ..core import  peripherals
+from ..core import peripherals
 from ..core import graphics
 from ..core import mqttclient
 
@@ -79,15 +79,6 @@ clock_hour.set_material((0,0,0))
 
 text = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=80, point_size=128) 
 
-#cloud = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE002) , font_size=60, shadow_radius=0,justify='L', color= (255,255,255,150),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
-#cloud.sprite.position(50,-190, 2.4)
-#hum = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE003) , font_size=65, shadow_radius=0,justify='L',color= (0,0,255,150),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
-#hum.sprite.position(50,185, 2.4)
-#temp = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE021) , font_size=70, shadow_radius=0,justify='L',  color= (255,0,0,150),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
-#temp.sprite.position(-50,190, 2.4)
-#press = pi3d.FixedString(config.installpath + 'fonts/opensans.ttf', unichr(0xE00B) , font_size=60, shadow_radius=0,justify='L',color= (0,255,0,150),camera=graphics.CAMERA, shader=graphics.SHADER, f_type='SMOOTH')
-#press.sprite.position(-50,-185, 2.4)
-
 press_block2 = pi3d.TextBlock(-70, -185, 0.1, 0.0,6, justify=0.0, text_format=unichr(0xE00B),
                         size=0.4, spacing="F", space=0.02, colour=(0.0, 1.0, 0.0, 0.7))
 air_block2 = pi3d.TextBlock(30, -190, 0.1, 0.0,6, justify=0.0, text_format=unichr(0xE002),
@@ -124,7 +115,7 @@ def inloop(textchange=False, activity=False, offset=0):
        #text2.regen()       
     seconds= time.localtime(time.time()).tm_sec
     minutes= time.localtime(time.time()).tm_min
-    hours = time.localtime(time.time()).tm_hour	
+    hours = time.localtime(time.time()).tm_hour
     clock_min.rotateToZ(360-(minutes*6-1))
     clock_hour.rotateToZ(360-hours*30-minutes*0.5)
     ball.draw()
@@ -135,7 +126,7 @@ def inloop(textchange=False, activity=False, offset=0):
     #temp.draw()
     #press.draw()
     text.draw()
-    clock_min.draw()	
+    clock_min.draw()
     clock_hour.draw()
     clock_sec.rotateToZ(360-seconds*6)
     clock_sec.draw()     

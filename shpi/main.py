@@ -6,13 +6,21 @@ import sys
 import time
 import math
 import threading
-import numpy as np
 import rrdtool
 import pi3d
 import importlib
+import logging
 from pkg_resources import resource_filename
 
 from . import config
+
+# start logging NOW before anything else can log something
+level = getattr(logging, config.LOG_LEVEL)
+if config.LOG_FILE is not None:
+    logging.basicConfig(filename=config.LOG_FILE, level=level)
+else:
+    logging.basicConfig(level=level) # defaults to screen
+
 from .core import graphics
 from .core import peripherals
 
@@ -20,50 +28,6 @@ try:
     unichr
 except NameError:
     unichr = chr
-
-# make 4M ramdisk for graph
-if not os.path.isdir('/media/ramdisk'):
-    os.popen('sudo mkdir /media/ramdisk')
-    os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
-
-# os.chdir('/media/ramdisk')
-
-# create rrd database for sensor logging
-if not os.path.isfile('temperatures.rrd'):
-    print('create rrd')
-    rrdtool.create(
-        "temperatures.rrd",
-        "--step", "60",
-        "DS:act_temp:GAUGE:120:-127:127",
-        "DS:gpu:GAUGE:120:-127:127",
-        "DS:cpu:GAUGE:120:-127:127",
-        "DS:atmega:GAUGE:120:-127:127",
-        "DS:sht:GAUGE:120:-127:127",
-        "DS:bmp280:GAUGE:120:-127:127",
-        "DS:mlxamb:GAUGE:120:-127:127",
-        "DS:mlxobj:GAUGE:120:-127:127",
-        "DS:ntc:GAUGE:120:-127:127",
-        "DS:heating:GAUGE:120:0:1",
-        "DS:cooling:GAUGE:120:0:1",
-        "DS:movement:GAUGE:120:0:1",
-        "DS:humidity:GAUGE:120:0:127",
-        "DS:airquality:GAUGE:120:0:1023",
-        "RRA:MAX:0.5:1:1500",
-        "RRA:MAX:0.5:10:1500",
-        "RRA:MAX:0.5:60:1500")
-
-
-slides = []
-subslides = dict()
-
-for slidestring in config.slides:
-    slides.append(importlib.import_module("shpi.slides." + slidestring))
-
-for slidestring in config.subslides:
-    subslides[slidestring] = importlib.import_module("shpi.subslides." + slidestring)
-
-# bg_alpha = alphavalue of 2nd background, for transition effect
-bg_alpha = 0
 
 def get_files():
     file_list = []
@@ -75,35 +39,6 @@ def get_files():
                 file_list.append(os.path.join(root, filename))
     # random.shuffle(file_list)
     return file_list, len(file_list)
-
-if config.START_MQTT_CLIENT:
-    from .core import mqttclient
-    try:
-        mqttclient.init()
-    except:
-        pass
-
-if config.START_HTTP_SERVER:
-    try:
-        # ThreadingHTTPServer for python 3.7
-        from http.server import BaseHTTPRequestHandler, HTTPServer
-    except:
-        from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-
-    from .core.httpserver import ServerHandler
-
-    try:
-        littleserver = HTTPServer(("0.0.0.0", config.HTTP_PORT), ServerHandler)
-        #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
-        littleserver.timeout = 0.1
-    except Exception as e:
-        print('cannot start http server - error: ', e)
-
-
-slide_offset = 0  # change by touch and slide
-textchange = True # for reloading text 
-sfg, sbg  = None, None  # sfg, sbg  two backrounds sprite for sliding
-now = time.time()
 
 def sensor_thread():
     global textchange, bg_alpha, sbg, sfg
@@ -140,7 +75,7 @@ def sensor_thread():
                     peripherals.eg_object.backlight_level = config.MIN_BACKLIGHT
 
             if peripherals.eg_object.backlight_level != last_backlight_level:
-                print('set backlight:' + str(peripherals.eg_object.backlight_level))
+                logging.info('set backlight:' + str(peripherals.eg_object.backlight_level))
                 peripherals.control_backlight_level(peripherals.eg_object.backlight_level)
                 last_backlight_level = peripherals.eg_object.backlight_level
 
@@ -188,7 +123,7 @@ def sensor_thread():
                     getattr(peripherals.eg_object, 'relay{}'.format(config.COOLINGRELAY)),
                     motion, peripherals.eg_object.humidity, peripherals.eg_object.a4)
 
-                sys.stdout.write('\r')
+                sys.stdout.write('\r') # not logged - maybe check against config.LOG_LEVEL
                 sys.stdout.write(temperatures_str)
                 rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
                 sys.stdout.write(' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ' )
@@ -200,8 +135,79 @@ def sensor_thread():
                     peripherals.control_led([redvalue, greenvalue, 0])
 
         except Exception as e:
-            print('sensor_thread error: {}'.format(e))
+            logging.error('sensor_thread error: {}'.format(e))
         time.sleep(0.2)
+
+# make 4M ramdisk for graph
+if not os.path.isdir('/media/ramdisk'):
+    os.popen('sudo mkdir /media/ramdisk')
+    os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
+
+# os.chdir('/media/ramdisk')
+
+# create rrd database for sensor logging
+if not os.path.isfile('temperatures.rrd'):
+    logging.info('create rrd')
+    rrdtool.create(
+        "temperatures.rrd",
+        "--step", "60",
+        "DS:act_temp:GAUGE:120:-127:127",
+        "DS:gpu:GAUGE:120:-127:127",
+        "DS:cpu:GAUGE:120:-127:127",
+        "DS:atmega:GAUGE:120:-127:127",
+        "DS:sht:GAUGE:120:-127:127",
+        "DS:bmp280:GAUGE:120:-127:127",
+        "DS:mlxamb:GAUGE:120:-127:127",
+        "DS:mlxobj:GAUGE:120:-127:127",
+        "DS:ntc:GAUGE:120:-127:127",
+        "DS:heating:GAUGE:120:0:1",
+        "DS:cooling:GAUGE:120:0:1",
+        "DS:movement:GAUGE:120:0:1",
+        "DS:humidity:GAUGE:120:0:127",
+        "DS:airquality:GAUGE:120:0:1023",
+        "RRA:MAX:0.5:1:1500",
+        "RRA:MAX:0.5:10:1500",
+        "RRA:MAX:0.5:60:1500")
+
+slides = []
+subslides = dict()
+
+for slidestring in config.slides:
+    slides.append(importlib.import_module("shpi.slides." + slidestring))
+
+for slidestring in config.subslides:
+    subslides[slidestring] = importlib.import_module("shpi.subslides." + slidestring)
+
+# bg_alpha = alphavalue of 2nd background, for transition effect
+bg_alpha = 0
+
+if config.START_MQTT_CLIENT:
+    from .core import mqttclient
+    try:
+        mqttclient.init()
+    except:
+        pass
+
+if config.START_HTTP_SERVER:
+    try:
+        # ThreadingHTTPServer for python 3.7
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+    except:
+        from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+
+    from .core.httpserver import ServerHandler
+
+    try:
+        littleserver = HTTPServer(("0.0.0.0", config.HTTP_PORT), ServerHandler)
+        #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
+        littleserver.timeout = 0.1
+    except Exception as e:
+        logging.warning('cannot start http server - error: ', e)
+
+slide_offset = 0  # change by touch and slide
+textchange = True # for reloading text 
+sfg, sbg  = None, None  # sfg, sbg  two backrounds sprite for sliding
+now = time.time()
 
 autoslide = time.time() + config.autoslidetm
 peripherals.eg_object.slide = config.slide
@@ -217,7 +223,7 @@ while graphics.DISPLAY.loop_running():
     f += 1
     now = time.time()
     if f % 500 == 0:
-        print('FPS={:.1f}'.format(f / (now - start)))
+        logging.debug('FPS={:.1f}'.format(f / (now - start)))
         f = 0
         start = now
     if not config.subslide:
@@ -278,8 +284,8 @@ while graphics.DISPLAY.loop_running():
         else:
             peripherals.eg_object.slide = 0
 
-        if not peripherals.touched() and len(config.autoslideints):
-            config.autoslideints = np.roll(config.autoslideints, 1)
+        if not peripherals.touched() and len(config.autoslideints) > 0:
+            config.autoslideints = config.autoslideints[1:] + config.autoslideints[0:1]
             peripherals.eg_object.slide = config.autoslideints[0]
         else:
             sbg.set_alpha(0)

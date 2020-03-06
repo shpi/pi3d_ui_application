@@ -3,6 +3,7 @@
 import sys
 import os
 import pi3d
+import logging
 
 from .. import config
 from ..core import  peripherals
@@ -85,9 +86,9 @@ def inloop(textchange=False, activity=False, offset=0):
         elif peripherals.clicked(update.x, update.y):
              import subprocess
              process = subprocess.Popen(['git', 'pull', '-v', 'origin', 'master'], cwd='/home/pi/zero_main_application',stdout=subprocess.PIPE)
-             print(process.communicate()[0])
+             logging.info(process.communicate()[0])
              process2 = subprocess.Popen(['git', 'pull', '-v', 'origin', 'master'], cwd='/home/pi/zero_avr_firmware_std',stdout=subprocess.PIPE)
-             print(process2.communicate()[0])
+             logging.info(process2.communicate()[0])
 
     if offset != 0:
         offset = graphics.slider_change(text2.text, offset)

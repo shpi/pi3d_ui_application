@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 from .. import config
 from ..core import peripherals
@@ -8,7 +9,8 @@ try:
     import paho.mqtt.publish as mqtt_publish # NB this insn't used PG
     import paho.mqtt.client as mqtt
 except ImportError:
-    exit("Please run: (sudo) pip3 install paho-mqtt")
+    logging.critical("Please run: (sudo) pip3 install paho-mqtt")
+    sys.exit()
 
 client = None
 def publishall():
@@ -32,82 +34,20 @@ def publish(path, value):
         pass
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected to MQTT broker")
+    logging.debug("Connected to MQTT broker")
 
 def on_message(client, userdata, message):
-    print("here")
+    logging.debug("here")
     if config.MQTT_SERVER != "mqtt.eclipse.org":  # deactivate for demo server
         msg = message.payload.decode("utf-8")
-        print("message received ", str(msg))
-        print("message topic=", message.topic)
-        print("message qos=", message.qos)
-        print("message retain flag=", message.retain)
+        logging.debug("message received ", str(msg))
+        logging.debug("message topic=", message.topic)
+        logging.debug("message qos=", message.qos)
+        logging.debug("message retain flag=", message.retain)
         if message.topic.startswith(config.MQTT_PATH + "/set/"):
             key = message.topic.split("/")[-1]
             r = peripherals.control(key, msg)
-            print(r)
-        """
-        if message.topic.startswith(config.MQTT_PATH + "/set/relay"):
-            channel = int(message.topic[-1])
-            assert 0 < channel < 4, 'channel outside 1..3'
-            if msg == 'ON':
-                peripherals.control_relay(channel, 1)
-                publish("relay"+channel, 'ON')
-            elif msg == 'OFF':
-                peripherals.control_relay(channel, 0)
-                publish("relay"+channel, 'OFF')
-            else:
-                print('unknown:' + message.topic + ' message:' + msg)
-
-        if message.topic == (config.MQTT_PATH + "/set/buzzer"):
-            if msg == 'ON':
-                peripherals.control_relay(4, 1)
-                publish("buzzer", 'ON')
-            elif msg == 'OFF':
-                peripherals.control_relay(4, 0)
-                publish("buzzer", 'OFF')
-            else:
-                print('unknown:' + message.topic + ' message:' + msg)
-
-        if message.topic == (config.MQTT_PATH + "/set/d13"):
-            if msg == 'ON':
-                peripherals.control_relay(5, 1)
-                publish("d13", 'ON')
-            elif msg == 'OFF':
-                peripherals.control_relay(5, 0)
-                publish("d13", 'OFF')
-            else:
-                print('unknown:' + message.topic + ' message:' + msg)
-
-        if message.topic == (config.MQTT_PATH + "/set/alert"):
-            if msg == 'ON':
-                peripherals.eg_object.alert = 1
-                publish("alert", 'ON')
-            elif msg == 'OFF':
-                peripherals.eg_object.alert = 0
-            else:
-                print('unknown:' + message.topic + ' message:' + msg)
-
-        if message.topic == (config.MQTT_PATH + "/set/max_backlight"):
-            msg_i = int(msg)
-            assert 0 < msg_i < 32, 'value outside 1..31'
-            peripherals.eg_object.max_backlight = msg_i
-            peripherals.control_backlight_level(msg_i)
-
-        if message.topic == (config.MQTT_PATH + "/set/vent_pwm"):
-            msg_i = int(msg)
-            assert -1 < msg_i < 256, 'value outside 0..255'
-            peripherals.control_vent(msg_i)
-
-        if message.topic == (config.MQTT_PATH + "/set/set_temp"):
-            msg_f = float(msg)
-            assert 0 < msg_f < 50, 'value outside 1..50'
-            peripherals.eg_object.set_temp = msg_f
-
-        if message.topic == (config.MQTT_PATH + "/set/led"):
-            value = msg.split(',')
-            if len(value) == 3:
-                peripherals.control_led(value)"""
+            logging.debug(r)
 
 def init():
     global client

@@ -9,6 +9,7 @@ import datetime
 import struct
 import pi3d
 import threading
+import logging
 from pkg_resources import resource_filename
 
 from .. import config
@@ -87,7 +88,7 @@ def i2crecover():
             addr += 1
             if (addr > 119):
                 addr = 3
-            #print(str(i) + '.', end = "")
+            #logging.debug(str(i) + '.', end = "")
         time.sleep(0.01)
     except:
         time.sleep(0.01)
@@ -131,12 +132,12 @@ def motion_detected(channel):
     global startmotion
     if gpio.input(channel):
         startmotion = time.time()
-        print('Motion detected!')
+        logging.info('Motion detected!')
         eg_object.motion = True
         if config.START_MQTT_CLIENT:
             mqttclient.publish("motion", 'ON')
     else:
-        print('Motion time: ' + str(round(time.time() - startmotion,2)) + 's')
+        logging.info('Motion time: ' + str(round(time.time() - startmotion,2)) + 's')
         eg_object.motion = False
         if config.START_MQTT_CLIENT:
             mqttclient.publish("motion", 'OFF')
@@ -160,7 +161,7 @@ def get_touch():
                     if ((-80 < (xc-x1) < 80) & (-80 < (yc-y1) < 80)):  # catch bounches
                         xc = x1
                         yc = y1
-                        # print(x1,y1)
+                        # logging.debug(x1,y1)
                         return xc, yc  # compensate position to match with PI3D
                     else:
                         xc = x1
@@ -233,7 +234,7 @@ def read_one_byte(addr_val, retries=0):  # utility function for brevity
             return read_one_byte(addr_val, retries + 1)
         else:
             msg = "read_one_byte error: {}".format(e)
-            print(msg) #TODO return something on error and cope at receiving end
+            logging.error(msg) #TODO return something on error and cope at receiving end
 
 def read_two_bytes(addr_val, retries=0):  # utility function for brevity
     global i2cerr, i2csucc
@@ -257,7 +258,7 @@ def read_two_bytes(addr_val, retries=0):  # utility function for brevity
             return read_two_bytes(addr_val,retries+1)
         else:
             msg = "read_two_bytes error: {}".format(e)
-            print(msg)
+            logging.error(msg)
 
 def control(attribute, value):
     """ finds and calls control function with name control_`attribute`
@@ -302,7 +303,7 @@ def write_32u4(addr, value, description, retries=0):
             write_32u4(addr, value, description, retries+1)
         else: 
             msg = "{} error: {}".format(description, e)
-            print(msg) #TODO logging
+            logging.error(msg) #TODO logging
             return (False, msg)
     return (True, value)
 
@@ -422,9 +423,9 @@ def get_infrared():
             try:
                 if (infrared_vals[-1] - 1) > infrared_vals[-2]:
                     eg_object.lastmotion = time.time()
-                    #print('waked screen because of deltaT increase of MLX')
+                    #logging.error('waked screen because of deltaT increase of MLX')
             except Exception as e:
-                print('infrared error:{}'.format(e))
+                logging.error('infrared error:{}'.format(e))
 
 def get_status():
     try:
@@ -489,7 +490,7 @@ def get_status():
             bus.read(1, ADDR_32U4)
 
             if (crc != b[3]):
-                print('crc8 error read rgb led')
+                logging.error('crc8 error read rgb led')
             else:
                 eg_object.led_red = b[0]
                 eg_object.led_green = b[1]
@@ -497,7 +498,7 @@ def get_status():
                 eg_object.led = [eg_object.led_red,
                                        eg_object.led_green, eg_object.led_blue]
     except Exception as e:
-        print(e)
+        logging.error(e)
 
 def get_sensor_uhrzeit():
     eg_object.uhrzeit = time.strftime("%H:%M")
@@ -522,7 +523,7 @@ def get_sensor_sht_temp_humidity():
                     ((data[0] * 256.0 + data[1]) * 175) / 65535.0 - 45)
                 eg_object.humidity = 100 * (data[3] * 256 + data[4]) / 65535.0
             except Exception as e:
-                print('error SHT: {}'.format(e))
+                logging.error('error SHT: {}'.format(e))
 
 def get_sensor_lightlevel():
     if (gpio.input(TOUCHINT) == 0):
@@ -534,7 +535,7 @@ def get_sensor_lightlevel():
                 eg_object.lightlevel = (float)(
                     (data[1] + (256 * data[0])) / 1.2)
             except Exception as e:
-                print('error BH1750: {}'.format(e))
+                logging.error('error BH1750: {}'.format(e))
 
 def get_sensor_bmp_temp_pressure():
     global dig_T, dig_P
@@ -571,7 +572,7 @@ def get_sensor_bmp_temp_pressure():
                     eg_object.pressure = (
                         p + (var1 + var2 + (dig_P[6])) / 16.0) / 100
             except Exception as e:
-                print('error BMP: {}'.format(e))
+                logging.error('error BMP: {}'.format(e))
 
 def get_sensor_32u4():
     if (gpio.input(TOUCHINT) == 0):
@@ -606,7 +607,7 @@ def get_sensor_aht10_temp_humidity():
                 eg_object.sht_temp = (
                     (temp[3] & 0xf) << 16 | temp[4] << 8 | temp[5]) * 200.0 / (1 << 20) - 50
             except Exception as e:
-                print('error aht10: {}'.format(e))
+                logging.error('error aht10: {}'.format(e))
 
 def get_sensors():  # readout all sensor values, system, and atmega vars
     get_sensor_uhrzeit()
@@ -708,7 +709,7 @@ try:
     bus.write([0x6e, 0b00001110], TOUCHADDR)
     bus.write([0x70, 0b00000000], TOUCHADDR)
 except:
-    print('Error: no touchscreen found')
+    logging.error('Error: no touchscreen found')
     TOUCHADDR = False
 
 # check for atmega  -> future: lite or std SHPI
@@ -717,7 +718,7 @@ try:
     bus.read(1, ADDR_32U4)
 except:
     ADDR_32U4 = 0
-    print('Hint: No ATmega found, seems to be a SHPI.zero lite?')
+    logging.warning('Hint: No ATmega found, seems to be a SHPI.zero lite?')
 
 # check for SHT3x
 try:
@@ -725,7 +726,7 @@ try:
     bus.write([0x01], ADDR_SHT)
 except:
     ADDR_SHT = 0
-    print('Hint: No SHT found')
+    logging.warning('Hint: No SHT found')
 
 try:
     time.sleep(0.001)
@@ -735,20 +736,20 @@ try:
     bus.write([0xE1, 0x08, 0x00], ADDR_AHT10)
     response = bus.read(1, ADDR_AHT10)
     if (response[0] & 0x68 == 0x08):
-        print('Hint: AHT10 calibrated')
+        logging.warning('Hint: AHT10 calibrated')
     else:
-        print('Hint: AHT10 error occured')
+        logging.warning('Hint: AHT10 error occured')
     # time.sleep(0.5)
 except:
     ADDR_AHT10 = 0
-    print('Hint: no AHT10 found')
+    logging.warning('Hint: no AHT10 found')
 
 # check for light sensor BH1750
 try:
     time.sleep(0.001)
     bus.write([0x01], ADDR_BH1750)  # power on BH1750
 except:
-    print('Hint: No BH1750')
+    logging.warning('Hint: No BH1750')
     ADDR_BH1750 = 0
 
 # check for MLX90615
@@ -757,7 +758,7 @@ try:
     bus.rdwr([0x26], 2, ADDR_MLX)
 except:
     ADDR_MLX = False
-    print('Hint: No MLX90615 found')
+    logging.warning('Hint: No MLX90615 found')
 
 # correction values for BMP280
 try:
@@ -766,7 +767,7 @@ try:
     dig_T = struct.unpack_from('<Hhh', b1, 0)
     dig_P = struct.unpack_from('<Hhhhhhhhh', b1, 6)
 except:
-    print('Hint: No BMP280 found')
+    logging.warning('Hint: No BMP280 found')
     ADDR_BMP = 0
 
 i2crecover()
