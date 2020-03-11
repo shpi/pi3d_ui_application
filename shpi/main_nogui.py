@@ -17,10 +17,11 @@ level = getattr(logging, config.LOG_LEVEL)
 if config.LOG_FILE is not None:
     logging.basicConfig(filename=config.LOG_FILE, level=level)
 else:
-    logging.basicConfig(level=level) # defaults to screen
+    logging.basicConfig(level=level)  # defaults to screen
 
+from .core import peripherals #i.e. these imports MUST happen after logging starts!
 from .core import graphics
-from .core import peripherals
+
 """
 try:
     unichr
@@ -29,10 +30,11 @@ except NameError:
 """
 # make 4M ramdisk for graph
 if not os.path.isdir('/media/ramdisk'):
- os.popen('sudo mkdir /media/ramdisk')
- os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
+    os.popen('sudo mkdir /media/ramdisk')
+    os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
 
 # os.chdir('/media/ramdisk')
+
 
 def rrdcreate():
     os.popen('sudo rm temperatures.rrd')
@@ -59,8 +61,9 @@ def rrdcreate():
         "RRA:MAX:0.5:10:1500",
         "RRA:MAX:0.5:60:1500")
 
+
 if not os.path.isfile('temperatures.rrd'):
-  rrdcreate()
+    rrdcreate()
 
 """ # are slides and subslides relevant in nogui?
 slides = []
@@ -136,8 +139,10 @@ while True:
                 peripherals.eg_object.backlight_level = config.MIN_BACKLIGHT
 
         if peripherals.eg_object.backlight_level != last_backlight_level:
-            logging.info('set backlight:' + str(peripherals.eg_object.backlight_level))
-            peripherals.control_backlight_level(peripherals.eg_object.backlight_level)
+            logging.info('set backlight:' +
+                         str(peripherals.eg_object.backlight_level))
+            peripherals.control_backlight_level(
+                peripherals.eg_object.backlight_level)
             last_backlight_level = peripherals.eg_object.backlight_level
 
         if config.START_HTTP_SERVER:
@@ -170,7 +175,7 @@ while True:
                 sht_temp = peripherals.eg_object.sht_temp
             else:
                 sht_temp = 0
-            if now - peripherals.eg_object.lastmotion < 10: #only for rrd
+            if now - peripherals.eg_object.lastmotion < 10:  # only for rrd
                 motion = 1
             else:
                 motion = 0
@@ -181,16 +186,20 @@ while True:
                     peripherals.eg_object, 'relay{}'.format(config.HEATINGRELAY)),
                 getattr(peripherals.eg_object, 'relay{}'.format(config.COOLINGRELAY)), int(motion), peripherals.eg_object.humidity, peripherals.eg_object.a4)
 
-            sys.stdout.write('\r') # not logged - maybe check against config.LOG_LEVEL
+            # not logged - maybe check against config.LOG_LEVEL
+            sys.stdout.write('\r')
             sys.stdout.write(temperatures_str)
             rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
-            sys.stdout.write(' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ' )
+            sys.stdout.write(
+                ' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ')
             sys.stdout.flush()
 
-            if config.SHOW_AIRQUALITY: #calculate rgb values for LED
-                redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
-                greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
+            if config.SHOW_AIRQUALITY:  # calculate rgb values for LED
+                redvalue = 255 if peripherals.eg_object.a4 > 600 else int(
+                    0.03 * peripherals.eg_object.a4)
+                greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(
+                    0.02*(400 - peripherals.eg_object.a4))
                 peripherals.control_led([redvalue, greenvalue, 0])
-        
+
     except Exception as e:
         logging.error("main loop failed: {}".format(e))

@@ -53,7 +53,7 @@ VENT_PWM = 0x93
 
 RELAYCHANNEL = [0x8D, 0x8E, 0x8F, 0x92, 0x90]
 
-TOUCHADDR = 0x5c # int 0 used to represent non-availability rather than False or None
+TOUCHADDR = 0x5c  # int 0 used to represent non-availability rather than False or None
 ADDR_32U4 = 0x2A
 ADDR_BMP = 0x77
 ADDR_SHT = 0x44
@@ -64,6 +64,7 @@ PIR = 18
 # single wire backlight control needs almost realtime -> moved to atmega  (not on prototypes!)
 BACKLIGHT = 19
 TOUCHINT = 26
+
 
 def crc8(crc, n):
     """ CRC checksum algorithm """
@@ -76,13 +77,14 @@ def crc8(crc, n):
             data = (data << 1) & 0xFF
     return data
 
+
 def i2crecover():
     try:
         addr = 3
-        bus.read(1,0x2A)
-        bus.read(1,0x2A)
-        bus.read(1,0x2A)
-        bus.read(1,0x2A)
+        bus.read(1, 0x2A)
+        bus.read(1, 0x2A)
+        bus.read(1, 0x2A)
+        bus.read(1, 0x2A)
 
         while([0x00] == bus.read(1, addr)):
             addr += 1
@@ -92,6 +94,7 @@ def i2crecover():
         time.sleep(0.01)
     except:
         time.sleep(0.01)
+
 
 def touchloop():
     global xc, yc, lastx, lasty, touch_pressed, touch_file, lasttouch
@@ -114,6 +117,7 @@ def touchloop():
         #   touch_pressed = False
         time.sleep(0.05)
 
+
 def alert(value=1):
     if value and (int)(time.time()) % 2 == 0:
         control_relay(4, 1)
@@ -125,8 +129,10 @@ def alert(value=1):
         control_led([0, 0, 0])
         control_backlight_level(eg_object.max_backlight)
 
+
 def touched():
     return gpio.input(TOUCHINT)
+
 
 def motion_detected(channel):
     global startmotion
@@ -137,12 +143,14 @@ def motion_detected(channel):
         if config.START_MQTT_CLIENT:
             mqttclient.publish("motion", 'ON')
     else:
-        logging.info('Motion time: ' + str(round(time.time() - startmotion,2)) + 's')
+        logging.info('Motion time: ' +
+                     str(round(time.time() - startmotion, 2)) + 's')
         eg_object.motion = False
         if config.START_MQTT_CLIENT:
             mqttclient.publish("motion", 'OFF')
 
     eg_object.lastmotion = time.time()
+
 
 def get_touch():
     global xc, yc
@@ -178,12 +186,14 @@ def get_touch():
     else:
         return xc, yc
 
+
 def clicked(x, y):
     global lastx, lasty
     if ((x - 50) < lastx < (x + 50)) and ((y - 50) < lasty < (y + 50)):
         return True
     else:
         return False
+
 
 def touch_debounce(channel):
     global lastx, lasty, touch_pressed, lasttouch
@@ -199,6 +209,7 @@ def touch_debounce(channel):
     else:
         time.sleep(0.001)
 
+
 def clicksound():
     global i2cerr, i2csucc
     try:
@@ -209,9 +220,11 @@ def clicksound():
         time.sleep(0.001)
         if ([crc] != crca):
             i2cerr += 1
-        else: i2csucc += 1
+        else:
+            i2csucc += 1
     except:
         pass
+
 
 def read_one_byte(addr_val, retries=0):  # utility function for brevity
     global i2cerr, i2csucc
@@ -223,7 +236,7 @@ def read_one_byte(addr_val, retries=0):  # utility function for brevity
         crc = crc8(crc, b[0])
         time.sleep(0.001)
         if (crc == b[1]):
-            i2csucc +=1
+            i2csucc += 1
             return b[0]
         else:
             raise Exception("crc missmatch 0x{:02x}".format(addr_val))
@@ -234,7 +247,9 @@ def read_one_byte(addr_val, retries=0):  # utility function for brevity
             return read_one_byte(addr_val, retries + 1)
         else:
             msg = "read_one_byte error: {}".format(e)
-            logging.error(msg) #TODO return something on error and cope at receiving end
+            # TODO return something on error and cope at receiving end
+            logging.error(msg)
+
 
 def read_two_bytes(addr_val, retries=0):  # utility function for brevity
     global i2cerr, i2csucc
@@ -247,7 +262,7 @@ def read_two_bytes(addr_val, retries=0):  # utility function for brevity
         crc = crc8(crc, b[1])
         time.sleep(0.001)
         if (crc == b[2]):
-            i2csucc +=1
+            i2csucc += 1
             return b[0] | (b[1] << 8)
         else:
             raise Exception("crc 2 missmatch 0x{:02x}".format(addr_val))
@@ -255,10 +270,11 @@ def read_two_bytes(addr_val, retries=0):  # utility function for brevity
         i2cerr += 1
         if retries < 10:
             time.sleep(0.1)
-            return read_two_bytes(addr_val,retries+1)
+            return read_two_bytes(addr_val, retries+1)
         else:
             msg = "read_two_bytes error: {}".format(e)
             logging.error(msg)
+
 
 def control(attribute, value):
     """ finds and calls control function with name control_`attribute`
@@ -278,7 +294,8 @@ def control(attribute, value):
         else:
             return globals()[func_name](num, value)
     else:
-        return None #TODO error logging
+        return None  # TODO error logging
+
 
 def write_32u4(addr, value, description, retries=0):
     """ generic function writing and checking crc8 on ADDR_32U4
@@ -291,26 +308,29 @@ def write_32u4(addr, value, description, retries=0):
         crca = bus.read(1, ADDR_32U4)
         if ([crc] != crca):
             if crca == 0xFF:
-                raise Exception("crc is 0xff, please check if u installed lates avr firmware, we changed LED control in atmega")
+                raise Exception(
+                    "crc is 0xff, please check if u installed lates avr firmware, we changed LED control in atmega")
             else:
                 raise Exception("crc8 mismatch")
-        else: 
-            i2csucc += 1 
-    except Exception as e: 
-        if retries < 10: # try recursively 10 times
+        else:
+            i2csucc += 1
+    except Exception as e:
+        if retries < 10:  # try recursively 10 times
             i2cerr += 1
             time.sleep(0.1)
             write_32u4(addr, value, description, retries+1)
-        else: 
+        else:
             msg = "{} error: {}".format(description, e)
-            logging.error(msg) #TODO logging
+            logging.error(msg)  # TODO logging
             return (False, msg)
     return (True, value)
+
 
 def control_relay(channel, value):
     if value not in VALS:
         return (False, "unknown VAL for value {}!".format(value))
     return write_32u4(RELAYCHANNEL[channel-1], VALS[value], "relay{}".format(channel))
+
 
 def control_vent_pwm(value):
     value = int(value)  # variable int value
@@ -318,24 +338,29 @@ def control_vent_pwm(value):
         return (False, "value outside 0..255")
     return write_32u4(VENT_PWM, value, "vent_pwm")
 
+
 def control_backlight_level(value):
     file_path = resource_filename("shpi", "bin/backlight")
     try:
         value = int(value)
         assert -1 < value <= config.MAX_BACKLIGHT, "value outside permitted range"
-        os.popen('sudo chrt --rr 99 {} {}'.format(file_path, value))  # needs sudo because of timing
+        # needs sudo because of timing
+        os.popen('sudo chrt --rr 99 {} {}'.format(file_path, value))
         return write_32u4(BACKLIGHT_LEVEL, value, "backlight_level")
     except Exception as e:
         return (False, "backlight_level error: {}".format(e))
 
+
 def control_led_color(channel, rgbvalue):
     return write_32u4(channel, int(rgbvalue), "led_color")
+
 
 def control_led(rgbvalues):
     if type(rgbvalues) not in (list, tuple):
         rgbvalues = rgbvalues.split(",")
     if len(rgbvalues) == 3:
-        control_led_color(COLOR_RED, rgbvalues[0]) # splitted because of i2c master  clockstretching problems
+        # splitted because of i2c master  clockstretching problems
+        control_led_color(COLOR_RED, rgbvalues[0])
         control_led_color(COLOR_GREEN, rgbvalues[1])
         control_led_color(COLOR_BLUE, rgbvalues[2])
         eg_object.led = rgbvalues
@@ -343,13 +368,16 @@ def control_led(rgbvalues):
     else:
         return (False, "error, wrong rgbvalues for control_led")
 
+
 def control_alert(value):
     value = int(value)
-    eg_object.alert = value #TODO error catching?
+    eg_object.alert = value  # TODO error catching?
     return(True, value)
+
 
 def control_buzzer(value):
     return control_relay(4, value)
+
 
 def control_slide(value):
     value = int(value)
@@ -358,8 +386,10 @@ def control_slide(value):
     eg_object.slide = value
     return (True, value)
 
+
 def control_d13(value):
     return control_relay(5, value)
+
 
 def control_max_backlight(value):
     value = int(value)
@@ -368,6 +398,7 @@ def control_max_backlight(value):
     eg_object.max_backlight = value
     return (True, value)
 
+
 def control_set_temp(value):
     value = float(value)
     if not (0.0 < value < 50.0):
@@ -375,11 +406,13 @@ def control_set_temp(value):
     eg_object.set_temp = value
     return (True, value)
 
+
 def heating():
     if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp + eg_object.tempoffset:
         control_relay(config.HEATINGRELAY, 1)
     elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp + eg_object.tempoffset:
         control_relay(config.HEATINGRELAY, 0)
+
 
 def cooling():
     if (eg_object.act_temp + config.HYSTERESIS) < eg_object.set_temp + eg_object.tempoffset:
@@ -387,45 +420,48 @@ def cooling():
     elif (eg_object.act_temp - config.HYSTERESIS) > eg_object.set_temp + eg_object.tempoffset:
         control_relay(config.COOLINGRELAY, 0)
 
+
 def coolingheating():
     if eg_object.set_temp + eg_object.tempoffset - config.HYSTERESIS < eg_object.act_temp < eg_object.set_temp + eg_object.tempoffset + config.HYSTERESIS:
         control_relay(config.HEATINGRELAY, 0)
     else:
         control_relay(config.HEATINGRELAY, 1)
 
+
 def get_infrared():
     global infrared_vals, lasttouch
-    #take values only if there is no motion or user touch interaction
-    if eg_object.lastmotion < (time.time() - 5)  and (gpio.input(TOUCHINT) == 0 and ADDR_MLX):
-        #try:
-            time.sleep(0.1)
-            b = bus.rdwr([0x26], 2, ADDR_MLX)
-            value = float(((b[0] | b[1] << 8) * 0.02) - 273.15)
-            if (-50 < value < 80):
-                eg_object.mlxamb = value
-            time.sleep(0.001)
-            b = bus.rdwr([0x27], 2, ADDR_MLX)
-            value = float(((b[0] | b[1] << 8) * 0.02) - 273.15)
-            if (-50 < value < 80):
-                eg_object.mlxobj = value
+    # take values only if there is no motion or user touch interaction
+    if eg_object.lastmotion < (time.time() - 5) and (gpio.input(TOUCHINT) == 0 and ADDR_MLX):
+        # try:
+        time.sleep(0.1)
+        b = bus.rdwr([0x26], 2, ADDR_MLX)
+        value = float(((b[0] | b[1] << 8) * 0.02) - 273.15)
+        if (-50 < value < 80):
+            eg_object.mlxamb = value
+        time.sleep(0.001)
+        b = bus.rdwr([0x27], 2, ADDR_MLX)
+        value = float(((b[0] | b[1] << 8) * 0.02) - 273.15)
+        if (-50 < value < 80):
+            eg_object.mlxobj = value
 
-            infrared_vals[:-1] = infrared_vals[1:]
+        infrared_vals[:-1] = infrared_vals[1:]
 
-            # compensate own self heating
-            if (eg_object.mlxamb > eg_object.mlxobj):
-                infrared_vals[-1] = (eg_object.mlxobj
-                    - (eg_object.mlxamb - eg_object.mlxobj) / 6)
-            else:
-                infrared_vals[-1] = eg_object.mlxobj
+        # compensate own self heating
+        if (eg_object.mlxamb > eg_object.mlxobj):
+            infrared_vals[-1] = (eg_object.mlxobj
+                                 - (eg_object.mlxamb - eg_object.mlxobj) / 6)
+        else:
+            infrared_vals[-1] = eg_object.mlxobj
 
-            eg_object.act_temp = np.nanmedian(infrared_vals)
+        eg_object.act_temp = np.nanmedian(infrared_vals)
 
-            try:
-                if (infrared_vals[-1] - 1) > infrared_vals[-2]:
-                    eg_object.lastmotion = time.time()
-                    #logging.error('waked screen because of deltaT increase of MLX')
-            except Exception as e:
-                logging.error('infrared error:{}'.format(e))
+        try:
+            if (infrared_vals[-1] - 1) > infrared_vals[-2]:
+                eg_object.lastmotion = time.time()
+                #logging.error('waked screen because of deltaT increase of MLX')
+        except Exception as e:
+            logging.error('infrared error:{}'.format(e))
+
 
 def get_status():
     try:
@@ -455,7 +491,7 @@ def get_status():
             eg_object.tempoffset = config.weektempdelta[datetime.date.today(
             ).weekday()][int(time.strftime('%H'))]
             if eg_object.tempoffset > 0:
-                eg_object.tempoffsetstr = '+' + str( eg_object.tempoffset)
+                eg_object.tempoffsetstr = '+' + str(eg_object.tempoffset)
             elif eg_object.tempoffset < 0:
                 eg_object.tempoffsetstr = str(eg_object.tempoffset)
             else:
@@ -496,19 +532,24 @@ def get_status():
                 eg_object.led_green = b[1]
                 eg_object.led_blue = b[2]
                 eg_object.led = [eg_object.led_red,
-                                       eg_object.led_green, eg_object.led_blue]
+                                 eg_object.led_green, eg_object.led_blue]
     except Exception as e:
         logging.error(e)
+
 
 def get_sensor_uhrzeit():
     eg_object.uhrzeit = time.strftime("%H:%M")
 
+
 def get_sensor_gputemp():
-    eg_object.gputemp = float(os.popen("vcgencmd measure_temp").readline()[5:-3])
+    eg_object.gputemp = float(
+        os.popen("vcgencmd measure_temp").readline()[5:-3])
+
 
 def get_sensor_cputemp():
     eg_object.cputemp = float(os.popen(
         "cat /sys/class/thermal/thermal_zone0/temp").readline()) / 1000
+
 
 def get_sensor_sht_temp_humidity():
     if (gpio.input(TOUCHINT) == 0):
@@ -525,6 +566,7 @@ def get_sensor_sht_temp_humidity():
             except Exception as e:
                 logging.error('error SHT: {}'.format(e))
 
+
 def get_sensor_lightlevel():
     if (gpio.input(TOUCHINT) == 0):
         if ADDR_BH1750 != 0:
@@ -536,6 +578,7 @@ def get_sensor_lightlevel():
                     (data[1] + (256 * data[0])) / 1.2)
             except Exception as e:
                 logging.error('error BH1750: {}'.format(e))
+
 
 def get_sensor_bmp_temp_pressure():
     global dig_T, dig_P
@@ -563,7 +606,7 @@ def get_sensor_bmp_temp_pressure():
                     var2 = var2 + var1 * (dig_P[4]) * 2.0
                     var2 = (var2 / 4.0) + ((dig_P[3]) * 65536.0)
                     var1 = (dig_P[2] * var1 * var1 / 524288.0
-                          + dig_P[1] * var1) / 524288.0
+                            + dig_P[1] * var1) / 524288.0
                     var1 = (1.0 + var1 / 32768.0) * (dig_P[0])
                     p = 1048576.0 - adc_p
                     p = (p - (var2 / 4096.0)) * 6250.0 / var1
@@ -574,12 +617,14 @@ def get_sensor_bmp_temp_pressure():
             except Exception as e:
                 logging.error('error BMP: {}'.format(e))
 
+
 def get_sensor_32u4():
     if (gpio.input(TOUCHINT) == 0):
         if ADDR_32U4 != 0:
             time.sleep(0.07)
             factor = 5000.0 / 1024.0 / 185.0
-            eg_object.relay1current = factor * (read_two_bytes(READ_RELAY1CURRENT) - 2)
+            eg_object.relay1current = factor * \
+                (read_two_bytes(READ_RELAY1CURRENT) - 2)
             eg_object.atmega_temp = read_two_bytes(
                 READ_ATMEGA_TEMP) * 0.558 - 142.5
             time.sleep(0.01)
@@ -593,6 +638,7 @@ def get_sensor_32u4():
             eg_object.a4 = read_two_bytes(READ_A4)
             eg_object.a5 = read_two_bytes(0x05)
             eg_object.a7 = read_two_bytes(0x06)
+
 
 def get_sensor_aht10_temp_humidity():
     if (gpio.input(TOUCHINT) == 0):
@@ -609,6 +655,7 @@ def get_sensor_aht10_temp_humidity():
             except Exception as e:
                 logging.error('error aht10: {}'.format(e))
 
+
 def get_sensors():  # readout all sensor values, system, and atmega vars
     get_sensor_uhrzeit()
     get_sensor_gputemp()
@@ -618,6 +665,7 @@ def get_sensors():  # readout all sensor values, system, and atmega vars
     get_sensor_bmp_temp_pressure()
     get_sensor_32u4()
     get_sensor_aht10_temp_humidity()
+
 
 class EgClass(object):
     if ADDR_32U4 != 0:
@@ -682,6 +730,7 @@ class EgClass(object):
     alert = 0
     led = [led_red, led_green, led_blue]
 
+
 """ End of definitions section
 """
 # checks if touchdriver is running
@@ -701,7 +750,7 @@ touch_pressed = 0
 lasttouch = 0
 
 bus = i2c.I2C(2)
-#bus.set_timeout(3)
+# bus.set_timeout(3)
 
 try:
     bus.read(1, TOUCHADDR)

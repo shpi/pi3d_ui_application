@@ -1,6 +1,7 @@
 import sys
 import ctypes
 import fcntl
+import logging
 
 
 class I2C_MSG_S(ctypes.Structure):
@@ -26,7 +27,6 @@ I2C_M_RD = 0x01
 
 
 class I2C:
-
     def __init__(self, bus=None):
         # Initialize attributes
         self.device = ""
@@ -43,6 +43,7 @@ class I2C:
             info = open("/sys/class/i2c-dev/%s/name" % self.device)
             self.name = info.readline().strip()
         except IOError as e:
+            logging.warning(e)
             self.name = ""
 
     def close(self):
@@ -53,20 +54,18 @@ class I2C:
         self.addr = None
         self._dev = None
 
-    def get_funcs(self):
-
+    """def get_funcs(self): #TODO neither I2C_FUNCS nor FUNCS are defined so this will fail
         if self._dev is None:
             raise IOError("Device not open")
         funcs = ctypes.c_ulong()
-        ret = fcntl.ioctl(self._dev.fileno(), I2C_FUNCS, funcs)
+        _ret = fcntl.ioctl(self._dev.fileno(), I2C_FUNCS, funcs)
         return {key: True if funcs.value & val else False
-                for key, val in FUNCS.iteritems()}
+                for key, val in FUNCS.iteritems()}"""
 
     def set_addr(self, addr):
         self.addr = int(addr)
 
     def set_timeout(self, timeout):
-
         if self._dev is None:
             raise IOError("Device not open")
         ret = fcntl.ioctl(self._dev.fileno(), I2C_TIMEOUT, timeout)
@@ -91,7 +90,6 @@ class I2C:
         return [ord(c) for c in read_data]
 
     def write(self, data, addr=None):
-
         if self._dev is None:
             raise IOError("Device not open")
         if addr is None:
@@ -112,7 +110,6 @@ class I2C:
         return ret
 
     def rdwr(self, data, nRead, addr=None):
-
         if self._dev is None:
             raise IOError("Device not open")
         if addr is None:

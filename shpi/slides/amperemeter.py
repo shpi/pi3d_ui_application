@@ -7,7 +7,7 @@ import logging
 from pkg_resources import resource_filename
 
 from .. import config
-from ..core import  peripherals
+from ..core import peripherals
 from ..core import graphics
 
 FACTOR = 5000.0 / 1024.0 / 185.0
@@ -20,10 +20,11 @@ text5.add_text_block(currents)
 
 file_path = resource_filename("shpi", "sprites/amperemeter.png")
 amperemeter = pi3d.ImageSprite(file_path, shader=graphics.SHADER, camera=graphics.CAMERA,
-                                w=400, h=400, x=0, y=0, z=2.0)
+                               w=400, h=400, x=0, y=0, z=2.0)
 ampereneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=((0, 0, 0), (0, 160, 0)),
-                            material=(1.0, 0.3, 0.0), line_width=5, x=0.0, y=-70.0, z=1.0)
+                          material=(1.0, 0.3, 0.0), line_width=5, x=0.0, y=-70.0, z=1.0)
 ampereneedle.set_shader(graphics.MATSH)
+
 
 def inloop(textchange=False, activity=False, offset=0):
     if offset != 0:
@@ -36,7 +37,8 @@ def inloop(textchange=False, activity=False, offset=0):
     text5.draw()
 
     try:
-        peripherals.eg_object.relay1current = FACTOR * (peripherals.read_two_bytes(0x14) - 2)
+        peripherals.eg_object.relay1current = FACTOR * \
+            (peripherals.read_two_bytes(0x14) - 2)
         text5.regen()
     except Exception as e:
         logging.error('error: {}'.format(e))

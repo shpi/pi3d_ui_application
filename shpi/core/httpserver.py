@@ -17,6 +17,7 @@ try:
 except:
     import urllib.parse as urlparse
 
+
 class ServerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
@@ -33,14 +34,15 @@ class ServerHandler(BaseHTTPRequestHandler):
 
                         self.send_header('Content-type', 'image/png')
                         self.end_headers()
-                        try: 
+                        try:
                             os.popen('rm /media/ramdisk/screenshot.png')
                             time.sleep(0.1)
-                        except: pass
-                        
+                        except:
+                            pass
+
                         while not os.path.exists("/media/ramdisk/screenshot.png"):
                             time.sleep(0.15)
-                            
+
                         # self.wfile.write(screenshot.getvalue())
                         time.sleep(4)
                         with open('/media/ramdisk/screenshot.png', 'rb') as content_file:
@@ -78,7 +80,8 @@ class ServerHandler(BaseHTTPRequestHandler):
                         self.connection.close()
 
                 logging.info(message)
-                logging.debug("request finished in:  %s seconds" % (time.time() - start_time))
+                logging.debug("request finished in:  %s seconds" %
+                              (time.time() - start_time))
                 #self.wfile.write(bytes(message, "utf8"))
                 # self.connection.close()
             else:

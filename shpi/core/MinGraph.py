@@ -1,7 +1,6 @@
 #!/usr/bin/python
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from pi3d import opengles, GLfloat
 import pi3d
 import numpy as np
 import logging
@@ -97,7 +96,6 @@ class MinGraph(object):
 
     def draw(self):
         for line in self.lines:
-            opengles.glLineWidth(GLfloat(line.buf[0].unib[11]))
             line.draw()
 
     def update(self, y_values):

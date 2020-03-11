@@ -11,7 +11,7 @@ import logging
 from pkg_resources import resource_filename
 
 from .. import config
-from ..core import  peripherals
+from ..core import peripherals
 from ..core import graphics
 
 try:
@@ -42,8 +42,10 @@ text = pi3d.PointText(graphics.pointFont, graphics.CAMERA,
 
 error = False
 
+
 def init():
-    global snowline, rainline, seplines, degwind, weathericon, text, line, windneedle, acttemp, text, error
+    global snowline, rainline, seplines, degwind, weathericon, text, line
+    global windneedle, acttemp, text, error
     #global baroneedle, linemin, linemax
 
     owm = pyowm.OWM(API_key=config.OWMKEY, language=config.OWMLANGUAGE)
@@ -53,7 +55,7 @@ def init():
     text.text_blocks = []
     text._first_free_char = 0
 
-    if config.OWMLANGUAGE == 'de': #TODO this needs untangling from stuff in config
+    if config.OWMLANGUAGE == 'de':  # TODO this needs untangling from stuff in config
         weekdays = ['Montag', 'Dienstag', 'Mittwoch',
                     'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
     else:
@@ -61,12 +63,12 @@ def init():
                     'thursday', 'friday', 'saturday', 'sunday']
 
     file_path = resource_filename("shpi", "sprites/{}.png".format(
-                                    weather.get_weather_icon_name()))
+        weather.get_weather_icon_name()))
     if os.path.exists(file_path):
-        weathericon = pi3d.ImageSprite(file_path, shader=graphics.SHADER, camera=graphics.CAMERA,
-                                        w=150, h=150, z=2, x=-220)
+        weathericon = pi3d.ImageSprite(file_path, shader=graphics.SHADER,
+                            camera=graphics.CAMERA, w=150, h=150, z=2, x=-220)
 
-    #else:
+    # else:
     #    import urllib.request
     #    urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name(
     #    ) + "@2x.png", "sprites/" + weather.get_weather_icon_name() + ".png")
@@ -74,28 +76,34 @@ def init():
     ).get_name(), size=0.7, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(city)
 
-    city = pi3d.TextBlock(-220, 80, 0.1, 0.0, 30, justify=0.5, text_format=weather.get_detailed_status(),
-                            size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    city = pi3d.TextBlock(-220, 80, 0.1, 0.0, 30, justify=0.5,
+            text_format=weather.get_detailed_status(), size=0.3, spacing="F",
+            space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(city)
 
-    acttemp = pi3d.TextBlock(-350, -50, 0.1, 0.0, 10, text_format=str(weather.get_temperature(
-        unit='celsius')['temp']) + u'°C',  size=0.9, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    acttemp = pi3d.TextBlock(-350, -50, 0.1, 0.0, 10,
+                text_format=str(weather.get_temperature(unit='celsius')['temp']) + u'°C',
+                size=0.9, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(acttemp)
 
     sunriset = weather.get_sunrise_time(
         timeformat='date') + datetime.timedelta(hours=2)
     sunsett = weather.get_sunset_time(
         timeformat='date') + datetime.timedelta(hours=2)
-    sunset = pi3d.TextBlock(50, 100, 0.1, 0.0, 20, text_format=unichr(0xE041) + " %s:%02d" % (sunriset.hour, sunriset.minute) + ' ' + unichr(0xE042) + " %s:%02d" % (sunsett.hour, sunsett.minute),  size=0.3, spacing="F",
-                            space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    sunset = pi3d.TextBlock(50, 100, 0.1, 0.0, 20,
+                text_format="{} {}:{:02d} {} {}:{:02d}".format(
+                    unichr(0xE041), sunriset.hour, sunriset.minute,
+                    unichr(0xE042), sunsett.hour, sunsett.minute
+                ), size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(sunset)
 
-    barometer = pi3d.TextBlock(50, -50, 0.1, 0.0, 10, text_format=unichr(0xE00B) + ' ' + str(
-        weather.get_pressure()['press']) + ' hPa', size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    barometer = pi3d.TextBlock(50, -50, 0.1, 0.0, 10,
+                    text_format=unichr(0xE00B) + ' ' + str(weather.get_pressure()['press']) + ' hPa',
+                    size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(barometer)
-    #baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=(
+    # baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=(
     #    (-2, 0, 0), (0, 7, 0), (2, 0, 0)), x=barometer.x+16, y=barometer.y - 6, z=0.1)
-    #baroneedle.set_shader(graphics.MATSH)
+    # baroneedle.set_shader(graphics.MATSH)
     normalizedpressure = (weather.get_pressure()['press'] - 950)
     if normalizedpressure < 0:
         normalizedpressure = 0
@@ -111,13 +119,15 @@ def init():
     #baroneedle.set_material([red, green, 0])
     #baroneedle.rotateToZ(100 - (normalizedpressure*2))
 
-    humidity = pi3d.TextBlock(50, 0, 0.1, 0.0, 10, text_format=unichr(0xE003) + ' ' + str(
-        weather.get_humidity()) + '%', size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    humidity = pi3d.TextBlock(50, 0, 0.1, 0.0, 10,
+                text_format=unichr(0xE003) + ' ' + str(weather.get_humidity()) + '%',
+                size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(humidity)
 
     if 'speed' in weather.get_wind():
-        wind = pi3d.TextBlock(50, 50, 0.1, 0.0, 10, text_format=unichr(0xE040) + ' ' + str(
-            weather.get_wind()['speed']) + 'm/s', size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+        wind = pi3d.TextBlock(50, 50, 0.1, 0.0, 10,
+                text_format=unichr(0xE040) + ' ' + str(weather.get_wind()['speed']) + 'm/s',
+                size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
         text.add_text_block(wind)
 
     if 'deg' in weather.get_wind():
@@ -144,50 +154,52 @@ def init():
     snowarr = []
     maxdaytemp = -100
     mindaytemp = 100
-    
+
     for weather in f:
         file_path = resource_filename("shpi", "sprites/{}.png".format(
-                                    weather.get_weather_icon_name()))
+            weather.get_weather_icon_name()))
         if not os.path.exists(file_path):
-            import urllib.request #TODO py2 py3 fix
+            import urllib.request  # TODO py2 py3 fix
             urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name(
             ) + "@2x.png", file_path)
 
         icons.append(pi3d.ImageSprite(file_path, shader=graphics.SHADER,
-                        camera=graphics.CAMERA, w=20, h=20, z=1, x=actualy, y=-220))
+                    camera=graphics.CAMERA, w=20, h=20, z=1, x=actualy, y=-220))
 
         if weather.get_reference_time('iso')[11:16] == '00:00':
             seplinesarr.append([actualy, -50, 2])
             seplinesarr.append([actualy, 50, 2])
             seplinesarr.append([actualy, -50, 2])
-                            
+
         # if weather.get_reference_time('iso')[11:16] == '12:00':
             day = weather.get_reference_time(timeformat='date').weekday()
             if actualy < 300:
-                city = pi3d.TextBlock(
-                    actualy+65, -100, 0.1, 0.0, 30, text_format=weekdays[day], justify=0.5,  size=0.23, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+                city = pi3d.TextBlock(actualy+65, -100, 0.1, 0.0, 30,
+                        text_format=weekdays[day], justify=0.5,  size=0.23,
+                        spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
                 text.add_text_block(city)
             if actualy > -300:
-                city = pi3d.TextBlock(actualy-6*step, -150, 0.1, 0.0, 30, text_format=str(round(
-                    maxdaytemp, 1)) + u'°C', size=0.25, spacing="F", space=0.05, colour=(1.0, 0.0, 0.0, 1.0))
+                city = pi3d.TextBlock(actualy-6*step, -150, 0.1, 0.0, 30,
+                        text_format=str(round(maxdaytemp, 1)) + u'°C', size=0.25,
+                        spacing="F", space=0.05, colour=(1.0, 0.0, 0.0, 1.0))
                 text.add_text_block(city)
-                city = pi3d.TextBlock(actualy-6*step, -210, 0.1, 0.0, 30, text_format=str(round(
-                    mindaytemp, 1)) + u'°C', size=0.25, spacing="F", space=0.05, colour=(0.0, 0.0, 1.0, 1.0))
+                city = pi3d.TextBlock(actualy-6*step, -210, 0.1, 0.0, 30,
+                        text_format=str(round(mindaytemp, 1)) + u'°C', size=0.25,
+                        spacing="F", space=0.05, colour=(0.0, 0.0, 1.0, 1.0))
                 text.add_text_block(city)
 
             maxdaytemp = -100
             mindaytemp = 100
 
         if '3h' in weather.get_snow():
-            snowarr.append([actualy, (-50+weather.get_snow()['3h']*30),2])
+            snowarr.append([actualy, (-50+weather.get_snow()['3h']*30), 2])
         else:
-            snowarr.append([actualy, -50 ,2])
-
+            snowarr.append([actualy, -50, 2])
 
         if '3h' in weather.get_rain():
-            rainarr.append([actualy, (-50+weather.get_rain()['3h']*30),2])
+            rainarr.append([actualy, (-50+weather.get_rain()['3h']*30), 2])
         else:
-            rainarr.append([actualy, -50 ,2])
+            rainarr.append([actualy, -50, 2])
 
         temperatures = weather.get_temperature(unit='celsius')
         if temperatures['temp_max'] > maxdaytemp:
@@ -210,7 +222,8 @@ def init():
     rainline.set_material((0, 0, 1))
     rainline.set_alpha(0.7)
 
-    seplines  = pi3d.Lines(vertices=seplinesarr, line_width=1, y=-180, strip=True)
+    seplines = pi3d.Lines(vertices=seplinesarr,
+                          line_width=1, y=-180, strip=True)
     seplines.set_shader(graphics.MATSH)
     seplines.set_material((0, 0, 0))
     seplines.set_alpha(0.9)
@@ -230,18 +243,21 @@ def init():
     # linemax.set_material((1,0,0))
     # linemax.set_alpha(0.9)
 
-    #except:
+    # except:
 
     #    error = pi3d.TextBlock(-390, 180, 0.1, 0.0, 150, text_format="OWM ERROR",
     #                           size=0.7, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     #    text.add_text_block(error)
     #    error = True
 
+
 init()
 threehours = time.time() + (60*60*1)
 
+
 def inloop(textchange=False, activity=False, offset=0):
-    global snowline, rainline, seplines, degwind, threehours, weathericon, text, line, windneedle, error
+    global snowline, rainline, seplines, degwind, threehours, weathericon, text
+    global line, windneedle, error
     #global baroneedle, linemin, linemax
     if (time.time() > threehours):
         logging.info('new weather forecast')
@@ -260,7 +276,7 @@ def inloop(textchange=False, activity=False, offset=0):
         if not error:
             try:
                 weathericon.draw()
-                #baroneedle.draw()
+                # baroneedle.draw()
                 line.draw()
                 # linemin.draw()
                 # linemax.draw()

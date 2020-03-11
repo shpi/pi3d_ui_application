@@ -6,7 +6,7 @@ import sys
 import os
 
 from .. import config
-from ..core import  peripherals
+from ..core import peripherals
 from ..core import graphics
 
 try:
@@ -19,28 +19,29 @@ text2 = pi3d.PointText(graphics.pointFontbig, graphics.CAMERA,
 
 if config.SHUTTERUP != 0 or config.SHUTTERDOWN != 0:
     uhrzeit_block = pi3d.TextBlock(-70, 100, 0.1, 0.0, 15, justify=0.5,
-                        data_obj=peripherals.eg_object, attr="uhrzeit", text_format="{:s}",
-                        size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+                data_obj=peripherals.eg_object, attr="uhrzeit", text_format="{:s}",
+                size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text2.add_text_block(uhrzeit_block)
 
     shuttersymbol = pi3d.TextBlock(-100, -100, 0.1, 0.0, 15, text_format=unichr(0xE035),
-                        size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+                size=0.99, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text2.add_text_block(shuttersymbol)
 
     shutterDown = pi3d.TextBlock(300, -100, 0.1, 0.0, 1, text_format=unichr(0xE000),
-                        size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
+                size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
     text2.add_text_block(shutterDown)
 
     shutterUp = pi3d.TextBlock(-300, -100, 0.1, 180.0, 1, text_format=unichr(0xE000),
-                        size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
+                size=0.69, spacing="C", space=0.6, colour=(1, 1, 1, 0.8))
     text2.add_text_block(shutterUp)
 else:
     uhrzeit_block = pi3d.TextBlock(-280, 0, 0.1, 0.0, 15, data_obj=peripherals.eg_object,
-                        attr="uhrzeit", text_format="{:s}", size=0.99, spacing="F",
-                        space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+                attr="uhrzeit", text_format="{:s}", size=0.99, spacing="F",
+                space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text2.add_text_block(uhrzeit_block)
 
 shuttertimer = 0
+
 
 def inloop(textchange=False, activity=False, offset=0):
     global shuttertimer

@@ -1,10 +1,11 @@
 DEMO = True  # shows demo slides
-LOG_FILE = None #"logfile.txt" # None logs to screen, filename logs (appends) to file
-LOG_LEVEL = "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
+# "logfile.txt" # None logs to screen, filename logs (appends) to file
+LOG_FILE = None # NB watch out if logging to file - will keep getting bigger!
+LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
 
 TMDELAY = 200  # delay for changing backgrounds
-INFRARED_TM = 3 # s between checking infrared sensor
-SENSOR_TM = 10 # s between updating sensor values in peripherals.eg_object
+INFRARED_TM = 3  # s between checking infrared sensor
+SENSOR_TM = 10  # s between updating sensor values in peripherals.eg_object
 ICAL_TM = 3600  # update calenderslide every 3600 seconds
 SLIDE_PARALLAX = True
 SLIDE_SHADOW = False  # shadow effect while manually sliding
@@ -16,7 +17,7 @@ SHUTTERTIMER = 30  # timer for auto deactivation of shutter relay
 START_MQTT_CLIENT = True
 MQTT_USER = ''
 MQTT_PW = ''
-MQTT_SERVER = "test.mosquitto.org"
+MQTT_SERVER = "mqtt.eclipse.org"
 MQTT_PORT = 1883
 MQTT_PATH = "shpi"
 MQTT_QOS = 0
@@ -32,12 +33,12 @@ MIN_BACKLIGHT = 1
 
 HYSTERESIS = 0.5  # in degree
 set_temp = 23
-COOLINGRELAY = 0   #off
-HEATINGRELAY = 1  #on relay 1
-SHUTTERDOWN = 2  #relay 2
+COOLINGRELAY = 0  # off
+HEATINGRELAY = 1  # on relay 1
+SHUTTERDOWN = 2  # relay 2
 SHUTTERUP = 3  # relay 3   #  4... buzzer, 5 d13, 6 hwb
-LIGHTRELAY = 0 #off
-VENTRELAY = 0 #off
+LIGHTRELAY = 0  # off
+VENTRELAY = 0  # off
 MIN_HUMIDITY_THRESHOLD = 0
 MAX_HUMIDITY_THRESHOLD = 0
 AIR_QUALITY_THRESHOLD = 0
@@ -51,7 +52,9 @@ OWMCITY = 'Berlin, DE'
 WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch',
             'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 
-# day / week temperature curves, only save delta t from setting temperature (to keep  user interface easy)
+""" day / week temperature curves, only save delta t from setting temperature
+(to keep  user interface easy)
+"""
 daytempcurve = 0
 daytempdelta = [-2,  # 0:00  - 1:00
                 -2,  # 1:00  - 2:00
@@ -79,13 +82,20 @@ daytempdelta = [-2,  # 0:00  - 1:00
                 -1]  # 23:00
 
 weektempcurve = 0
-weektempdelta = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # monday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # tuesday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # wednesday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # thursday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # friday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # saturday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]  # sunday
+weektempdelta = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # monday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # tuesday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0, 0, 0],  # wednesday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0, 0, 0],  # thursday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # friday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0, 0, 0],  # saturday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0, 0, 0]]  # sunday
 
 slide = 0
 subslide = None
@@ -93,7 +103,7 @@ subslide = None
 # configure your slides here
 autoslidetm = 10
 autoslides = []
-slides = ['overview','thermostat', 'weather', 'ical2', 'status', 'shutter',
+slides = ['overview', 'thermostat', 'weather', 'ical2', 'status', 'shutter',
           'livegraph', 'amperemeter', 'rrdgraph', 'settings']
 autoslideints = []
 
