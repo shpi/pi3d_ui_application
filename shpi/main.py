@@ -86,12 +86,15 @@ def sensor_thread():
             if config.START_HTTP_SERVER:
                 littleserver.handle_request()
 
-            if config.START_MQTT_CLIENT:
-                mqttclient.publishall()
 
             peripherals.get_infrared()
 
             if (now > nextsensorcheck):
+
+                if config.START_MQTT_CLIENT:
+                    mqttclient.publishall()
+
+
                 peripherals.get_sensors()
                 nextsensorcheck = now + config.SENSOR_TM
                 if config.COOLINGRELAY != 0 and config.COOLINGRELAY == config.HEATINGRELAY:
