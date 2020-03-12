@@ -7,7 +7,7 @@ TMDELAY = 200  # delay for changing backgrounds
 INFRARED_TM = 3  # s between checking infrared sensor
 SENSOR_TM = 10  # s between updating sensor values in peripherals.eg_object
 ICAL_TM = 3600  # update calenderslide every 3600 seconds
-SLIDE_PARALLAX = True
+SLIDE_PARALLAX = False # background movement while sliding, bit slow on zero
 SLIDE_SHADOW = False  # shadow effect while manually sliding
 SHOW_AIRQUALITY = True  # show airquality over LED
 # activate simple GET/POST server in python, be aware of  security issues

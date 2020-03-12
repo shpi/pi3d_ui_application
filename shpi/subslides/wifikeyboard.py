@@ -192,6 +192,7 @@ def inloop(x=0, y=0, touch_pressed=False, textchange=False, activity=False):
                 config.subslide = None
                 # logging.debug(wifinetworks[calculateselectednetwork]['essid'])
                 # logging.debug(eg_object.usertext)
+                os.popen('sudo mount -o remount,rw /') # added for RO image, maybe implement check before
                 with open('/etc/wpa_supplicant/wpa_supplicant.conf', 'w') as f:
                     #file = open('/etc/wpa_supplicant/wpa_supplicant.conf','w')
                     f.write('country=US\n')
