@@ -40,11 +40,11 @@ storagearea.set_material((0.0, 0.0, 1.0))
 floorplan = pi3d.ImageSprite(resource_filename("shpi", "sprites/floorplan.png"),
                              shader=graphics.SHADER, camera=graphics.CAMERA,
                              w=539, h=450, x=0, y=0, z=2.0)
-doorneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=((0, 0, 0), (60, 0, 0)),
+doorneedle = pi3d.PolygonLines(camera=graphics.CAMERA, vertices=((0, 0, 0), (60, 0, 0)),
         material=(1.0, 0.3, 0.0), line_width=20, x=-13.0, y=-220.0, z=1.0)
 doorneedle.set_shader(graphics.MATSH)
 
-windowneedle = pi3d.Lines(camera=graphics.CAMERA, vertices=((0, 0, 0), (45, 0, 0)),
+windowneedle = pi3d.PolygonLines(camera=graphics.CAMERA, vertices=((0, 0, 0), (45, 0, 0)),
         material=(0, 1, 0.0), line_width=10, x=-180.0, y=217.0, z=1.0)
 windowneedle.set_shader(graphics.MATSH)
 rotate = 0

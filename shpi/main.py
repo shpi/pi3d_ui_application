@@ -44,17 +44,18 @@ def get_files():
 
 def sensor_thread():
     global textchange, bg_alpha, sbg, sfg
-    last_backlight_level = 0
-    iFiles, nFi = get_files()
-    pic_num = nFi - 1
-    sfg = graphics.tex_load(iFiles[pic_num])
     nextsensorcheck = 0
-    nexttm = 0
+    if config.GUI:
+        last_backlight_level = 0
+        iFiles, nFi = get_files()
+        pic_num = nFi - 1
+        sfg = graphics.tex_load(iFiles[pic_num])
+        nexttm = 0
 
     while True:
         try:
             now = time.time()
-            if now > nexttm:                 # change background
+            if config.GUI and now > nexttm:           # change background
                 nexttm = now + config.TMDELAY
                 sbg = sfg
                 sbg.positionZ(5)
@@ -70,31 +71,29 @@ def sensor_thread():
                 if config.START_MQTT_CLIENT:
                     mqttclient.publish('alert', 'off')
 
-            if config.BACKLIGHT_AUTO:
-                if now < peripherals.eg_object.lastmotion + config.BACKLIGHT_AUTO:
-                    peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight
-                else:
-                    peripherals.eg_object.backlight_level = config.MIN_BACKLIGHT
+            if config.GUI:
+                if config.BACKLIGHT_AUTO:
+                    if now < peripherals.eg_object.lastmotion + config.BACKLIGHT_AUTO:
+                        peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight
+                    else:
+                        peripherals.eg_object.backlight_level = config.MIN_BACKLIGHT
 
-            if peripherals.eg_object.backlight_level != last_backlight_level:
-                logging.info('set backlight:' +
-                             str(peripherals.eg_object.backlight_level))
-                peripherals.control_backlight_level(
-                    peripherals.eg_object.backlight_level)
-                last_backlight_level = peripherals.eg_object.backlight_level
+                if peripherals.eg_object.backlight_level != last_backlight_level:
+                    logging.info('set backlight:' +
+                                str(peripherals.eg_object.backlight_level))
+                    peripherals.control_backlight_level(
+                        peripherals.eg_object.backlight_level)
+                    last_backlight_level = peripherals.eg_object.backlight_level
 
             if config.START_HTTP_SERVER:
                 littleserver.handle_request()
 
+            if config.START_MQTT_CLIENT:
+                mqttclient.publishall()
 
             peripherals.get_infrared()
 
             if (now > nextsensorcheck):
-
-                if config.START_MQTT_CLIENT:
-                    mqttclient.publishall()
-
-
                 peripherals.get_sensors()
                 nextsensorcheck = now + config.SENSOR_TM
                 if config.COOLINGRELAY != 0 and config.COOLINGRELAY == config.HEATINGRELAY:
@@ -153,9 +152,9 @@ def sensor_thread():
 
 
 # make 4M ramdisk for graph
-if not os.path.isdir('/media/ramdisk'):
+"""if not os.path.isdir('/media/ramdisk'):
     os.popen('sudo mkdir /media/ramdisk')
-    os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
+    os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')"""
 
 # os.chdir('/media/ramdisk')
 
@@ -183,18 +182,19 @@ if not os.path.isfile('temperatures.rrd'):
         "RRA:MAX:0.5:10:1500",
         "RRA:MAX:0.5:60:1500")
 
-slides = []
-subslides = dict()
+if config.GUI:
+    slides = []
+    subslides = dict()
 
-for slidestring in config.slides:
-    slides.append(importlib.import_module("shpi.slides." + slidestring))
+    for slidestring in config.slides:
+        slides.append(importlib.import_module("shpi.slides." + slidestring))
 
-for slidestring in config.subslides:
-    subslides[slidestring] = importlib.import_module(
-        "shpi.subslides." + slidestring)
+    for slidestring in config.subslides:
+        subslides[slidestring] = importlib.import_module(
+            "shpi.subslides." + slidestring)
 
-# bg_alpha = alphavalue of 2nd background, for transition effect
-bg_alpha = 0
+    # bg_alpha = alphavalue of 2nd background, for transition effect
+    bg_alpha = 0
 
 if config.START_MQTT_CLIENT:
     from .core import mqttclient
@@ -235,93 +235,96 @@ time.sleep(1)  # wait for running sensor_thread first time, to init all variable
 f = 0
 start = time.time()
 while graphics.DISPLAY.loop_running():
-    f += 1
-    now = time.time()
-    if f % 500 == 0:
-        logging.debug('FPS={:.1f}'.format(f / (now - start)))
-        f = 0
-        start = now
-    if not config.subslide:
-        if bg_alpha < 1.0:   # fade to new background
-            activity = True  # we calculate more frames, when there is activity, otherwise we add sleep.time at end
-            bg_alpha += 0.01
-            sbg.draw()
-            sfg.set_alpha(bg_alpha)
-        sfg.draw()
+    if config.GUI:
+        f += 1
+        now = time.time()
+        if f % 500 == 0:
+            logging.debug('FPS={:.1f}'.format(f / (now - start)))
+            f = 0
+            start = now
+        if not config.subslide:
+            if bg_alpha < 1.0:   # fade to new background
+                activity = True  # we calculate more frames, when there is activity, otherwise we add sleep.time at end
+                bg_alpha += 0.01
+                sbg.draw()
+                sfg.set_alpha(bg_alpha)
+            sfg.draw()
 
-    # only do something if offset
-    if config.SLIDE_PARALLAX and abs(movesfg) > 0:
-        if abs(movesfg) < 1:  # needs to be > min move distance
-            movesfg = 0
+        # only do something if offset
+        if config.SLIDE_PARALLAX and abs(movesfg) > 0:
+            if abs(movesfg) < 1:  # needs to be > min move distance
+                movesfg = 0
+            else:
+                movesfg -= math.copysign(0.3, movesfg)
+                sfg.positionX(int(-movesfg))
+
+        if peripherals.touched():  # and (peripherals.lasttouch + 0.4 > time.time()):  # check if touch is pressed, to detect sliding
+            x, y = peripherals.get_touch()
+            activity = True
+            if ((x != 400) and peripherals.lastx):  # catch 0,0 -> 400,-240
+                movex = (peripherals.lastx - x)
+                if config.SLIDE_PARALLAX and abs(movex) > 20:
+                    movesfg = int(movex / 10)
+                    movesfg -= math.copysign(2, movesfg)
+                    sfg.positionX(-movesfg)
+
+                if (abs(movex) > 30):  # calculate slider movement
+                    slide_offset = movex
+                    peripherals.touch_pressed = False  # to avoid clicking while sliding
         else:
-            movesfg -= math.copysign(0.3, movesfg)
-            sfg.positionX(int(-movesfg))
-
-    if peripherals.touched():  # and (peripherals.lasttouch + 0.4 > time.time()):  # check if touch is pressed, to detect sliding
-        x, y = peripherals.get_touch()
-        activity = True
-        if ((x != 400) and peripherals.lastx):  # catch 0,0 -> 400,-240
-            movex = (peripherals.lastx - x)
-            if config.SLIDE_PARALLAX and abs(movex) > 20:
-                movesfg = int(movex / 10)
-                movesfg -= math.copysign(2, movesfg)
-                sfg.positionX(-movesfg)
-
-            if (abs(movex) > 30):  # calculate slider movement
+            # autoslide demo mode
+            if (len(config.autoslides) and peripherals.eg_object.backlight_level > 0 and
+                    peripherals.lasttouch + 10 < now and now > autoslide):
+                movex += 10
                 slide_offset = movex
-                peripherals.touch_pressed = False  # to avoid clicking while sliding
-    else:
-        # autoslide demo mode
-        if (len(config.autoslides) and peripherals.eg_object.backlight_level > 0 and
-                peripherals.lasttouch + 10 < now and now > autoslide):
-            movex += 10
-            slide_offset = movex
-            if movex > 200:
-                autoslide = now + config.autoslidetm
-        else:
-            movex = 0
+                if movex > 200:
+                    autoslide = now + config.autoslidetm
+            else:
+                movex = 0
+                peripherals.lastx = 0
+
+        # start sliding when there is enough touchmovement
+        if (movex < -200 and peripherals.eg_object.slide > 0 and
+                            peripherals.lasttouch < (now - 0.1)):
             peripherals.lastx = 0
-
-    # start sliding when there is enough touchmovement
-    if (movex < -200 and peripherals.eg_object.slide > 0 and
-                          peripherals.lasttouch < (now - 0.1)):
-        peripherals.lastx = 0
-        movex = 0
-        peripherals.eg_object.slide -= 1
-        sbg.set_alpha(0)
-        if config.SLIDE_SHADOW:
-            bg_alpha = 0
-        slide_offset += 400
-
-    if movex > 200 and peripherals.lasttouch < (now - 0.1):
-        peripherals.lastx = 0
-        movex = 0
-        if peripherals.eg_object.slide < len(config.slides) - 1:
-            peripherals.eg_object.slide += 1
-        else:
-            peripherals.eg_object.slide = 0
-
-        if not peripherals.touched() and len(config.autoslideints) > 0:
-            config.autoslideints = config.autoslideints[1:] + \
-                config.autoslideints[0:1]
-            peripherals.eg_object.slide = config.autoslideints[0]
-        else:
+            movex = 0
+            peripherals.eg_object.slide -= 1
             sbg.set_alpha(0)
             if config.SLIDE_SHADOW:
                 bg_alpha = 0
-        slide_offset -= 400
+            slide_offset += 400
 
-    if config.subslide != None:
-        activity = subslides[config.subslide].inloop(textchange, activity)
-    elif -1 < peripherals.eg_object.slide < len(config.slides):
-        activity, slide_offset = slides[peripherals.eg_object.slide].inloop(
-            textchange, activity, slide_offset)
+        if movex > 200 and peripherals.lasttouch < (now - 0.1):
+            peripherals.lastx = 0
+            movex = 0
+            if peripherals.eg_object.slide < len(config.slides) - 1:
+                peripherals.eg_object.slide += 1
+            else:
+                peripherals.eg_object.slide = 0
 
-    textchange = False
-    if not activity and (movesfg == 0) and (slide_offset == 0):
-        time.sleep(0.05)
-    activity = False
-    if not os.path.exists("/media/ramdisk/screenshot.png"):
-        pi3d.screenshot("/media/ramdisk/screenshot.png")
+            if not peripherals.touched() and len(config.autoslideints) > 0:
+                config.autoslideints = config.autoslideints[1:] + \
+                    config.autoslideints[0:1]
+                peripherals.eg_object.slide = config.autoslideints[0]
+            else:
+                sbg.set_alpha(0)
+                if config.SLIDE_SHADOW:
+                    bg_alpha = 0
+            slide_offset -= 400
+
+        if config.subslide != None:
+            activity = subslides[config.subslide].inloop(textchange, activity)
+        elif -1 < peripherals.eg_object.slide < len(config.slides):
+            activity, slide_offset = slides[peripherals.eg_object.slide].inloop(
+                textchange, activity, slide_offset)
+
+        textchange = False
+        if not activity and (movesfg == 0) and (slide_offset == 0):
+            time.sleep(0.05)
+        activity = False
+
+        if not os.path.exists("/dev/shm/screenshot.png"):
+            pi3d.screenshot("/dev/shm/screenshot.png")
+    time.sleep(0.01)
 
 graphics.DISPLAY.destroy()

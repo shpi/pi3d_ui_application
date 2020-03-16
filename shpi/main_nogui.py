@@ -27,13 +27,13 @@ try:
     unichr
 except NameError:
     unichr = chr
-"""
+
 # make 4M ramdisk for graph
 if not os.path.isdir('/media/ramdisk'):
     os.popen('sudo mkdir /media/ramdisk')
     os.popen('sudo mount -t tmpfs -o size=4M tmpfs /media/ramdisk')
 
-# os.chdir('/media/ramdisk')
+# os.chdir('/media/ramdisk')"""
 
 
 def rrdcreate():
