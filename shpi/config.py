@@ -1,4 +1,5 @@
 DEMO = True  # shows demo slides
+GUI = True # turn off all graphical output
 # "logfile.txt" # None logs to screen, filename logs (appends) to file
 LOG_FILE = None # NB watch out if logging to file - will keep getting bigger!
 LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
