@@ -15,14 +15,15 @@ from pkg_resources import resource_filename
 from . import config
 
 # start logging NOW before anything else can log something
-level = getattr(logging, config.LOG_LEVEL)
+log_level = getattr(logging, config.LOG_LEVEL)
 if config.LOG_FILE is not None:
-    logging.basicConfig(filename=config.LOG_FILE, level=level)
+    logging.basicConfig(filename=config.LOG_FILE, level=log_level)
 else:
-    logging.basicConfig(level=level)  # defaults to screen
+    logging.basicConfig(level=log_level)  # defaults to screen
 
 from .core import peripherals #i.e. these imports MUST happen after logging starts!
-from .core import graphics
+if config.GUI:
+    from .core import graphics
 
 try:
     unichr
@@ -126,18 +127,22 @@ def sensor_thread():
                     peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
                     sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,
                     0.0, getattr(peripherals.eg_object,
-                                 'relay{}'.format(config.HEATINGRELAY)),
+                                'relay{}'.format(config.HEATINGRELAY)),
                     getattr(peripherals.eg_object,
                             'relay{}'.format(config.COOLINGRELAY)),
                     motion, peripherals.eg_object.humidity, peripherals.eg_object.a4)
 
-                # not logged - maybe check against config.LOG_LEVEL
-                sys.stdout.write('\r')
-                sys.stdout.write(temperatures_str)
-                rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
-                sys.stdout.write(
-                    ' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ')
-                sys.stdout.flush()
+                """ not logged - maybe this is because of some other issue with stdout
+                TODO check if logging would be OK.
+                log_level determined at start (int val of config.LOG_LEVEL)
+                """
+                if log_level <= logging.DEBUG: # only output if log_level is debug
+                    sys.stdout.write('\r')
+                    sys.stdout.write(temperatures_str)
+                    rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
+                    sys.stdout.write(
+                        ' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ')
+                    sys.stdout.flush()
 
                 if config.SHOW_AIRQUALITY:  # calculate rgb values for LED
                     redvalue = 255 if peripherals.eg_object.a4 > 600 else int(
@@ -230,12 +235,12 @@ peripherals.eg_object.slide = config.slide
 t = threading.Thread(target=sensor_thread)
 t.start()
 
-movesfg = 0  # variable for parallax effect in sliding
-time.sleep(1)  # wait for running sensor_thread first time, to init all variables
-f = 0
-start = time.time()
-while graphics.DISPLAY.loop_running():
-    if config.GUI:
+if config.GUI:
+    movesfg = 0  # variable for parallax effect in sliding
+    time.sleep(1)  # wait for running sensor_thread first time, to init all variables
+    f = 0
+    start = time.time()
+    while graphics.DISPLAY.loop_running(): #TODO way of stopping loop
         f += 1
         now = time.time()
         if f % 500 == 0:
@@ -325,6 +330,10 @@ while graphics.DISPLAY.loop_running():
 
         if not os.path.exists("/dev/shm/screenshot.png"):
             pi3d.screenshot("/dev/shm/screenshot.png")
-    time.sleep(0.01)
 
-graphics.DISPLAY.destroy()
+else:
+    while True: #TODO way of stopping loop 
+        time.sleep(0.5)
+
+if config.GUI:
+    graphics.DISPLAY.destroy() #TODO way of stopping loop so this has some effect
