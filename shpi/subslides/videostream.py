@@ -21,14 +21,11 @@ str2.sprite.position(0, -225, 0.1)
 
 
 #videostream are opened from thermostat slide
-
-def inloop(textchange = False,activity = False):
-
+def inloop(textchange=False, activity=False):
     str1.draw()
     str2.draw()
-    if  peripherals.touch_pressed:
-      peripherals.touch_pressed = False
-      os.popen('killall omxplayer.bin')
-      config.subslide = None
+    if  peripherals.check_touch_pressed():
+        os.popen('killall omxplayer.bin')
+        config.subslide = None
 
     return activity

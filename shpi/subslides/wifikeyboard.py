@@ -183,10 +183,9 @@ chartype = 0
 everysecond = 0
 
 
-def inloop(x=0, y=0, touch_pressed=False, textchange=False, activity=False):
+def inloop(textchange=False, activity=False, x=0, y=0, touch_pressed=False):
     global chartype, everysecond
-    if peripherals.touch_pressed:
-        peripherals.touch_pressed = False
+    if peripherals.check_touch_pressed():
         if 150 < peripherals.lasty < 240:
             if 192 < peripherals.lastx < 289:
                 config.subslide = None

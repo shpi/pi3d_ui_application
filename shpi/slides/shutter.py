@@ -77,8 +77,7 @@ def inloop(textchange=False, activity=False, offset=0):
             shutterDown.colouring.set_colour([1, 1, 1])
             shutterUp.colouring.set_colour([1, 1, 1])
 
-    if peripherals.touch_pressed:
-        peripherals.touch_pressed = False
+    if peripherals.check_touch_pressed():
         if peripherals.clicked(shutterUp.x, shutterUp.y):
             peripherals.control_relay(config.SHUTTERDOWN, 0)
             peripherals.control_relay(config.SHUTTERUP, 1)

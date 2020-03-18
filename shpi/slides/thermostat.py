@@ -157,8 +157,7 @@ def inloop(textchange=False, activity=False, offset=0):
     else:
         motiondetection.colouring.set_colour([1, 1, 1])
 
-    if peripherals.touch_pressed:
-        peripherals.touch_pressed = False
+    if peripherals.check_touch_pressed():
         if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
             if peripherals.clicked(increaseTemp.x, increaseTemp.y):
                 controls_alpha = 1

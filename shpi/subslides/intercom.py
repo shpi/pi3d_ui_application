@@ -34,7 +34,7 @@ str4 = pi3d.FixedString(font_path, unichr(0xE026), font_size=200, background_col
                         camera=graphics.CAMERA, shader=graphics.SHADER)
 str4.sprite.position(320, 50, 0.0)
 
-def inloop(textchange = False,activity = False):
+def inloop(textchange=False, activity=False):
     str1.draw()
     str2.draw()
     str4.draw()
@@ -54,9 +54,7 @@ def inloop(textchange = False,activity = False):
         os.popen("amixer -c 1 set 'PCM' 100%") #deactivate soundcard out
         os.popen("amixer -c 1 set 'Mic' 0%") #enable mic
 
-
-    if (peripherals.touch_pressed and (peripherals.lastx < 0)):        #only close if left side touched
-        peripherals.touch_pressed = False
+    if (peripherals.check_touch_pressed() and (peripherals.lastx < 0)):        #only close if left side touched
         os.popen('killall nc') #warning just a test
         os.popen('killall ./videoplayer')
         os.popen('killall raspivid')

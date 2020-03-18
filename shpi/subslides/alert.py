@@ -16,10 +16,9 @@ str1 = pi3d.FixedString(resource_filename("shpi", "fonts/opensans.ttf"), 'ALERT!
             camera=graphics.CAMERA, shader=graphics.SHADER)
 str1.sprite.position(0, 0, 0.1)
 
-def inloop(textchange = False,activity = False):
+def inloop(textchange=False, activity=False):
     str1.draw()
-    if  peripherals.touch_pressed:
-        peripherals.touch_pressed = False
+    if  peripherals.check_touch_pressed():
         config.subslide = None
         peripherals.eg_object.alert = 0
         peripherals.alert(0)

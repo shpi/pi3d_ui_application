@@ -106,7 +106,7 @@ def touchloop():
         if code == 3 and type == 1:
             yc = -(value - 240)
         if code == 1 and type == 330:
-            if value:
+            if value == 1: # touch started
                 eg_object.lastmotion = time.time()  # wake screen up on touch
                 lasttouch = time.time()
                 touch_pressed = True
@@ -114,8 +114,6 @@ def touchloop():
                 lasty = yc
             else:
                 lastx = 0
-        #   touch_pressed = False
-        time.sleep(0.05)
 
 
 def alert(value=1):
@@ -132,6 +130,14 @@ def alert(value=1):
 
 def touched():
     return gpio.input(TOUCHINT)
+
+
+def check_touch_pressed():
+    global touch_pressed
+    if touch_pressed:
+        touch_pressed = False
+        return True
+    return False
 
 
 def motion_detected(channel):
@@ -155,7 +161,7 @@ def motion_detected(channel):
 def get_touch():
     global xc, yc
     #global mouse, x_off, y_off
-    if int(os_touchdriver) > 1:
+    if os_touchdriver == 1:
         return xc, yc
     elif TOUCHADDR:
         if (gpio.input(TOUCHINT)):
@@ -734,9 +740,9 @@ class EgClass(object):
 """ End of definitions section
 """
 # checks if touchdriver is running
-os_touchdriver = os.popen('pgrep -f touchdriver.py -c').readline()
+os_touchdriver = int(os.popen('pgrep -f touchdriver.py -c').readline()) - 1
 
-if int(os_touchdriver) > 1:
+if os_touchdriver == 1: #TODO can there be more than one running
     try:
         touch_file = open("/dev/input/event1", "rb")
     except:
@@ -746,8 +752,8 @@ startmotion = time.time()
 i2cerr, i2csucc = 1, 1
 xc, yc = 0, 0
 lastx, lasty = 0, 0
-touch_pressed = 0
-lasttouch = 0
+touch_pressed = False
+lasttouch = 0.0
 
 bus = i2c.I2C(2)
 # bus.set_timeout(3)
@@ -828,9 +834,8 @@ gpio.setwarnings(False)
 gpio.setup(TOUCHINT, gpio.IN, pull_up_down=gpio.PUD_DOWN)
 gpio.setup(PIR, gpio.IN, pull_up_down=gpio.PUD_DOWN)
 
-if int(os_touchdriver) < 2:
-    gpio.add_event_detect(TOUCHINT, gpio.RISING,
-                          callback=touch_debounce)  # touch interrupt
+if os_touchdriver == 0:
+    gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce)  # touch interrupt
 else:
     #start_new_thread(touchloop, ())
     t = threading.Thread(target=touchloop)
