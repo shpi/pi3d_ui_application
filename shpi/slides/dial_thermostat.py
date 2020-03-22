@@ -67,7 +67,7 @@ class Dial(object):
         self.dial.set_shader(graphics.MATSH)
 
         self.actval = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=10, point_size=100) 
-        self.temp_block = pi3d.TextBlock(0, 0, 0.1, 0.0, 6, justify=0.5, text_format="0°", size=0.79,
+        self.temp_block = pi3d.TextBlock(0, 0, 0.1, 0.0, 6, justify=0.5, text_format="0°", size=0.99,
                     spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
         self.actval.add_text_block(self.temp_block)
 
@@ -111,6 +111,8 @@ class Dial(object):
                 self.y1 = self.mid * cos(radians(self.degree))
            
            else:
+               self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
+
                if self.value != peripherals.eg_object.set_temp:
                 self.changed = True
                 self.value = peripherals.eg_object.set_temp 
@@ -229,7 +231,7 @@ motiondetection = pi3d.TextBlock(290, -175, 0.1, 0.0, 15, text_format=unichr(
 text.add_text_block(motiondetection)
 
 if config.HEATINGRELAY != 0:
-    heating = pi3d.TextBlock(172, -180, 0.1, 0.0, 15, text_format=unichr(
+    heating = pi3d.TextBlock(-20, -180, 0.1, 0.0, 15, text_format=unichr(
         0xE004), size=0.79, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(heating)
 
