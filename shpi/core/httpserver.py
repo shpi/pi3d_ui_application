@@ -35,17 +35,17 @@ class ServerHandler(BaseHTTPRequestHandler):
                         self.send_header('Content-type', 'image/png')
                         self.end_headers()
                         try:
-                            os.popen('rm /media/ramdisk/screenshot.png')
+                            os.popen('rm /dev/shm/screenshot.png')
                             time.sleep(0.1)
                         except:
                             pass
 
-                        while not os.path.exists("/media/ramdisk/screenshot.png"):
+                        while not os.path.exists("/dev/shm/screenshot.png"):
                             time.sleep(0.15)
 
                         # self.wfile.write(screenshot.getvalue())
                         time.sleep(4)
-                        with open('/media/ramdisk/screenshot.png', 'rb') as content_file:
+                        with open('/dev/shm/screenshot.png', 'rb') as content_file:
                             self.wfile.write(content_file.read())
 
                     else:

@@ -15,7 +15,7 @@ graph = None
 
 def update_graph():
     global graph
-    rrdtool.graph("/media/ramdisk/graph1.png", "--full-size-mode", "--font", "DEFAULT:13:", "--color", "BACK#ffffffC0", "--color", "CANVAS#ffffff00",
+    rrdtool.graph("/dev/shm/graph1.png", "--full-size-mode", "--font", "DEFAULT:13:", "--color", "BACK#ffffffC0", "--color", "CANVAS#ffffff00",
                   "--color", "SHADEA#ffffff00", "--color", "SHADEB#ffffff00", "--width", "800", "--height", "480",
                         #"--rigid", "--upper-limit" ,"40",
                         "--start","-2h", "--title","", "--vertical-label",'° C',
@@ -48,7 +48,7 @@ def update_graph():
                         "LINE1:cooling#5555ff:Cooling",
                         "AREA:motion#00AA0070:Motion")
 
-    graph = pi3d.ImageSprite('/media/ramdisk/graph1.png',
+    graph = pi3d.ImageSprite('/dev/shm/graph1.png',
                              shader=graphics.SHADER, camera=graphics.CAMERA, w=800, h=480, z=1)
 
 graphupdated = 0
