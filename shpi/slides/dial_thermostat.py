@@ -44,8 +44,8 @@ class Dial(object):
         # first make tick vertices
         for x2 in range(self.angle_fr, self.angle_to, self.step):
             (s, c) = (sin(radians(x2)), cos(radians(x2))) # re-use for brevity below
-            tick_verts.extend([(self.inner * s, self.inner * c, 0.1),
-                                (self.outer * s, self.outer * c, 0.1)])
+            tick_verts.extend([(self.inner * s, self.inner * c, 0.2),
+                                (self.outer * s, self.outer * c, 0.2)])
             dial_verts.append((self.mid * s, self.mid * c, 2.0))
 
 
@@ -63,6 +63,16 @@ class Dial(object):
         self.bline.set_alpha(0.8)
         self.bline.set_shader(graphics.SHADER)
         self.bline.set_material((0.5,0.5,0.5))
+
+        self.trian = pi3d.Triangle(camera=graphics.CAMERA, x=self.x, y=self.y, z= 0.1, corners=(
+                (-15, (self.inner - 20),0), (0, self.inner+5,0), (15, (self.inner - 20),0)))
+        self.trian.set_shader(graphics.MATSH)
+        self.trian.set_material((0.3,0.1,0))
+        self.trian.set_alpha(1)
+
+
+
+ 
 
         self.dial = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x, y=self.y, vertices=dial_verts, line_width=84)
         self.dial.set_alpha(0.2)
@@ -84,6 +94,8 @@ class Dial(object):
         self.sensorvalue = peripherals.eg_object.act_temp
         self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
                                                             / (self.max_t - self.min_t))
+        self.trian.rotateToZ(-self.degree+self.step)
+
         if self.sensorvalue < self.min_t:
            self.sensorvalue = self.min_t
         if self.sensorvalue > self.max_t:
@@ -102,10 +114,10 @@ class Dial(object):
 
            updateelements = []
            self.changed = 0
-           if touched and (offset < 30): # check  movex, but not available here, modified soon
+           if touched: # and (abs(offset) < 30): 
             
-            if ((self.x1 - 140) < peripherals.xc and peripherals.xc  < (self.x1 + 140) and
-                (self.y1 - 140) < peripherals.yc and peripherals.yc  < (self.y1 + 140)):
+            if ((self.x1 - 100) < peripherals.xc and peripherals.xc  < (self.x1 + 100) and
+                (self.y1 - 100) < peripherals.yc and peripherals.yc  < (self.y1 + 100)):
                 self.changed = 2
                  
                 peripherals.lastx, peripherals.lasty  = peripherals.xc,peripherals.yc # reset movex, to avoid sliding while changing dial
@@ -120,7 +132,7 @@ class Dial(object):
                         self.degree = self.angle_fr
                     if self.degree > self.angle_to:
                         self.degree = self.angle_to
-
+                    self.trian.rotateToZ(-self.degree+self.step)
                     peripherals.eg_object.set_temp = (self.min_t + (self.degree - self.angle_fr)
                              / (self.angle_to - self.angle_fr) * (self.max_t - self.min_t))
                     self.x1 = self.mid * sin(radians(self.degree)) + self.x
@@ -213,7 +225,7 @@ class Dial(object):
         if self.dot2_alpha >= 0.0:
             self.dot2_alpha -= 0.1
             self.dot2.set_alpha(self.dot2_alpha)
-            if offset < 30:
+            if abs(offset) < 30:
                 self.dot2.draw()
             if self.dot2_alpha < 0:
                 self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
@@ -226,9 +238,10 @@ class Dial(object):
                 self.ticks.set_alpha(self.ticks_alpha)
                 if self.ticks_alpha >= 1.0:
                     self.ticks_alpha = 0.1
-            if offset < 30:
+            if abs(offset) < 30:
                 self.sensorticks.draw()
                 self.ticks.draw()
+                self.trian.draw()
         self.dial.draw()
         self.actval.draw()
 
