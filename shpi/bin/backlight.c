@@ -62,7 +62,7 @@ writebl(-1);
 bcm2835_delayMicroseconds(10);
 if (bcm2835_gpio_lev(BLT)) {errors++;} else {errors = 0;}
 bcm2835_delayMicroseconds(900);
-if (errors > 3) {initbl();}
+if (errors > 3) {initbl(); errors = 0;}
 }
 
 }

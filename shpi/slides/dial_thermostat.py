@@ -26,7 +26,7 @@ except NameError:
 
 class Dial(object):
     def __init__(self, angle_fr=-140, angle_to=140, step=8, x = 0 , y = 0, outer=250, inner=180,
-                min_t=15, max_t=35, shader=None, camera=None):
+                min_t=15, max_t=30, shader=None, camera=None):
 
         self.angle_fr = angle_fr
         self.angle_to = angle_to
@@ -84,6 +84,7 @@ class Dial(object):
         self.sensorvalue = peripherals.eg_object.act_temp
         self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
                                                             / (self.max_t - self.min_t))
+
         self.sensordegreee = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
         
@@ -102,14 +103,14 @@ class Dial(object):
             
             if ((self.x1 - 140) < peripherals.xc and peripherals.xc  < (self.x1 + 140) and
                 (self.y1 - 140) < peripherals.yc and peripherals.yc  < (self.y1 + 140)):
-
-
+                self.changed = 2
+                 
                 peripherals.lastx, peripherals.lasty  = peripherals.xc,peripherals.yc # reset movex, to avoid sliding while changing dial
                 if self.degree != int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y))):
                     self.degree = int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y)))
                     self.changed = 2
                     updateelements.append((self.bline, (None, 0.3, None, -1.0)))
-
+                    peripherals.clicksound()
                     if self.degree < self.angle_fr:
                         self.degree = self.angle_fr
                     if self.degree > self.angle_to:
@@ -122,7 +123,6 @@ class Dial(object):
 
 
            else:
-               self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
 
                if (self.value != peripherals.eg_object.set_temp) or (self.sensorvalue != peripherals.eg_object.act_temp) :
                 self.changed = 1
@@ -134,6 +134,9 @@ class Dial(object):
                 self.x1 = self.mid * sin(radians(self.degree)) + self.x
                 self.y1 = self.mid * cos(radians(self.degree)) + self.y
                 self.sensorvalue = peripherals.eg_object.act_temp
+                if self.dot2_alpha < 0:
+                    self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
+                self.actval.regen()
                 updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
                 self.sensordegree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
@@ -173,15 +176,19 @@ class Dial(object):
                     #b.set_material(rgb)
 
            
-           self.actval.regen()
 
            if self.changed > 1:
-               self.temp_block.set_text(text_format="{:4.1f}°".format(self.value))
+               self.temp_block.set_text(text_format="{:4.1f}°".format(peripherals.eg_object.set_temp))
+               rgbval = round((self.degree - self.angle_fr) / (self.angle_to - self.angle_fr), 2) # rgbval 0.0 - 1.0
+
+               self.temp_block.colouring.set_colour([rgbval, 0, 1 - rgbval])
                self.dot2.position(self.x1, self.y1, 0.5)
                self.dot2_alpha = 1.0
                self.ticks_alpha = 0.0
                self.bline.draw()
                self.changed = 1
+               self.actval.regen()
+
                
             
 
@@ -192,6 +199,7 @@ class Dial(object):
             self.dot2.draw()
             if self.dot2_alpha < 0:
                 self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
+                self.temp_block.colouring.set_colour([1, 1, 1])
                 self.actval.regen()
                 self.ticks_alpha = 0
         else:
