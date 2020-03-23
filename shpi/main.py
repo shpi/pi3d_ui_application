@@ -247,7 +247,7 @@ if config.GUI:
             logging.debug('FPS={:.1f}'.format(f / (now - start)))
             f = 0
             start = now
-        if not config.subslide:
+        if config.subslide is None:
             if bg_alpha < 1.0:   # fade to new background
                 activity = True  # we calculate more frames, when there is activity, otherwise we add sleep.time at end
                 bg_alpha += 0.01
@@ -317,7 +317,7 @@ if config.GUI:
                     bg_alpha = 0
             slide_offset -= 400
 
-        if config.subslide != None:
+        if config.subslide is not None:
             activity = subslides[config.subslide].inloop(textchange, activity)
         elif -1 < peripherals.eg_object.slide < len(config.slides):
             activity, slide_offset = slides[peripherals.eg_object.slide].inloop(

@@ -2,7 +2,7 @@ DEMO = True  # shows demo slides
 GUI = True # turn off all graphical output
 # "logfile.txt" # None logs to screen, filename logs (appends) to file
 LOG_FILE = None # NB watch out if logging to file - will keep getting bigger!
-LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
+LOG_LEVEL = "WARNING"  # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
 
 TMDELAY = 200  # delay for changing backgrounds
 INFRARED_TM = 3  # s between checking infrared sensor
@@ -43,6 +43,10 @@ VENTRELAY = 0  # off
 MIN_HUMIDITY_THRESHOLD = 0
 MAX_HUMIDITY_THRESHOLD = 0
 AIR_QUALITY_THRESHOLD = 0
+
+IIP = "192.168.0.23" #IPv4 of intercom remote RPi
+IUSER = "pi" # user name for remote RPi
+IPW = "pi" # password for remote RPi login
 
 ICALLINK = 'muellkalender.ics'  # also http possible
 
