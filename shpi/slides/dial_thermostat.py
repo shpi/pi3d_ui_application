@@ -72,17 +72,21 @@ class Dial(object):
 
 
 
- 
-
         self.dial = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x, y=self.y, vertices=dial_verts, line_width=84)
         self.dial.set_alpha(0.2)
         self.dial.set_shader(graphics.MATSH)
         self.dial.set_material((0,0,0))
 
-        self.actval = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=10, point_size=100) 
+        self.actval = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=14, point_size=100) 
         self.temp_block = pi3d.TextBlock(self.x, self.y + 10, 0.1, 0.0, 6, justify=0.5, text_format="0°", size=0.99,
                     spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
         self.actval.add_text_block(self.temp_block)
+
+
+        self.temp_set = pi3d.TextBlock(0, self.inner-30, 0.1, 0, 4, text_format="{:4.1f}".format(peripherals.eg_object.set_temp), size=0.35, spacing="F", space=0.02,
+            colour=(1.0, 1.0, 1.0, 1), justify=0.6)
+        self.actval.add_text_block(self.temp_set)
+
 
         self.dot2= pi3d.Disk(radius=30, sides=20,x=self.x,y=self.y, z=0.1, rx=90, camera=graphics.CAMERA)
         self.dot2.set_shader(graphics.MATSH)
@@ -96,6 +100,8 @@ class Dial(object):
                                                             / (self.max_t - self.min_t))
         self.trian.rotateToZ(-self.degree+self.step)
 
+
+
         if self.sensorvalue < self.min_t:
            self.sensorvalue = self.min_t
         if self.sensorvalue > self.max_t:
@@ -108,6 +114,10 @@ class Dial(object):
         self.changed = 0
         self.dot2.position(self.x1, self.y1, 0.5)
         self.dot2_alpha = 1.0
+        self.temp_set.set_position(x= ((self.inner-33) * sin(radians(self.degree-self.step)) + self.x), 
+                                   y= ((self.inner-33) * cos(radians(self.degree-self.step)) + self.y),
+                                   rot=-self.degree+self.step)
+
         
 
     def check_touch(self,touched,offset):
@@ -133,6 +143,18 @@ class Dial(object):
                     if self.degree > self.angle_to:
                         self.degree = self.angle_to
                     self.trian.rotateToZ(-self.degree+self.step)
+
+                    self.temp_set.set_position(x= ((self.inner-33) * sin(radians(self.degree-self.step)) + self.x), 
+                                   y= ((self.inner-33) * cos(radians(self.degree-self.step)) + self.y),
+                                   rot=-self.degree+self.step)
+
+
+
+
+
+
+
+
                     peripherals.eg_object.set_temp = (self.min_t + (self.degree - self.angle_fr)
                              / (self.angle_to - self.angle_fr) * (self.max_t - self.min_t))
                     self.x1 = self.mid * sin(radians(self.degree)) + self.x
@@ -206,6 +228,7 @@ class Dial(object):
 
            if self.changed > 1:
                self.temp_block.set_text(text_format="{:4.1f}°".format(peripherals.eg_object.set_temp))
+               self.temp_set.set_text(text_format="{:4.1f}".format(peripherals.eg_object.set_temp))
                rgbval = round((self.degree - self.angle_fr) / (self.angle_to - self.angle_fr), 2) # rgbval 0.0 - 1.0
 
                self.temp_block.colouring.set_colour([rgbval, 0, 1 - rgbval])
