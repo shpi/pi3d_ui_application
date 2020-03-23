@@ -26,7 +26,7 @@ except NameError:
 
 class Dial(object):
     def __init__(self, angle_fr=-140, angle_to=140, step=8, x = 0 , y = 0, outer=250, inner=180,
-                min_t=15, max_t=35, shader=None, camera=None):
+                min_t=15, max_t=30, shader=None, camera=None):
 
         self.angle_fr = angle_fr
         self.angle_to = angle_to
@@ -110,7 +110,7 @@ class Dial(object):
                     self.degree = int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y)))
                     self.changed = 2
                     updateelements.append((self.bline, (None, 0.3, None, -1.0)))
-
+                    peripherals.clicksound()
                     if self.degree < self.angle_fr:
                         self.degree = self.angle_fr
                     if self.degree > self.angle_to:
