@@ -134,7 +134,8 @@ class Dial(object):
                 self.x1 = self.mid * sin(radians(self.degree)) + self.x
                 self.y1 = self.mid * cos(radians(self.degree)) + self.y
                 self.sensorvalue = peripherals.eg_object.act_temp
-                self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
+                if self.dot2_alpha < 0:
+                    self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
                 self.actval.regen()
                 updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
                 self.sensordegree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
