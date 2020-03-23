@@ -25,7 +25,7 @@ except NameError:
 
 
 class Dial(object):
-    def __init__(self, angle_fr=-135, angle_to=135, step=5, outer=240, inner=200,
+    def __init__(self, angle_fr=-140, angle_to=140, step=5, x = 0 , y = 0, outer=240, inner=200,
                 min_t=15, max_t=35, shader=None, camera=None):
 
         self.angle_fr = angle_fr
@@ -36,12 +36,14 @@ class Dial(object):
         self.mid = (outer + inner) / 2
         self.min_t = min_t
         self.max_t = max_t
+        self.x = x
+        self.y = y
 
         tick_verts = []
         dial_verts = []
         # first make tick vertices
-        for x in range(self.angle_fr, self.angle_to, self.step):
-            (s, c) = (sin(radians(x)), cos(radians(x))) # re-use for brevity below
+        for x2 in range(self.angle_fr, self.angle_to, self.step):
+            (s, c) = (sin(radians(x2)), cos(radians(x2))) # re-use for brevity below
             tick_verts.extend([(self.inner * s, self.inner * c, 0.1),
                                 (self.outer * s, self.outer * c, 0.1)])
             dial_verts.append((self.mid * s, self.mid * c, 2.0))
@@ -49,29 +51,29 @@ class Dial(object):
 
         tex = pi3d.Texture(resource_filename("shpi", "sprites/color_gradient.jpg"))
 
-        self.ticks = pi3d.PolygonLines(camera=graphics.CAMERA, vertices=tick_verts, strip=False, line_width=5)
+        self.ticks = pi3d.PolygonLines(camera=graphics.CAMERA,x=self.x,y=self.y, vertices=tick_verts, strip=False, line_width=5)
         self.ticks.set_shader(graphics.MATSH)
         self.ticks.set_alpha(0.8)
 
-        self.sensorticks = pi3d.PolygonLines(camera=graphics.CAMERA, vertices=tick_verts, line_width=5, strip=False)
+        self.sensorticks = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x,y=self.y,vertices=tick_verts, line_width=5, strip=False)
         self.sensorticks.set_shader(graphics.MATSH)
 
-        self.bline = pi3d.PolygonLines(camera=graphics.CAMERA, vertices=dial_verts, line_width=40)
+        self.bline = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x,y=self.y,vertices=dial_verts, line_width=40)
         self.bline.set_textures([tex])
         self.bline.set_alpha(0.8)
         self.bline.set_shader(graphics.SHADER)
         self.bline.set_material((0.5,0.5,0.5))
 
-        self.dial = pi3d.PolygonLines(camera=graphics.CAMERA, vertices=dial_verts, line_width=8)
+        self.dial = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x, y=self.y, vertices=dial_verts, line_width=7)
         self.dial.set_alpha(0.2)
         self.dial.set_shader(graphics.MATSH)
 
         self.actval = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=10, point_size=100) 
-        self.temp_block = pi3d.TextBlock(0, 0, 0.1, 0.0, 6, justify=0.5, text_format="0°", size=0.99,
+        self.temp_block = pi3d.TextBlock(self.x, self.y + 10, 0.1, 0.0, 6, justify=0.5, text_format="0°", size=0.99,
                     spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
         self.actval.add_text_block(self.temp_block)
 
-        self.dot2= pi3d.Disk(radius=20, sides=20, z=0.1, rx=90, camera=graphics.CAMERA)
+        self.dot2= pi3d.Disk(radius=20, sides=20,x=self.x,y=self.y, z=0.1, rx=90, camera=graphics.CAMERA)
         self.dot2.set_shader(graphics.MATSH)
         self.dot2.set_material((1, 1, 1))
         self.dot2_alpha = 1.0
@@ -81,9 +83,9 @@ class Dial(object):
         self.sensorvalue = peripherals.eg_object.act_temp
         self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
                                                             / (self.max_t - self.min_t))
-        self.x1 = self.mid * sin(radians(self.degree))
-        self.y1 = self.mid * cos(radians(self.degree))
-        self.changed = False
+        self.x1 = self.mid * sin(radians(self.degree)) + self.x
+        self.y1 = self.mid * cos(radians(self.degree)) + self.y
+        self.changed = 0
         self.dot2.position(self.x1, self.y1, 0.5)
         self.dot2_alpha = 1.0
         
@@ -92,34 +94,37 @@ class Dial(object):
 
            updateelements = []
 
-           if touched:
+           if touched and (abs(peripherals.lastx - peripherals.xc) < 50): # check  movex, but not available here, modified soon
             
-            if ((self.x1 - 80) < peripherals.xc and peripherals.xc  < (self.x1 + 80) and
-                (self.y1 - 80) < peripherals.yc and peripherals.yc  < (self.y1 + 80)):
-                self.x1, self.y1 = peripherals.xc,peripherals.yc
+            if ((self.x1 - 100) < peripherals.xc and peripherals.xc  < (self.x1 + 100) and
+                (self.y1 - 100) < peripherals.yc and peripherals.yc  < (self.y1 + 100)):
+                self.changed = 1                
                 peripherals.lastx, peripherals.lasty  = peripherals.xc,peripherals.yc # reset movex, to avoid sliding while changing dial
-                self.degree = int(degrees(atan2(self.x1, self.y1)))
-                if self.degree < self.angle_fr:
-                    self.degree = self.angle_fr
-                if self.degree > self.angle_to:
-                    self.degree = self.angle_to
-                self.changed = True
-                self.value = (self.min_t + (self.degree - self.angle_fr)
+                if self.degree != int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y))):
+                    self.degree = int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y)))
+                    self.changed = 2
+
+                    if self.degree < self.angle_fr:
+                        self.degree = self.angle_fr
+                    if self.degree > self.angle_to:
+                        self.degree = self.angle_to
+
+                    self.value = (self.min_t + (self.degree - self.angle_fr)
                              / (self.angle_to - self.angle_fr) * (self.max_t - self.min_t))
-                peripherals.eg_object.set_temp = self.value
-                self.x1 = self.mid * sin(radians(self.degree))
-                self.y1 = self.mid * cos(radians(self.degree))
+                    peripherals.eg_object.set_temp = self.value
+                    self.x1 = self.mid * sin(radians(self.degree)) + self.x
+                    self.y1 = self.mid * cos(radians(self.degree)) + self.y
            
            else:
                self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
 
                if self.value != peripherals.eg_object.set_temp:
-                self.changed = True
+                self.changed = 1
                 self.value = peripherals.eg_object.set_temp 
                 self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
                                                             / (self.max_t - self.min_t))
-                self.x1 = self.mid * sin(radians(self.degree))
-                self.y1 = self.mid * cos(radians(self.degree))
+                self.x1 = self.mid * sin(radians(self.degree)) + self.x
+                self.y1 = self.mid * cos(radians(self.degree)) + self.y
            self.sensorvalue = peripherals.eg_object.act_temp
            self.sensordegree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
@@ -129,11 +134,16 @@ class Dial(object):
                     self.ticks.set_material((0,0,1))
  
 
-           updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
-           updateelements.append((self.sensorticks, (0.2, None, None, -1.0)))
-           updateelements.append((self.dial, (-1.0, -1.0, 0.1, 0.1)))
-           if self.changed:
+           #updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
+           #updateelements.append((self.sensorticks, (0.2, None, None, -1.0)))
+           #updateelements.append((self.dial, (-1.0, -1.0, 0.1, 0.1)))
+           if self.changed > 1:
                     updateelements.append((self.bline, (None, 0.3, None, -1.0)))
+           elif self.changed < 1:
+               updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
+               updateelements.append((self.sensorticks, (0.2, None, None, -1.0)))
+               updateelements.append((self.dial, (-1.0, -1.0, 0.1, 0.1)))
+      
 
            for (line_shape, z) in updateelements:
                     b = line_shape.buf[0]
@@ -160,18 +170,18 @@ class Dial(object):
            
            self.actval.regen()
 
-           if self.changed:
+           if self.changed > 0:
                self.temp_block.set_text(text_format="{:4.1f}°".format(self.value))
                self.dot2.position(self.x1, self.y1, 0.5)
                self.dot2_alpha = 1.0
                self.ticks_alpha = 0.0
                self.bline.draw()
-               self.changed = False
+               self.changed = 0
             
 
     def draw(self):
         if self.dot2_alpha >= 0.0:
-            self.dot2_alpha -= 0.05
+            self.dot2_alpha -= 0.1
             self.dot2.set_alpha(self.dot2_alpha)
             self.dot2.draw()
             if self.dot2_alpha < 0:
@@ -186,7 +196,7 @@ class Dial(object):
                     self.ticks_alpha = 0.5
 
             self.ticks.draw()
-        self.sensorticks.draw()
+            self.sensorticks.draw()
         self.dial.draw()
         self.actval.draw()
 
@@ -200,7 +210,7 @@ text = pi3d.PointText(graphics.pointFont, graphics.CAMERA,
 
 
 if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
-    offset_temp_block = pi3d.TextBlock(0, -50, 0.1, 0.0, 15, data_obj=peripherals.eg_object, text_format=u"{:s}", attr="tempoffsetstr",
+    offset_temp_block = pi3d.TextBlock(0, -70, 0.1, 0.0, 15, data_obj=peripherals.eg_object, text_format=u"{:s}", attr="tempoffsetstr",
                                        size=0.5, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0), justify=0.5)
     text.add_text_block(offset_temp_block)
 
@@ -211,12 +221,12 @@ if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
     else:
         offset_temp_block.colouring.set_colour([1, 1, 1])
 
-cloud = pi3d.TextBlock(-25, -100, 0.1, 0.0, 1, text_format=unichr(0xE002),
+cloud = pi3d.TextBlock(-25, -120, 0.1, 0.0, 1, text_format=unichr(0xE002),
                            size=0.5, spacing="C", space=0.6, colour=(1, 1, 1, 0.9))
 text.add_text_block(cloud)
 
 if hasattr(peripherals.eg_object, 'pressure'):
-    barometer = pi3d.TextBlock(25, -95, 0.1, 0.0, 2, text_format=unichr(
+    barometer = pi3d.TextBlock(25, -115, 0.1, 0.0, 2, text_format=unichr(
         0xE00B), size=0.6, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 0.9))
     text.add_text_block(barometer)
     baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=(
@@ -244,7 +254,7 @@ if config.COOLINGRELAY != 0:
     text.add_text_block(cooling)
 
 
-dial = Dial()
+dial = Dial(y = -20)
 dial.check_touch(False)
 
 def inloop(textchange=False, activity=False, offset=0):
