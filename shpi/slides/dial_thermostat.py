@@ -98,17 +98,19 @@ class Dial(object):
         self.dot2_alpha = 1.0
         
 
-    def check_touch(self,touched):
+    def check_touch(self,touched,offset):
 
            updateelements = []
            self.changed = 0
-           if touched and (abs(peripherals.lastx - peripherals.xc) < 50): # check  movex, but not available here, modified soon
+           if touched and (offset < 30): # check  movex, but not available here, modified soon
             
             if ((self.x1 - 140) < peripherals.xc and peripherals.xc  < (self.x1 + 140) and
                 (self.y1 - 140) < peripherals.yc and peripherals.yc  < (self.y1 + 140)):
                 self.changed = 2
                  
                 peripherals.lastx, peripherals.lasty  = peripherals.xc,peripherals.yc # reset movex, to avoid sliding while changing dial
+                offset = 0
+
                 if self.degree != int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y))):
                     self.degree = int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y)))
                     self.changed = 2
@@ -129,7 +131,6 @@ class Dial(object):
 
                if (self.value != peripherals.eg_object.set_temp) or (self.sensorvalue != peripherals.eg_object.act_temp) :
                 self.changed = 1
-                #updateelements.append((self.sensorticks, (0.3, None, None, -1.0)))
 
                 self.value = peripherals.eg_object.set_temp 
                 self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
@@ -203,6 +204,8 @@ class Dial(object):
                self.changed = 1
                self.actval.regen()
 
+
+           return offset
                
             
 
@@ -284,9 +287,15 @@ if config.COOLINGRELAY != 0:
 
 
 dial = Dial(y = -20)
-dial.check_touch(False)
+dial.check_touch(False,0)
 
 def inloop(textchange=False, activity=False, offset=0):
+
+    if peripherals.touched():
+        offset = dial.check_touch(True, offset)
+    elif dial.changed > 0:
+        textchange = True
+ 
 
     if offset != 0:
         graphics.slider_change(dial.actval.text, offset)
@@ -296,12 +305,8 @@ def inloop(textchange=False, activity=False, offset=0):
         if offset == 0:
             textchange = True
 
-    if peripherals.touched():
-        dial.check_touch(True)
-    elif dial.changed > 0:
-        textchange = True
     if textchange:
-        dial.check_touch(False)
+        offset = dial.check_touch(False, offset)
         if peripherals.eg_object.tempoffset > 0:
             offset_temp_block.colouring.set_colour([1, 0, 0])
         elif peripherals.eg_object.tempoffset < 0:
