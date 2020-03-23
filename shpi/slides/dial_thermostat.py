@@ -176,6 +176,9 @@ class Dial(object):
 
            if self.changed > 1:
                self.temp_block.set_text(text_format="{:4.1f}°".format(peripherals.eg_object.set_temp))
+               rgbval = round((self.degree - self.angle_fr) / (self.angle_to - self.angle_fr), 2) # rgbval 0.0 - 1.0
+
+               self.temp_block.colouring.set_colour([rgbval, 0, 1 - rgbval])
                self.dot2.position(self.x1, self.y1, 0.5)
                self.dot2_alpha = 1.0
                self.ticks_alpha = 0.0
@@ -193,6 +196,7 @@ class Dial(object):
             self.dot2.draw()
             if self.dot2_alpha < 0:
                 self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
+                self.temp_block.colouring.set_colour([1, 1, 1])
                 self.actval.regen()
                 self.ticks_alpha = 0
         else:
