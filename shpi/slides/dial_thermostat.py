@@ -25,7 +25,7 @@ except NameError:
 
 
 class Dial(object):
-    def __init__(self, angle_fr=-140, angle_to=140, step=5, x = 0 , y = 0, outer=240, inner=200,
+    def __init__(self, angle_fr=-140, angle_to=140, step=8, x = 0 , y = 0, outer=250, inner=180,
                 min_t=15, max_t=35, shader=None, camera=None):
 
         self.angle_fr = angle_fr
@@ -51,29 +51,30 @@ class Dial(object):
 
         tex = pi3d.Texture(resource_filename("shpi", "sprites/color_gradient.jpg"))
 
-        self.ticks = pi3d.PolygonLines(camera=graphics.CAMERA,x=self.x,y=self.y, vertices=tick_verts, strip=False, line_width=5)
+        self.ticks = pi3d.PolygonLines(camera=graphics.CAMERA,x=self.x,y=self.y, vertices=tick_verts, strip=False, line_width=8)
         self.ticks.set_shader(graphics.MATSH)
         self.ticks.set_alpha(0.8)
 
-        self.sensorticks = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x,y=self.y,vertices=tick_verts, line_width=5, strip=False)
+        self.sensorticks = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x,y=self.y,vertices=tick_verts, line_width=8, strip=False)
         self.sensorticks.set_shader(graphics.MATSH)
 
-        self.bline = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x,y=self.y,vertices=dial_verts, line_width=40)
+        self.bline = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x,y=self.y,vertices=dial_verts, line_width=80)
         self.bline.set_textures([tex])
         self.bline.set_alpha(0.8)
         self.bline.set_shader(graphics.SHADER)
         self.bline.set_material((0.5,0.5,0.5))
 
-        self.dial = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x, y=self.y, vertices=dial_verts, line_width=7)
+        self.dial = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x, y=self.y, vertices=dial_verts, line_width=84)
         self.dial.set_alpha(0.2)
         self.dial.set_shader(graphics.MATSH)
+        self.dial.set_material((0,0,0))
 
         self.actval = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=10, point_size=100) 
         self.temp_block = pi3d.TextBlock(self.x, self.y + 10, 0.1, 0.0, 6, justify=0.5, text_format="0°", size=0.99,
                     spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
         self.actval.add_text_block(self.temp_block)
 
-        self.dot2= pi3d.Disk(radius=20, sides=20,x=self.x,y=self.y, z=0.1, rx=90, camera=graphics.CAMERA)
+        self.dot2= pi3d.Disk(radius=30, sides=20,x=self.x,y=self.y, z=0.1, rx=90, camera=graphics.CAMERA)
         self.dot2.set_shader(graphics.MATSH)
         self.dot2.set_material((1, 1, 1))
         self.dot2_alpha = 1.0
@@ -83,6 +84,9 @@ class Dial(object):
         self.sensorvalue = peripherals.eg_object.act_temp
         self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
                                                             / (self.max_t - self.min_t))
+        self.sensordegreee = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
+                                                            / (self.max_t - self.min_t))
+        
         self.x1 = self.mid * sin(radians(self.degree)) + self.x
         self.y1 = self.mid * cos(radians(self.degree)) + self.y
         self.changed = 0
@@ -93,56 +97,57 @@ class Dial(object):
     def check_touch(self,touched):
 
            updateelements = []
-
+           self.changed = 0
            if touched and (abs(peripherals.lastx - peripherals.xc) < 50): # check  movex, but not available here, modified soon
             
-            if ((self.x1 - 100) < peripherals.xc and peripherals.xc  < (self.x1 + 100) and
-                (self.y1 - 100) < peripherals.yc and peripherals.yc  < (self.y1 + 100)):
-                self.changed = 1                
+            if ((self.x1 - 140) < peripherals.xc and peripherals.xc  < (self.x1 + 140) and
+                (self.y1 - 140) < peripherals.yc and peripherals.yc  < (self.y1 + 140)):
+
+
                 peripherals.lastx, peripherals.lasty  = peripherals.xc,peripherals.yc # reset movex, to avoid sliding while changing dial
                 if self.degree != int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y))):
                     self.degree = int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y)))
                     self.changed = 2
+                    updateelements.append((self.bline, (None, 0.3, None, -1.0)))
 
                     if self.degree < self.angle_fr:
                         self.degree = self.angle_fr
                     if self.degree > self.angle_to:
                         self.degree = self.angle_to
 
-                    self.value = (self.min_t + (self.degree - self.angle_fr)
+                    peripherals.eg_object.set_temp = (self.min_t + (self.degree - self.angle_fr)
                              / (self.angle_to - self.angle_fr) * (self.max_t - self.min_t))
-                    peripherals.eg_object.set_temp = self.value
                     self.x1 = self.mid * sin(radians(self.degree)) + self.x
                     self.y1 = self.mid * cos(radians(self.degree)) + self.y
-           
+
+
            else:
                self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
 
-               if self.value != peripherals.eg_object.set_temp:
+               if (self.value != peripherals.eg_object.set_temp) or (self.sensorvalue != peripherals.eg_object.act_temp) :
                 self.changed = 1
+                updateelements.append((self.sensorticks, (0.2, None, None, -1.0)))
+
                 self.value = peripherals.eg_object.set_temp 
                 self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
                                                             / (self.max_t - self.min_t))
                 self.x1 = self.mid * sin(radians(self.degree)) + self.x
                 self.y1 = self.mid * cos(radians(self.degree)) + self.y
-           self.sensorvalue = peripherals.eg_object.act_temp
-           self.sensordegree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
+                self.sensorvalue = peripherals.eg_object.act_temp
+                updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
+                self.sensordegree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
-           if  self.value > self.sensorvalue:
+                if  self.value > self.sensorvalue:
                     self.ticks.set_material((1, 0 , 0))
-           else:
+                else:
                     self.ticks.set_material((0,0,1))
  
 
            #updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
            #updateelements.append((self.sensorticks, (0.2, None, None, -1.0)))
            #updateelements.append((self.dial, (-1.0, -1.0, 0.1, 0.1)))
-           if self.changed > 1:
-                    updateelements.append((self.bline, (None, 0.3, None, -1.0)))
-           elif self.changed < 1:
-               updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
-               updateelements.append((self.sensorticks, (0.2, None, None, -1.0)))
-               updateelements.append((self.dial, (-1.0, -1.0, 0.1, 0.1)))
+           #updateelements.append((self.sensorticks, (0.2, None, None, -1.0)))
+           #updateelements.append((self.dial, (-1.0, -1.0, 0.1, 0.1)))
       
 
            for (line_shape, z) in updateelements:
@@ -170,13 +175,14 @@ class Dial(object):
            
            self.actval.regen()
 
-           if self.changed > 0:
+           if self.changed > 1:
                self.temp_block.set_text(text_format="{:4.1f}°".format(self.value))
                self.dot2.position(self.x1, self.y1, 0.5)
                self.dot2_alpha = 1.0
                self.ticks_alpha = 0.0
                self.bline.draw()
-               self.changed = 0
+               self.changed = 1
+               
             
 
     def draw(self):
@@ -266,7 +272,8 @@ def inloop(textchange=False, activity=False, offset=0):
 
     if peripherals.touched():
         dial.check_touch(True)
-
+    elif dial.changed > 0:
+        textchange = True
     if textchange:
         dial.check_touch(False)
         if peripherals.eg_object.tempoffset > 0:
