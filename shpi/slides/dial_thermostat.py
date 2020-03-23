@@ -84,11 +84,11 @@ class Dial(object):
         self.sensorvalue = peripherals.eg_object.act_temp
         self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
                                                             / (self.max_t - self.min_t))
-        if self.sensorvalue < min_t:
-           self.sensorvalue = min_t
-        if self.sensorvalue > max_t:
-           self.sensorvalue = max_t
-        self.sensordegreee = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
+        if self.sensorvalue < self.min_t:
+           self.sensorvalue = self.min_t
+        if self.sensorvalue > self.max_t:
+           self.sensorvalue = self.max_t
+        self.sensordegree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
         
         self.x1 = self.mid * sin(radians(self.degree)) + self.x
@@ -140,10 +140,10 @@ class Dial(object):
                 if self.dot2_alpha < 0:
                     self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
                 self.actval.regen()
-                if self.sensorvalue < min_t:
-                    self.sensorvalue = min_t
-                if self.sensorvalue > max_t:
-                    self.sensorvalue = max_t
+                if self.sensorvalue < self.min_t:
+                    self.sensorvalue = self.min_t
+                if self.sensorvalue > self.max_t:
+                    self.sensorvalue = self.max_t
                 self.sensordegree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
                 updateelements.append((self.ticks, (0.3, -1.0, 0.3, -1.0)))
