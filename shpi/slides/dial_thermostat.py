@@ -25,7 +25,7 @@ except NameError:
 
 
 class Dial(object):
-    def __init__(self, angle_fr=-140, angle_to=140, step=8, x = 0 , y = 0, outer=250, inner=180,
+    def __init__(self, angle_fr=-140, angle_to=145, step=8, x = 0 , y = 0, outer=250, inner=180,
                 min_t=15, max_t=30, shader=None, camera=None):
 
         self.angle_fr = angle_fr
@@ -64,21 +64,20 @@ class Dial(object):
         self.bline.set_shader(graphics.SHADER)
         self.bline.set_material((0.5,0.5,0.5))
 
-        self.trian = pi3d.Triangle(camera=graphics.CAMERA, x=self.x, y=self.y, z= 0.1, corners=(
+        self.trian = pi3d.Triangle(camera=graphics.CAMERA, x=self.x, y=self.y, z = 0.1, corners=(
                 (-15, (self.inner - 20),0), (0, self.inner+5,0), (15, (self.inner - 20),0)))
         self.trian.set_shader(graphics.MATSH)
         self.trian.set_material((0.3,0.1,0))
         self.trian.set_alpha(1)
 
 
-
         self.dial = pi3d.PolygonLines(camera=graphics.CAMERA, x=self.x, y=self.y, vertices=dial_verts, line_width=84)
-        self.dial.set_alpha(0.2)
+        self.dial.set_alpha(0.4)
         self.dial.set_shader(graphics.MATSH)
         self.dial.set_material((0,0,0))
 
         self.actval = pi3d.PointText(graphics.pointFont, graphics.CAMERA, max_chars=14, point_size=100) 
-        self.temp_block = pi3d.TextBlock(self.x, self.y + 10, 0.1, 0.0, 6, justify=0.5, text_format="0°", size=0.99,
+        self.temp_block = pi3d.TextBlock(self.x, self.y + 10, 0.1, 0.0, 6, justify=0.6, text_format="0°", size=0.99,
                     spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
         self.actval.add_text_block(self.temp_block)
 
@@ -86,6 +85,11 @@ class Dial(object):
         self.temp_set = pi3d.TextBlock(0, self.inner-30, 0.1, 0, 4, text_format="{:4.1f}".format(peripherals.eg_object.set_temp), size=0.35, spacing="F", space=0.02,
             colour=(1.0, 1.0, 1.0, 1), justify=0.6)
         self.actval.add_text_block(self.temp_set)
+
+        self.dot1= pi3d.Disk(radius=130, sides=30,x=self.x,y=self.y, z=2, rx=90, camera=graphics.CAMERA)
+        self.dot1.set_shader(graphics.MATSH)
+        self.dot1.set_material((0, 0, 0))
+        self.dot1.set_alpha(0.4)
 
 
         self.dot2= pi3d.Disk(radius=30, sides=20,x=self.x,y=self.y, z=0.1, rx=90, camera=graphics.CAMERA)
@@ -182,6 +186,12 @@ class Dial(object):
                 self.sensordegree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
                 updateelements.append((self.ticks, (0.3, -1.0, 0.3, -1.0)))
+                self.trian.rotateToZ(-self.degree+self.step)
+                self.temp_set.set_position(x= ((self.inner-33) * sin(radians(self.degree-self.step)) + self.x), 
+                                   y= ((self.inner-33) * cos(radians(self.degree-self.step)) + self.y),
+                                   rot=-self.degree+self.step)
+                self.temp_set.set_text(text_format="{:4.1f}".format(peripherals.eg_object.set_temp))
+        
 
 
                 if  self.value > self.sensorvalue:
@@ -245,6 +255,7 @@ class Dial(object):
             
 
     def draw(self, offset):
+        self.dot1.draw()
         if self.dot2_alpha >= 0.0:
             self.dot2_alpha -= 0.1
             self.dot2.set_alpha(self.dot2_alpha)
@@ -265,6 +276,7 @@ class Dial(object):
                 self.sensorticks.draw()
                 self.ticks.draw()
                 self.trian.draw()
+
         self.dial.draw()
         self.actval.draw()
 
@@ -289,12 +301,12 @@ if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
     else:
         offset_temp_block.colouring.set_colour([1, 1, 1])
 
-cloud = pi3d.TextBlock(-25, -120, 0.1, 0.0, 1, text_format=unichr(0xE002),
+cloud = pi3d.TextBlock(-35, -117, 0.1, 0.0, 1, text_format=unichr(0xE002),
                            size=0.5, spacing="C", space=0.6, colour=(1, 1, 1, 0.9))
 text.add_text_block(cloud)
 
 if hasattr(peripherals.eg_object, 'pressure'):
-    barometer = pi3d.TextBlock(25, -115, 0.1, 0.0, 2, text_format=unichr(
+    barometer = pi3d.TextBlock(15, -110, 0.1, 0.0, 2, text_format=unichr(
         0xE00B), size=0.6, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 0.9))
     text.add_text_block(barometer)
     baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=(
@@ -309,7 +321,7 @@ motiondetection = pi3d.TextBlock(290, -175, 0.1, 0.0, 15, text_format=unichr(
 text.add_text_block(motiondetection)
 
 if config.HEATINGRELAY != 0:
-    heating = pi3d.TextBlock(-20, -180, 0.1, 0.0, 15, text_format=unichr(
+    heating = pi3d.TextBlock(-20, -185, 0.1, 0.0, 15, text_format=unichr(
         0xE004), size=0.79, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(heating)
 
@@ -404,7 +416,7 @@ def inloop(textchange=False, activity=False, offset=0):
 
 
 
-
-    text.draw()
     dial.draw(offset)
+    text.draw()
+    
     return activity, offset
