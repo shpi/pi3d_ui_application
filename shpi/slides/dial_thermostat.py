@@ -84,7 +84,8 @@ class Dial(object):
         self.sensorvalue = peripherals.eg_object.act_temp
         self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
                                                             / (self.max_t - self.min_t))
-
+        if self.sensorvalue < 15:
+           self.sensorvalue = 15
         self.sensordegreee = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
         
@@ -126,7 +127,7 @@ class Dial(object):
 
                if (self.value != peripherals.eg_object.set_temp) or (self.sensorvalue != peripherals.eg_object.act_temp) :
                 self.changed = 1
-                updateelements.append((self.sensorticks, (0.2, None, None, -1.0)))
+                #updateelements.append((self.sensorticks, (0.3, None, None, -1.0)))
 
                 self.value = peripherals.eg_object.set_temp 
                 self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
@@ -137,13 +138,20 @@ class Dial(object):
                 if self.dot2_alpha < 0:
                     self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
                 self.actval.regen()
-                updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
                 self.sensordegree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
+                updateelements.append((self.ticks, (0.3, -1.0, 0.3, -1.0)))
+
+
                 if  self.value > self.sensorvalue:
                     self.ticks.set_material((1, 0 , 0))
+                    updateelements.append((self.sensorticks, (0.4, None, None, -1.0)))
+
                 else:
                     self.ticks.set_material((0,0,1))
+                    updateelements.append((self.sensorticks, (0.4, None, 0.4, -1.0)))
+
+                
  
 
            #updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
@@ -192,11 +200,12 @@ class Dial(object):
                
             
 
-    def draw(self):
+    def draw(self, offset):
         if self.dot2_alpha >= 0.0:
             self.dot2_alpha -= 0.1
             self.dot2.set_alpha(self.dot2_alpha)
-            self.dot2.draw()
+            if offset < 30:
+                self.dot2.draw()
             if self.dot2_alpha < 0:
                 self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
                 self.temp_block.colouring.set_colour([1, 1, 1])
@@ -204,13 +213,13 @@ class Dial(object):
                 self.ticks_alpha = 0
         else:
             if self.ticks_alpha <= 1.0:
-                self.ticks_alpha += 0.01
+                self.ticks_alpha += 0.05
                 self.ticks.set_alpha(self.ticks_alpha)
                 if self.ticks_alpha >= 1.0:
-                    self.ticks_alpha = 0.5
-
-            self.ticks.draw()
-            self.sensorticks.draw()
+                    self.ticks_alpha = 0.1
+            if offset < 30:
+                self.sensorticks.draw()
+                self.ticks.draw()
         self.dial.draw()
         self.actval.draw()
 
@@ -274,7 +283,10 @@ dial.check_touch(False)
 def inloop(textchange=False, activity=False, offset=0):
 
     if offset != 0:
+        graphics.slider_change(dial.actval.text, offset)
         offset = graphics.slider_change(text.text, offset)
+        graphics.slider_change(dial.dial, offset)
+
         if offset == 0:
             textchange = True
 
@@ -347,5 +359,5 @@ def inloop(textchange=False, activity=False, offset=0):
 
 
     text.draw()
-    dial.draw()
+    dial.draw(offset)
     return activity, offset
