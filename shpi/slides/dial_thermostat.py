@@ -84,6 +84,7 @@ class Dial(object):
         self.sensorvalue = peripherals.eg_object.act_temp
         self.degree = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.value - self.min_t)
                                                             / (self.max_t - self.min_t))
+
         self.sensordegreee = (self.angle_fr +  (self.angle_to - self.angle_fr) * (self.sensorvalue - self.min_t)
                                                             / (self.max_t - self.min_t))
         
@@ -102,8 +103,8 @@ class Dial(object):
             
             if ((self.x1 - 140) < peripherals.xc and peripherals.xc  < (self.x1 + 140) and
                 (self.y1 - 140) < peripherals.yc and peripherals.yc  < (self.y1 + 140)):
-
-
+                self.changed = 2
+                 
                 peripherals.lastx, peripherals.lasty  = peripherals.xc,peripherals.yc # reset movex, to avoid sliding while changing dial
                 if self.degree != int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y))):
                     self.degree = int(degrees(atan2(peripherals.lastx - self.x, peripherals.lasty - self.y)))
@@ -122,7 +123,6 @@ class Dial(object):
 
 
            else:
-               self.temp_block.set_text(text_format="{:4.1f}°".format(self.sensorvalue))
 
                if (self.value != peripherals.eg_object.set_temp) or (self.sensorvalue != peripherals.eg_object.act_temp) :
                 self.changed = 1
@@ -173,15 +173,16 @@ class Dial(object):
                     #b.set_material(rgb)
 
            
-           self.actval.regen()
 
            if self.changed > 1:
-               self.temp_block.set_text(text_format="{:4.1f}°".format(self.value))
+               self.temp_block.set_text(text_format="{:4.1f}°".format(peripherals.eg_object.set_temp))
                self.dot2.position(self.x1, self.y1, 0.5)
                self.dot2_alpha = 1.0
                self.ticks_alpha = 0.0
                self.bline.draw()
                self.changed = 1
+               self.actval.regen()
+
                
             
 
