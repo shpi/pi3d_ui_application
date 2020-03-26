@@ -25,7 +25,7 @@ from ..core import graphics
 from PIL import Image
 import math
 import colorsys
-imgsize = (440, 440) #The size of the image
+imgsize = (32, 32) #The size of the image
 
 image = Image.new('RGB', imgsize) #Create the image
 
@@ -33,27 +33,33 @@ convertRadiansToDegrees = 180.0 / 3.14159265359
 
 
 for y in range(imgsize[1]):
+    
     for x in range(imgsize[0]):
 
-        distanceToCenter = math.sqrt((x - imgsize[0]/2) ** 2 + (y - imgsize[1]/2) ** 2) / (imgsize[0]/2)
 
-        x1 = (x - imgsize[0]/2) 
-        y1 = (imgsize[1]/2-y)
+         x1 = (x - imgsize[0]/2)
+         y1 = (imgsize[1]/2-y)
+
+         distanceToCenter = math.sqrt(x1 ** 2 + y1 ** 2) / (imgsize[0]/2)
+
+         #if distanceToCenter < 1: result in little mipmap error
         
-        resultInDegrees = atan2(x1,y1) * convertRadiansToDegrees + 180
+         resultInDegrees = atan2(x1,y1) * convertRadiansToDegrees + 180
 
-        (r,g,b) = colorsys.hsv_to_rgb(resultInDegrees/360, distanceToCenter, 1)
+         (r,g,b) = colorsys.hsv_to_rgb(resultInDegrees/360, distanceToCenter, 1)
         
-        r = int(r*255)
-        g = int(g*255)
-        b = int(b*255)
-        image.putpixel((x, y), (r,g,b))
+         r = int(r*255)
+         g = int(g*255)
+         b = int(b*255)
+         image.putpixel((x, y), (r,g,b))
 
+#image.save("/home/pi/circulargradient.png")
 
 tex = pi3d.Texture(image) 
 
 shader = pi3d.Shader("uv_flat")
-#sprite = pi3d.ImageSprite(tex, shader, w=250.0, h=250.0, z=0.1)
+sprite = pi3d.ImageSprite(tex, shader,x=100,y=100, w=320.0, h=320.0, z=0.1)
+
 dot = pi3d.Disk(radius=220, sides=50,x=0,y=0, z=0.2, rx=90, camera=graphics.CAMERA)
 dot.set_textures([tex])
 dot.set_shader(shader)
@@ -76,15 +82,17 @@ dot4.set_material((0,0,0))
 def inloop(textchange=False, activity=False, offset=0):
     global convertRadiansToDegrees
 
-    if peripherals.touch_pressed:
-        peripherals.touch_pressed = False
+    #if peripherals.touch_pressed:
+    #    peripherals.touch_pressed = False
+    if peripherals.touched():
+     if ((dot4.x() - 150) < peripherals.xc and peripherals.xc  < (dot4.x() + 150) and
+                (dot4.y() - 150) < peripherals.yc and peripherals.yc  < (dot4.y() + 150)):
 
-        distanceToCenter = math.sqrt((peripherals.lastx) ** 2 + (peripherals.lasty) ** 2)
+         distanceToCenter = math.sqrt((peripherals.lastx) ** 2 + (peripherals.lasty) ** 2)
 
 
-        if distanceToCenter < 300:
 
-         resultInDegrees = atan2(peripherals.lastx,peripherals.lasty) * convertRadiansToDegrees + 180
+         resultInDegrees = atan2(peripherals.xc,peripherals.yc) * convertRadiansToDegrees + 180
 
 
 
@@ -93,6 +101,9 @@ def inloop(textchange=False, activity=False, offset=0):
                peripherals.lastx = 220 * sin(radians(degrees(atan2(peripherals.lastx,peripherals.lasty)))) 
                peripherals.lasty = 220 * cos(radians(degrees(atan2(peripherals.lastx,peripherals.lasty))))
 
+         else:
+              peripherals.lasty = peripherals.yc
+              peripherals.lastx = peripherals.xc
 
          distanceToCenter3 = float(distanceToCenter) / (220)
          if distanceToCenter3 > 1:
@@ -103,10 +114,29 @@ def inloop(textchange=False, activity=False, offset=0):
          dot4.position(x=peripherals.lastx,y=peripherals.lasty,z=0.15)
 
          (r,g,b) = colorsys.hsv_to_rgb(resultInDegrees/360, distanceToCenter3, 1)
-       
-         peripherals.control_led([int(r*255),int(g*255),int(b*255)])
+
          dot3.set_material((r,g,b))
 
+         (r,g,b) = (int(r*255),int(g*255),int(b*255))
+
+         if [r,g,b] != peripherals.eg_object.led:
+           peripherals.control_led([r,g,b])
+
+         # idea to speed it up
+         #if r != peripherals.eg_object.led_red:
+         # peripherals.control_led_color(peripherals.COLOR_RED,r)
+         # peripherals.eg_object.led_red = r
+
+         #if g != peripherals.eg_object.led_green:
+         # peripherals.control_led_color(peripherals.COLOR_GREEN, g)
+         # peripherals.eg_object.led_red = g
+
+         #if b != peripherals.eg_object.led_blue:
+         # peripherals.control_led_color(peripherals.COLOR_BLUE, b)
+         # peripherals.eg_object.led_red = b
+
+
+    sprite.draw()
     dot2.draw()
     dot.draw()
     dot4.draw()
