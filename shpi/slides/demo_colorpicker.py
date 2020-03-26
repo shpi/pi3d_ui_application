@@ -58,7 +58,7 @@ for y in range(imgsize[1]):
 tex = pi3d.Texture(image) 
 
 shader = pi3d.Shader("uv_flat")
-sprite = pi3d.ImageSprite(tex, shader,x=100,y=100, w=320.0, h=320.0, z=0.1)
+#sprite = pi3d.ImageSprite(tex, shader,x=100,y=100, w=320.0, h=320.0, z=0.1)
 
 dot = pi3d.Disk(radius=220, sides=50,x=0,y=0, z=0.2, rx=90, camera=graphics.CAMERA)
 dot.set_textures([tex])
@@ -105,13 +105,15 @@ def inloop(textchange=False, activity=False, offset=0):
               peripherals.lasty = peripherals.yc
               peripherals.lastx = peripherals.xc
 
-         distanceToCenter3 = float(distanceToCenter) / (220)
-         if distanceToCenter3 > 1:
-            distanceToCenter3 = 1
-        
 
          dot3.position(x=peripherals.lastx,y=peripherals.lasty,z=0.1)
          dot4.position(x=peripherals.lastx,y=peripherals.lasty,z=0.15)
+
+
+
+         distanceToCenter3 = float(distanceToCenter) / (220)
+         if distanceToCenter3 > 1:
+            distanceToCenter3 = 1
 
          (r,g,b) = colorsys.hsv_to_rgb(resultInDegrees/360, distanceToCenter3, 1)
 
@@ -136,7 +138,7 @@ def inloop(textchange=False, activity=False, offset=0):
          # peripherals.eg_object.led_red = b
 
 
-    sprite.draw()
+    #sprite.draw()
     dot2.draw()
     dot.draw()
     dot4.draw()
