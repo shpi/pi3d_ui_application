@@ -45,8 +45,26 @@ def gradient(f_color = (0,0,0), t_color = (0,0,0), size = 16, vertical = False):
  return image
 
 
-tex = pi3d.Texture(gradient(t_color=(255,255,0)))
-sprite = pi3d.ImageSprite(tex, graphics.SHADER,x=300,y=0, w=100.0, h=300.0, z=0.1)
+
+def blackgradient(size= 255,gradient_magnitude=1.):
+    
+    gradient = Image.new('L', (2,size), color=0xFF)
+    for x in range(size):
+        # gradient.putpixel((x, 0), 255-x)
+        #for y in range(size):
+       gradient.putpixel((0,x), int(255 * (1 - gradient_magnitude * float(x)/size)))
+       gradient.putpixel((1,x), int(255 * (1 - gradient_magnitude * float(x)/size)))
+    #alpha = gradient.resize(im.size)
+    black_im = Image.new('RGBA', (2,size), color=0) # i.e. black
+    black_im.putalpha(gradient)
+    return black_im
+
+
+
+tex = pi3d.Texture(blackgradient())
+rect = pi3d.Sprite(camera=graphics.CAMERA,x=300,y=0,w=100,h=440,z=0.2)
+rect.set_material((1.0, 1.0, 1.0))
+sprite = pi3d.ImageSprite(tex, graphics.SHADER,x=300,y=0, w=100.0, h=440.0, z=0.1)
 
 
 
@@ -143,7 +161,7 @@ def inloop(textchange=False, activity=False, offset=0):
          (r,g,b) = colorsys.hsv_to_rgb(resultInDegrees/360, distanceToCenter3, 1)
 
          dot3.set_material((r,g,b))
-
+         rect.set_material((r,g,b))
 
 
 
@@ -154,7 +172,7 @@ def inloop(textchange=False, activity=False, offset=0):
          #tex.update_ndarray(gradient(t_color=(r,g,b)), 0)
          #tex.im = tex._img_to_array(gradient(t_color=(r,g,b)))
          #tex = pi3d.Texture(gradient(t_color=(r,g,b)))
-         sprite.set_textures([pi3d.Texture(gradient(t_color=(r,g,b)))])
+         #sprite.set_textures([pi3d.Texture(gradient(t_color=(r,g,b)))])
          #tex._load_opengl()
 
 
@@ -181,6 +199,7 @@ def inloop(textchange=False, activity=False, offset=0):
     dot.draw()
     dot4.draw()
     dot3.draw()
+    rect.draw()
     sprite.draw()
 
     if offset != 0:
