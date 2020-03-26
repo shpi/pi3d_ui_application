@@ -25,7 +25,7 @@ from ..core import graphics
 from PIL import Image
 import math
 import colorsys
-imgsize = (250, 250) #The size of the image
+imgsize = (50, 50) #The size of the image
 
 image = Image.new('RGB', imgsize) #Create the image
 
@@ -38,10 +38,12 @@ for y in range(imgsize[1]):
         distanceToCenter = float(distanceToCenter) / (math.sqrt(2) * imgsize[0]/2)
 
         x1 = (x - imgsize[0]/2) 
-        y1 = (y - imgsize[1]/2)
-        degree = degrees(atan2(x1, y1))
+        y1 = (imgsize[1]/2-y)
         
-        (r,g,b) = colorsys.hsv_to_rgb(degree/360, distanceToCenter, 1)
+        convertRadiansToDegrees = 180.0 / 3.14159265359
+        resultInDegrees = atan2(x1,y1) * convertRadiansToDegrees + 180
+
+        (r,g,b) = colorsys.hsv_to_rgb(resultInDegrees/360, distanceToCenter, 1 - distanceToCenter)
         r = int(r*255)
         g = int(g*255)
         b = int(b*255)
