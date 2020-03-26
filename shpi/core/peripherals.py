@@ -162,13 +162,13 @@ def get_touch():
         if (gpio.input(TOUCHINT)):
             try:
                 time.sleep(0.001)
-                data = bus.rdwr([0x40], 8, TOUCHADDR)
+                data = bus.rdwr([0x40], 6, TOUCHADDR)
                 x1 = 400 - (data[0] | (data[4] << 8))
                 y1 = (data[1] | (data[5] << 8)) - 240
 
                 if ((-401 < x1 < 401) & (-241 < y1 < 241)):
                     
-                    if firsttouch or ((-80 < (xc-x1) < 80) & (-80 < (yc-y1) < 80)):  # catch bounches
+                    if firsttouch or ((-120 < (xc-x1) < 120) & (-120 < (yc-y1) < 120)):  # catch bounches
                         firsttouch = False
                         xc = x1
                         yc = y1
