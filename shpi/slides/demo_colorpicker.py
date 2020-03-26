@@ -79,16 +79,17 @@ dot4.set_material((0,0,0))
 
 
 
+
 def inloop(textchange=False, activity=False, offset=0):
     global convertRadiansToDegrees
 
     #if peripherals.touch_pressed:
     #    peripherals.touch_pressed = False
     if peripherals.touched():
-     if ((dot4.x() - 150) < peripherals.xc and peripherals.xc  < (dot4.x() + 150) and
-                (dot4.y() - 150) < peripherals.yc and peripherals.yc  < (dot4.y() + 150)):
+     if ((dot4.x() - 100) < peripherals.xc and peripherals.xc  < (dot4.x() + 100) and
+                (dot4.y() - 100) < peripherals.yc and peripherals.yc  < (dot4.y() + 100)):
 
-         distanceToCenter = math.sqrt((peripherals.lastx) ** 2 + (peripherals.lasty) ** 2)
+         distanceToCenter = math.sqrt((peripherals.xc) ** 2 + (peripherals.yc) ** 2)
 
 
 
@@ -98,8 +99,9 @@ def inloop(textchange=False, activity=False, offset=0):
 
          if distanceToCenter > 220:
                distanceToCenter = 220
-               peripherals.lastx = 220 * sin(radians(degrees(atan2(peripherals.lastx,peripherals.lasty)))) 
-               peripherals.lasty = 220 * cos(radians(degrees(atan2(peripherals.lastx,peripherals.lasty))))
+               radian = radians(degrees(atan2(peripherals.xc,peripherals.yc)))
+               peripherals.lastx = 220 * sin(radian) 
+               peripherals.lasty = 220 * cos(radian)
 
          else:
               peripherals.lasty = peripherals.yc
