@@ -53,33 +53,33 @@ def inloop(textchange=False, activity=False):
         os.popen('i2cset -y 2 0x2A 0x93 210')  # deactivate vent
         os.popen("amixer -c 1 set 'PCM' 0%")  # deactivate soundcard out
         os.popen("amixer -c 1 set 'Mic' 0%")  # enable mic
-        # start camara broadcast on remote pi
+        # start camara broadcast on remote pi (->port 5001)
         os.popen(
 "sshpass -p '{}' ssh -o StrictHostKeyChecking=no {}@{} \"raspivid  -t 0 -w 640 -h 480 \
 -g 10 -ih -fps 25 -l -p '640,0,160,120' -o tcp://0.0.0.0:5001\"".format(
             config.IPW, config.IUSER, config.IIP))
-        # start audio broadcast on remote pi
+        # start audio broadcast on remote pi (-> 5003)
         os.popen(
 "sshpass -p '{}' ssh -o StrictHostKeyChecking=no {}@{} 'arecord -D plughw:1,0 -r 12000 \
 -f S16_LE -c1 -B 300 -t wav | nc -l 5003'".format(
             config.IPW, config.IUSER, config.IIP))
-        # start camera broadcast on this pi
+        # start camera broadcast on this pi (-> 5002)
         os.popen("raspivid  -t 0 -w 640 -h 480 -g 10  -ih -fps 25 -hf  -vf \
 -l -p '640,0,160,120' -o  tcp://0.0.0.0:5002")
-        # wait 2s then stream video from remote pi to screen using videoplay
+        # wait 2s then stream video from remote pi to screen using videoplay (<- 5001)
         os.popen("sleep 2 && nc {} 5001 | ./shpi/bin/videoplayer 0 0 640 480".format(
             config.IIP))
-        # wait 2s then play audio from remote pi
+        # wait 2s then play audio from remote pi (<- 5003)
         os.popen("sleep 2 && nc {}  5003 | {{ dd bs=60K count=1 iflag=fullblock \
 of=/dev/null; aplay -c 1 --device=plughw:1,0 -B 0 -f S16_LE -c1 -r 12000 -t wav; }}".format(
             config.IIP))
-        # start audio broadcast from this pi
+        # start audio broadcast from this pi (-> 5004)
         os.popen("arecord -D plughw:1,0 -r 12000 -f S16_LE -c1 -B 300 -t wav | nc -l 5004")
-        # start streaming video from this pi on remote pi using videoplay
+        # start streaming video from this pi on remote pi using videoplay (<- 5002)
         os.popen("sshpass -p '{}' ssh -o StrictHostKeyChecking=no {}@{} 'nc {} 5002 | \
 ./shpi/bin/videoplayer 0 0 640 480'".format(
             config.IPW, config.IUSER, config.IIP, peripherals.eg_object.ipaddress))
-        # start playing audio from this pi on remote pi
+        # start playing audio from this pi on remote pi (<- 5004)
         os.popen("sshpass -p '{}' ssh -o StrictHostKeyChecking=no {}@{} 'nc {} 5004 | \
 {{ dd bs=60K count=1 iflag=fullblock of=/dev/null; aplay -c 1 --device=plughw:1,0 -B 0 \
 -f S16_LE -c1 -r 12000 -t wav; }}'".format(
