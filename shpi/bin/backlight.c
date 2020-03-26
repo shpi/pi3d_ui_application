@@ -1,7 +1,12 @@
+
 #include <bcm2835.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define BLT RPI_V2_GPIO_P1_35 
+#include <sched.h>
+#include <sys/mman.h>
+#include "string.h"
+#define BLT RPI_V2_GPIO_P1_35
+
 
 
 signed int commands[] =  {0,1,0,1,1,0,0,0,-1,1,0,0};
@@ -39,6 +44,14 @@ bcm2835_delayMicroseconds(5);
 int main(int argc, char **argv)
 {
 
+
+struct sched_param sp;
+memset(&sp, 0, sizeof(sp));
+sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
+sched_setscheduler(0, SCHED_FIFO, &sp);
+mlockall(MCL_CURRENT | MCL_FUTURE);
+
+
 if( argc == 2 ) {
      int n = atoi(argv[1]);
    
@@ -60,9 +73,9 @@ for (int i =4; i >= 0; i--)
  }
 writebl(-1);
 bcm2835_delayMicroseconds(10);
-if (bcm2835_gpio_lev(BLT)) {errors++;} else {errors = 0;}
-bcm2835_delayMicroseconds(900);
-if (errors > 3) {initbl(); errors = 0;}
+if (bcm2835_gpio_lev(BLT)) {errors++;printf("%d\n", errors);bcm2835_delayMicroseconds(100000);} else {errors = 0;}
+bcm2835_delayMicroseconds(100);
+if (errors > 3) {initbl();}
 }
 
 }
@@ -72,6 +85,3 @@ bcm2835_gpio_write(BLT, HIGH);
     bcm2835_close();
     return 0;
 }
-
-
-
