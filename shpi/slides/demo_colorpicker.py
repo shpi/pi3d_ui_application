@@ -25,8 +25,34 @@ from ..core import graphics
 from PIL import Image
 import math
 import colorsys
-imgsize = (32, 32) #The size of the image
 
+
+
+def interpolate(f_color, t_color, interval):
+    det_color =[(t - f) / interval for f , t in zip(f_color, t_color)]
+    for i in range(interval):
+        yield [round(f + det * i) for f, det in zip(f_color, det_color)]
+
+
+def gradient(f_color = (0,0,0), t_color = (0,0,0), size = 16, vertical = False):
+ image = Image.new('RGB', (size,size)) #Create the image
+ for x, color in enumerate(interpolate(f_color, t_color, size)):
+
+       for y in range(size):
+         if vertical: image.putpixel((x,y), tuple(color))
+         else:        image.putpixel((y,x), tuple(color))
+
+ return image
+
+
+tex = pi3d.Texture(gradient(t_color=(255,255,0)))
+sprite = pi3d.ImageSprite(tex, graphics.SHADER,x=300,y=0, w=100.0, h=300.0, z=0.1)
+
+
+
+
+
+imgsize = (32, 32) #The size of the image
 image = Image.new('RGB', imgsize) #Create the image
 
 convertRadiansToDegrees = 180.0 / 3.14159265359
@@ -55,14 +81,11 @@ for y in range(imgsize[1]):
 
 #image.save("/home/pi/circulargradient.png")
 
-tex = pi3d.Texture(image) 
-
-shader = pi3d.Shader("uv_flat")
-#sprite = pi3d.ImageSprite(tex, shader,x=100,y=100, w=320.0, h=320.0, z=0.1)
+tex2 = pi3d.Texture(image) 
 
 dot = pi3d.Disk(radius=220, sides=50,x=0,y=0, z=0.2, rx=90, camera=graphics.CAMERA)
-dot.set_textures([tex])
-dot.set_shader(shader)
+dot.set_textures([tex2])
+dot.set_shader(graphics.SHADER)
 
 dot2 = pi3d.Disk(radius=222, sides=50,x=0,y=0, z=0.3, rx=90, camera=graphics.CAMERA)
 dot2.set_shader(graphics.MATSH)
@@ -81,7 +104,7 @@ dot4.set_material((0,0,0))
 
 
 def inloop(textchange=False, activity=False, offset=0):
-    global convertRadiansToDegrees
+    global convertRadiansToDegrees, sprite
 
     #if peripherals.touch_pressed:
     #    peripherals.touch_pressed = False
@@ -121,7 +144,20 @@ def inloop(textchange=False, activity=False, offset=0):
 
          dot3.set_material((r,g,b))
 
+
+
+
+
          (r,g,b) = (int(r*255),int(g*255),int(b*255))
+
+
+         #tex.update_ndarray(gradient(t_color=(r,g,b)), 0)
+         #tex.im = tex._img_to_array(gradient(t_color=(r,g,b)))
+         #tex = pi3d.Texture(gradient(t_color=(r,g,b)))
+         sprite.set_textures([pi3d.Texture(gradient(t_color=(r,g,b)))])
+         #tex._load_opengl()
+
+
 
          if [r,g,b] != peripherals.eg_object.led:
            peripherals.control_led([r,g,b])
@@ -145,6 +181,7 @@ def inloop(textchange=False, activity=False, offset=0):
     dot.draw()
     dot4.draw()
     dot3.draw()
+    sprite.draw()
 
     if offset != 0:
         #offset = graphics.slider_change(box.mrb, offset)
