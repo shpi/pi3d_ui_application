@@ -65,6 +65,7 @@ PIR = 18
 BACKLIGHT = 19
 TOUCHINT = 26
 
+firsttouch = True
 
 def crc8(crc, n):
     """ CRC checksum algorithm """
@@ -153,7 +154,7 @@ def motion_detected(channel):
 
 
 def get_touch():
-    global xc, yc
+    global xc, yc, firsttouch
     #global mouse, x_off, y_off
     if int(os_touchdriver) > 1:
         return xc, yc
@@ -166,12 +167,17 @@ def get_touch():
                 y1 = (data[1] | (data[5] << 8)) - 240
 
                 if ((-401 < x1 < 401) & (-241 < y1 < 241)):
-                    if ((-80 < (xc-x1) < 80) & (-80 < (yc-y1) < 80)):  # catch bounches
+                    
+                    if firsttouch or ((-80 < (xc-x1) < 80) & (-80 < (yc-y1) < 80)):  # catch bounches
+                        firsttouch = False
                         xc = x1
                         yc = y1
                         # logging.debug(x1,y1)
                         return xc, yc  # compensate position to match with PI3D
                     else:
+                        print('catch bounce')
+                        print(xc-x1)
+                        print(yc-y1)
                         xc = x1
                         yc = y1
                         time.sleep(0.01)
@@ -196,7 +202,8 @@ def clicked(x, y):
 
 
 def touch_debounce(channel):
-    global lastx, lasty, touch_pressed, lasttouch
+    global lastx, lasty, touch_pressed, lasttouch, firsttouch
+    firsttouch = True
     x, y = get_touch()
     lasttouch = time.time()
     if (channel == TOUCHINT):
