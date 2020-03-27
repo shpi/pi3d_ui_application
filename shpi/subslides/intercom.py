@@ -42,6 +42,8 @@ str4.sprite.position(320, 50, 0.0)
 do_setup = True
 def inloop(textchange=False, activity=False):
     global do_setup
+    """The following block only runs once each time the subslide opens
+    """
     if do_setup:
         try:
             os.popen('killall omxplayer.bin')
@@ -109,5 +111,5 @@ of=/dev/null; aplay -c 1 --device=plughw:1,0 -B 0 -f S16_LE -c1 -r 12000 -t wav;
         os.popen('killall ./videoplayer')
         os.popen('killall raspivid')
         config.subslide = None
-        do_setup = True
+        do_setup = True # set so video and audio setup done next time subslide loads
     return activity

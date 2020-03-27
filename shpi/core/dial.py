@@ -79,7 +79,7 @@ class Dial(object):
         self.dial.set_material((0,0,0))
 
         self.actval = pi3d.PointText(graphics.pointFont, graphics.CAMERA,
-                max_chars=14, point_size=100) 
+                max_chars=23, point_size=100) 
         self.val_block = pi3d.TextBlock(self.x, self.y + 10, 0.1, 0.0, 11,
                 justify=0.6, text_format=text_format, size=0.99, spacing="F",
                 space=0.02, colour=(1.0, 1.0, 1.0, 1.0))
@@ -88,7 +88,7 @@ class Dial(object):
         self.value = getattr(peripherals.eg_object, self.set_field)
         self.sensorvalue = getattr(peripherals.eg_object, self.act_field)
 
-        self.set_block = pi3d.TextBlock(0, self.inner-30, 0.1, 0, 4,
+        self.set_block = pi3d.TextBlock(0, self.inner - 30, 0.1, 0, 11,
                 text_format=self.text_format.format(self.value),
                 size=0.35, spacing="F", space=0.02, colour=(1.0, 1.0, 1.0, 1), justify=0.6)
         self.actval.add_text_block(self.set_block)
@@ -128,8 +128,7 @@ class Dial(object):
                 y=(self.inner - 33) * cos(radians(self.degree - self.step)) + self.y,
                 rot=-self.degree + self.step)
 
-
-    def check_touch(self, touched):
+    def check_touch(self, touched, offset):
         updateelements = []
         self.changed = 0
         if touched:
@@ -155,7 +154,7 @@ class Dial(object):
                             y=(self.inner - 33) * cos(radians(self.degree - self.step)) + self.y,
                             rot=-self.degree + self.step)
 
-                    setattr(peripherals.eg_object, self.set_field,
+                    peripherals.control(self.set_field,
                             (self.min_v + (self.degree - self.angle_fr)
                             / (self.angle_to - self.angle_fr) * (self.max_v - self.min_v)))
                     self.x1 = self.mid * sin(radians(self.degree)) + self.x
@@ -176,18 +175,19 @@ class Dial(object):
                 if self.dot2_alpha < 0:
                     self.val_block.set_text(text_format=self.text_format.format(self.sensorvalue))
                 self.actval.regen()
-                if self.sensorvalue < self.min_t:
-                    self.sensorvalue = self.min_t
-                if self.sensorvalue > self.max_t:
-                    self.sensorvalue = self.max_t
+                if self.sensorvalue < self.min_v:
+                    self.sensorvalue = self.min_v
+                if self.sensorvalue > self.max_v:
+                    self.sensorvalue = self.max_v
                 self.sensordegree = (self.angle_fr + (self.angle_to - self.angle_fr)
                         * (self.sensorvalue - self.min_v) / (self.max_v - self.min_v))
                 updateelements.append((self.ticks, (-1.0, -1.0, 0.1, -1.0)))
-                self.trian.rotateToZ(-self.degree+self.step)
+                self.trian.rotateToZ(-self.degree + self.step)
                 self.set_block.set_position(x= ((self.inner-33) * sin(radians(self.degree-self.step)) + self.x), 
                                    y= ((self.inner-33) * cos(radians(self.degree-self.step)) + self.y),
                                    rot=-self.degree+self.step)
-                self.set_block.set_text(text_format="{:4.1f}".format(peripherals.eg_object.set_temp))
+                self.set_block.set_text(text_format=self.text_format.format(
+                        getattr(peripherals.eg_object, self.set_field)))
                 if  self.value > self.sensorvalue:
                     tick_m = (1, 0, 0)
                     z2 = None
@@ -232,7 +232,7 @@ class Dial(object):
             self.actval.regen()
         return offset
 
-    def draw(self):
+    def draw(self, offset):
         self.dot1.draw()
         if self.dot2_alpha >= 0.0:
             self.dot2_alpha -= 0.1
