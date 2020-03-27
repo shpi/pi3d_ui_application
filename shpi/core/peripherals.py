@@ -168,7 +168,7 @@ def get_touch():
 
                 if ((-401 < x1 < 401) & (-241 < y1 < 241)):
                     
-                    if firsttouch or ((-120 < (xc-x1) < 120) & (-120 < (yc-y1) < 120)):  # catch bounches
+                    if firsttouch or ((-200 < (xc-x1) < 200) & (-200 < (yc-y1) < 200)):  # catch bounches
                         firsttouch = False
                         xc = x1
                         yc = y1
