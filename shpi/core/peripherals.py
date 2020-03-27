@@ -283,6 +283,14 @@ def read_two_bytes(addr_val, retries=0):  # utility function for brevity
 
 
 def control(attribute, value):
+    """ adds the attributes and values to a dict, run from main.sensor_thread on
+    periodic basis
+    """
+    global control_list
+    control_list[attribute] = value
+
+
+def do_control(attribute, value):
     """ finds and calls control function with name control_`attribute`
     if the last char of attribute is 0-9 then it's split from the name and passed as
     an argument to the function:
@@ -845,3 +853,5 @@ else:
 gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected)
 
 infrared_vals = np.full(100, np.nan)
+
+control_list = {}

@@ -95,6 +95,10 @@ def sensor_thread():
             peripherals.get_infrared()
 
             if (now > nextsensorcheck):
+                for attr in peripherals.control_list:
+                    val = peripherals.control_list[attr]
+                    peripherals.do_control(attr, val)
+                peripherals.control_list = {}
                 peripherals.get_sensors()
                 nextsensorcheck = now + config.SENSOR_TM
                 if config.COOLINGRELAY != 0 and config.COOLINGRELAY == config.HEATINGRELAY:
