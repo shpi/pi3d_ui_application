@@ -24,7 +24,7 @@ class Dial(object):
         set_field="set_temp", act_field="act_temp", shader=None, camera=None):
 
         self.angle_fr = angle_fr
-        self.angle_to = angle_to
+        self.angle_to = ((angle_to - angle_fr) // step + 1) * step + angle_fr
         self.step = step
         self.outer = outer
         self.inner = inner
@@ -201,10 +201,10 @@ class Dial(object):
             v = b.array_buffer
             cut_n = int((self.degree - self.angle_fr) / (self.angle_to - self.angle_fr) * len(v) / 4) * 4
             if cut_n >= len(v):
-                cut_n = len(v) - 1
+                cut_n = len(v)
             cut_s = int((self.sensordegree - self.angle_fr) / (self.angle_to - self.angle_fr) * len(v) / 4) * 4
             if cut_s >= len(v):
-                cut_s = len(v) - 1
+                cut_s = len(v)
             v[:, 2] = z[3]           # all set to the 'otherwise' value
             if z[0] is not None:
                 v[:cut_s, 2] = z[0]  # set visibility up to sensor value
