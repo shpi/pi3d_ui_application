@@ -96,14 +96,14 @@ def slider_change(shape_obj, offset_val):
         if abs_offset < 6:  # needs to be > min move distance
             offset_val = 0
         else:
-            speed = min(20, max(5, abs_offset * 0.1))
+            speed = min(30, max(5, abs_offset * 0.2))
             offset_val -= math.copysign(speed, offset_val)
         shape_obj.positionX(-offset_val)
     return offset_val  # rather than using a global or passing ref to change
 
 
 font_path = resource_filename("shpi", "fonts/opensans.ttf")
-pointFont = pi3d.Font(font_path, shadow_radius=4, grid_size=12,
+pointFont = pi3d.Font(font_path, shadow_radius=5, grid_size=12,
                 codepoints=mytext, add_codepoints=additional)
-pointFontbig = pi3d.Font(font_path, shadow=(0, 0, 0, 255), shadow_radius=4,
+pointFontbig = pi3d.Font(font_path, shadow=(0, 0, 0, 255), shadow_radius=5,
                 grid_size=5, codepoints='0123456789:' + unichr(0xE000) + unichr(0xE035) + unichr(0xE001))
