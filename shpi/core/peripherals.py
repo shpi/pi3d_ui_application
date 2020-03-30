@@ -65,6 +65,7 @@ PIR = 18
 BACKLIGHT = 19
 TOUCHINT = 26
 
+firsttouch = True
 
 def crc8(crc, n):
     """ CRC checksum algorithm """
@@ -159,7 +160,7 @@ def motion_detected(channel):
 
 
 def get_touch():
-    global xc, yc
+    global xc, yc, firsttouch
     #global mouse, x_off, y_off
     if os_touchdriver == 1:
         return xc, yc
@@ -167,17 +168,22 @@ def get_touch():
         if (gpio.input(TOUCHINT)):
             try:
                 time.sleep(0.001)
-                data = bus.rdwr([0x40], 8, TOUCHADDR)
+                data = bus.rdwr([0x40], 6, TOUCHADDR)
                 x1 = 400 - (data[0] | (data[4] << 8))
                 y1 = (data[1] | (data[5] << 8)) - 240
 
                 if ((-401 < x1 < 401) & (-241 < y1 < 241)):
-                    if ((-80 < (xc-x1) < 80) & (-80 < (yc-y1) < 80)):  # catch bounches
+                    
+                    if firsttouch or ((-200 < (xc-x1) < 200) & (-200 < (yc-y1) < 200)):  # catch bounches
+                        firsttouch = False
                         xc = x1
                         yc = y1
                         # logging.debug(x1,y1)
                         return xc, yc  # compensate position to match with PI3D
                     else:
+                        print('catch bounce')
+                        print(xc-x1)
+                        print(yc-y1)
                         xc = x1
                         yc = y1
                         time.sleep(0.01)
@@ -202,7 +208,8 @@ def clicked(x, y):
 
 
 def touch_debounce(channel):
-    global lastx, lasty, touch_pressed, lasttouch
+    global lastx, lasty, touch_pressed, lasttouch, firsttouch
+    firsttouch = True
     x, y = get_touch()
     lasttouch = time.time()
     if (channel == TOUCHINT):
@@ -283,6 +290,14 @@ def read_two_bytes(addr_val, retries=0):  # utility function for brevity
 
 
 def control(attribute, value):
+    """ adds the attributes and values to a dict, run from main.sensor_thread on
+    periodic basis
+    """
+    global control_list
+    control_list[attribute] = value
+
+
+def do_control(attribute, value):
     """ finds and calls control function with name control_`attribute`
     if the last char of attribute is 0-9 then it's split from the name and passed as
     an argument to the function:
@@ -845,3 +860,5 @@ else:
 gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected)
 
 infrared_vals = np.full(100, np.nan)
+
+control_list = {}
