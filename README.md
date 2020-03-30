@@ -1,5 +1,20 @@
 # zero_main_application - Actual Development Status
 
+
+Warning: If an "PolygoneLines" error occurs, you need to install pi3d manually, steps:
+
+```
+pip3 uninstall pi3d
+
+git clone https://github.com/tipam/pi3d
+
+cd pi3d 
+
+sudo python3 setup.py install
+```
+
+
+
 Warning: Latest version needs ATmega firmware with CRC check. Please update atmega firmware. The software is in early development stage and is not fully documented so far. 
 
 You can easily request functions by mailing lh@shpi.de
