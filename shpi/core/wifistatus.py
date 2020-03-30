@@ -13,7 +13,7 @@ from ..core import graphics
 
 class WifiStatus(object):
 
-  def __init__(self, step=3, x=370, y=210, camera=graphics.CAMERA,shader=graphics.MATSH):
+  def __init__(self, step=3, x=370, y=205, camera=graphics.CAMERA,shader=graphics.MATSH):
 
       shape = [[],[],[]]
       self.wifi_lines = []
@@ -34,10 +34,15 @@ class WifiStatus(object):
           self.wifi_lines[x1+1].set_shader(shader)
           self.wifi_lines[x1+1].set_material((1, 1, 1))
 
-  def update(self):
+  def update(self,value = None):
+
 
       try:
-          wifistrength = int((os.popen("/sbin/iwconfig wlan0 | grep 'Signal level' | awk '{print $4}' | cut -d= -f2 | cut -d/ -f1;").readline()).strip())
+          if value is None:
+              wifistrength = int((os.popen("/sbin/iwconfig wlan0 | grep 'Signal level' | awk '{print $4}' | cut -d= -f2 | cut -d/ -f1;").readline()).strip())
+          else:
+              wifistrength = value
+
           assert -100 < wifistrength <= 0, "value outside permitted range"
 
       except:

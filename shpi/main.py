@@ -22,6 +22,12 @@ else:
     logging.basicConfig(level=log_level)  # defaults to screen
 
 from .core import peripherals #i.e. these imports MUST happen after logging starts!
+
+
+if config.SHOW_WIFISTATUS:
+   from .core import wifistatus
+   wifistatus = wifistatus.WifiStatus()
+
 if config.GUI:
     from .core import graphics
 
@@ -111,6 +117,9 @@ def sensor_thread():
                         peripherals.heating()
 
                 peripherals.get_status()
+                if config.SHOW_WIFISTATUS:
+                    wifistatus.update(int(peripherals.eg_object.wifistrength))
+
                 textchange = True
                 if hasattr(peripherals.eg_object, 'bmp280_temp'):
                     bmp280_temp = peripherals.eg_object.bmp280_temp
@@ -327,6 +336,10 @@ if config.GUI:
         elif -1 < peripherals.eg_object.slide < len(config.slides):
             activity, slide_offset = slides[peripherals.eg_object.slide].inloop(
                 textchange, activity, slide_offset)
+
+
+        if config.SHOW_WIFISTATUS:
+            wifistatus.draw()
 
         textchange = False
         if not activity and (movesfg == 0) and (slide_offset == 0):
