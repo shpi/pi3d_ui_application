@@ -28,6 +28,11 @@ if config.SHOW_WIFISTATUS:
    from .core import wifistatus
    wifistatus = wifistatus.WifiStatus()
 
+if config.SHOW_SLIDESTATUS:
+   from .core import slidestatus
+   slidestatus = slidestatus.SlideStatus()
+
+
 if config.GUI:
     from .core import graphics
 
@@ -103,6 +108,8 @@ def sensor_thread():
             for attr in peripherals.control_list:
                 val = peripherals.control_list[attr]
                 peripherals.do_control(attr, val)
+                if config.SHOW_SLIDESTATUS and attr == 'slide':
+                   slidestatus.update(peripherals.eg_object.slide)
             peripherals.control_list = {}
 
             if (now > nextsensorcheck):
@@ -308,6 +315,10 @@ if config.GUI:
             peripherals.lastx = 0
             movex = 0
             peripherals.eg_object.slide -= 1
+
+            if config.SHOW_SLIDESTATUS:
+               slidestatus.update(peripherals.eg_object.slide)
+
             sbg.set_alpha(0)
             if config.SLIDE_SHADOW:
                 bg_alpha = 0
@@ -318,6 +329,7 @@ if config.GUI:
             movex = 0
             if peripherals.eg_object.slide < len(config.slides) - 1:
                 peripherals.eg_object.slide += 1
+
             else:
                 peripherals.eg_object.slide = 0
 
@@ -331,11 +343,20 @@ if config.GUI:
                     bg_alpha = 0
             slide_offset -= 400
 
+            if config.SHOW_SLIDESTATUS:
+               slidestatus.update(peripherals.eg_object.slide)
+
+
+
+
         if config.subslide is not None:
             activity = subslides[config.subslide].inloop(textchange, activity)
         elif -1 < peripherals.eg_object.slide < len(config.slides):
             activity, slide_offset = slides[peripherals.eg_object.slide].inloop(
                 textchange, activity, slide_offset)
+            if config.SHOW_SLIDESTATUS:
+               slidestatus.draw()
+
 
 
         if config.SHOW_WIFISTATUS:

@@ -11,7 +11,8 @@ ICAL_TM = 3600  # update calenderslide every 3600 seconds
 SLIDE_PARALLAX = False # background movement while sliding, bit slow on zero
 SLIDE_SHADOW = False  # shadow effect while manually sliding
 SHOW_AIRQUALITY = True  # show airquality over LED
-SHOW_WIFISTATUS = True
+SHOW_WIFISTATUS = True #show wifi indicator  (top right)
+SHOW_SLIDESTATUS = True #show slide indicator (bottom)
 # activate simple GET/POST server in python, be aware of  security issues
 START_HTTP_SERVER = True
 HTTP_PORT = 9000
@@ -109,7 +110,7 @@ subslide = None
 # configure your slides here
 autoslidetm = 10
 autoslides = []
-slides = ['overview', 'thermostat', 'weather', 'ical2', 'status', 'shutter',
+slides = ['overview', 'dial_thermostat', 'weather', 'ical2', 'status', 'shutter',
           'livegraph', 'amperemeter', 'rrdgraph', 'settings']
 autoslideints = []
 
