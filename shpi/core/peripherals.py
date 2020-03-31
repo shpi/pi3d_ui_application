@@ -181,9 +181,9 @@ def get_touch():
                         # logging.debug(x1,y1)
                         return xc, yc  # compensate position to match with PI3D
                     else:
-                        print('catch bounce')
-                        print(xc-x1)
-                        print(yc-y1)
+                        #print('catch bounce')
+                        #print(xc-x1)
+                        #print(yc-y1)
                         xc = x1
                         yc = y1
                         time.sleep(0.01)
@@ -494,6 +494,8 @@ def get_status():
         eg_object.freespace = float((s.f_bavail * s.f_frsize) / 1024 / 1024)
         eg_object.wifistrength = (os.popen(
             "/sbin/iwconfig wlan0 | grep 'Signal level' | awk '{print $4}' | cut -d= -f2 | cut -d/ -f1;").readline()).strip()
+
+
         eg_object.ipaddress = os.popen(
             "ip addr show wlan0 | grep 'inet ' | head -1 | awk '{print $2}' | cut -d/ -f1;").readline().strip()
         eg_object.ssid = (os.popen(
