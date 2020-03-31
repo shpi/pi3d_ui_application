@@ -16,19 +16,21 @@ class SlideStatus(object):
 
       self.x = x - ((10*len(config.slides)) / 2) + radius
       self.status = []
-      x2 = 0
+      
+
+      self.md = pi3d.MergeShape(name="merged dots",camera=graphics.CAMERA)
+
+      disk = pi3d.Disk(radius=radius, sides=7, z=0.2, rx=90,x=x,y=y, camera=camera)
+
       for x1 in range(len(config.slides)):
-        
-        self.status.append(pi3d.Disk(radius=radius, sides=7, z=0.2, rx=90,x=self.x+(10*x1),y=y, camera=camera))
-        self.status[x2].set_shader(shader)
-        self.status[x2].set_material((1, 1, 1))
-        self.status[x2].set_alpha(0.1)
-        x2 += 1
-        self.status.append(pi3d.Disk(radius=radius+1, sides=7, z=0.3, rx=90,x=self.x+(10*x1),y=y, camera=camera))
-        self.status[x2].set_shader(shader)
-        self.status[x2].set_material((0, 0, 0))
-        self.status[x2].set_alpha(0.8)
-        x2 += 1
+
+          self.md.add(disk.buf[0], x=self.x + (10*x1), y=y, z=0.2, rx=90) 
+ 
+
+      self.md.set_shader(graphics.MATSH)
+      self.md.set_material((1.0, 1.0, 1.0))
+      self.md.set_alpha(0.5)
+
 
 
       self.actslide = pi3d.Disk(radius=radius,sides=7,z=0.1,x=self.x+(10*config.slide),rx=90,y=y, camera=camera)
@@ -45,9 +47,7 @@ class SlideStatus(object):
 
   def draw(self):
 
-      for dot in self.status:
-          dot.draw()
-
+      self.md.draw()
       self.actslide.draw()
 
 
