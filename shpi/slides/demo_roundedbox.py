@@ -69,10 +69,12 @@ class RoundCorner(Shape):
 
     self.buf = [Buffer(self, verts, texcoords, inds, norms)]
 
+tex = pi3d.Texture(graphics.gradient(f_color = (0,0,0), t_color = (255,255,255), vertical=False), m_repeat=True,mipmap=True)
+
 
 
 class Box(object):
-    def __init__(self, width = 500, height=300, radius= 30, x = 0 , y = 0, z = 0.1, alpha = 0.5):
+    def __init__(self, width = 500, height=300, radius= 30, x = 0 , y = 0, z = 0.1, alpha = 1):
 
        
 
@@ -81,16 +83,22 @@ class Box(object):
         self.rect2 = pi3d.Sprite(camera=graphics.CAMERA, w=width, h=height-(radius*2))
 
         self.mrb = pi3d.MergeShape(name="merged rounded box",camera=graphics.CAMERA)
-        self.mrb.set_shader(graphics.MATSH)
-        self.mrb.add(self.dot1.buf[0], x-width/2+radius,y-height/2+radius,z,rz=270, rx=90) #bot left
-        self.mrb.add(self.dot1.buf[0], x+width/2-radius,y+height/2-radius,z,rz=90, rx=90)  #top right
-        self.mrb.add(self.dot1.buf[0], x-width/2+radius,y+height/2-radius,z,rz=180, rx=90) #top left
-        self.mrb.add(self.dot1.buf[0], x+width/2-radius,y-height/2+radius,z,rz=0, rx=90)   #bot right
-        self.mrb.add(self.rect.buf[0], x,y,z) 
-        self.mrb.add(self.rect2.buf[0], x,y,z)
+        #self.mrb.set_shader(graphics.MATSH)
 
-        self.mrb.set_material((1.0, 1.0, 1.0))
+        self.mrb.add(self.dot1, x-width/2+radius,y-height/2+radius,z,rz=270, rx=90) #bot left
+        self.mrb.add(self.dot1, x+width/2-radius,y+height/2-radius,z,rz=90, rx=90)  #top right
+        self.mrb.add(self.dot1, x-width/2+radius,y+height/2-radius,z,rz=180, rx=90) #top left
+        self.mrb.add(self.dot1, x+width/2-radius,y-height/2+radius,z,rz=0, rx=90)   #bot right
+        self.mrb.add(self.rect, x,y,z) 
+        self.mrb.add(self.rect2, x,y,z)
+        
+        self.mrb.set_material((0.5, 0.5, 0.5))
         self.mrb.set_alpha(alpha)
+        #self.mrb.set_shader(graphics.SHADER)
+        #self.mrb.set_textures([tex])
+        self.mrb.set_draw_details(graphics.SHADER, [tex], 0.0, 0.0)
+
+
 
     def draw(self):
 
