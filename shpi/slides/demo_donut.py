@@ -15,7 +15,8 @@ from ..core.donut import Donut
 values = [50, 100, 125, 60, 15]
 colors = [[1.0, 1.0, 0.2], [0.5, 0.7, 0.5], [0.0, 0.5, 1.0], [1.0, 0.0, 0.0], [1.0, 1.0, 1.0]]
 donut = Donut(values=values, colors=colors, concentric=False, start=-90)
-#donut = Donut(values=values, colors=colors, concentric=True, full_range=400, start=-90)
+#donut = Donut(values=values, colors=colors, concentric=True, full_range=400, start=-90,
+#           inner=50, outer=300, y=-100)
 count = 0
 
 def inloop(textchange=False, activity=False, offset=0):
@@ -27,10 +28,9 @@ def inloop(textchange=False, activity=False, offset=0):
     if count % 30 == 0:
         values = [v * (0.9 + random.random() * 0.2) for v in values]
         donut.update(values)
-    else:
-        for s in donut.slices:
-            os = graphics.slider_change(s, offset)
-        offset = os # last one.
+    if offset != 0:
+        graphics.slider_change(donut.text.text, offset)
+        offset = graphics.slider_change(donut.empty, offset)
 
     activity = True
     return activity, offset

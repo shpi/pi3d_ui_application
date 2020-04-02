@@ -59,18 +59,26 @@ class Slice(pi3d.Shape):
     buf.re_init()
 
 class Donut(object):
-    def __init__(self, x=0, y=-235, inner=100, outer=200, values=[], colors=[],
-            full_range=None, concentric=False, start=0.0, sides=36,
+    def __init__(self, x=0, y=0, inner=100, outer=200, values=[], colors=[],
+            full_range=None, concentric=False, start=0.0, sides=36, text_format="{:.1f}",
             camera=graphics.CAMERA, shader=graphics.MATSH):
+        self.x = x
+        self.y = y
         self.inner = inner
         self.outer = outer
         self.full_range = full_range
         self.concentric = concentric
         self.start = start
+        self.text_format = text_format
         self.slices = []
         if full_range is None:
             full_range = sum(values)
         self.n = len(values)
+        # simplest Shape only 3 vertices. z -1 so not drawn
+        self.empty = pi3d.Triangle(x=x, y=y, z=-1.0)
+
+        self.text = pi3d.PointText(graphics.pointFont, graphics.CAMERA,
+                        max_chars=(self.n * 20), point_size=64)
         tot = self.start
         step = (outer - inner) / self.n
         for i in range(self.n):
@@ -78,14 +86,23 @@ class Donut(object):
             if concentric:
                 a_slice = Slice(camera=camera, inner=inner + i * step,
                         outer=inner + (i + 1) * step, sides=sides, start=self.start,
-                        end=end)
+                        end=end, z=3.0) #z=3 to compensate for empty set to -1 and draw behind labels
             else:
                 a_slice = Slice(camera=camera, inner=inner, outer=outer,
-                    start=tot, end=tot + end)
+                    start=tot, end=tot + end, z=3.0)
                 tot += end
+            buf = a_slice.buf[0].array_buffer # alias for brevity
+            midv = len(buf) // 2 # text half way round curve, miday between inner and outer
+            text_x = (buf[midv, 0] + buf[midv + 1, 0]) / 2 + self.x
+            text_y = (buf[midv, 1] + buf[midv + 1, 1]) / 2 + self.y
+            slice_text = pi3d.TextBlock(text_x, text_y, 0.0, 0.0, 15,
+                            text_format=self.text_format.format(values[i]),
+                            size=0.5, spacing="C", space=0.6, justify=0.5)
+            self.text.add_text_block(slice_text)
             a_slice.set_shader(shader)
             a_slice.set_material(colors[i])
             self.slices.append(a_slice)
+            self.empty.add_child(a_slice)
 
 
     def update(self, values):
@@ -103,8 +120,16 @@ class Donut(object):
                 start = tot
                 tot += end
             self.slices[i].reset_verts(inner=inner, outer=outer, start=start, end=start + end)
+            buf = self.slices[i].buf[0].array_buffer # alias for brevity
+            midv = len(buf) // 2
+            text_x = (buf[midv, 0] + buf[midv + 1, 0]) / 2 + self.x
+            text_y = (buf[midv, 1] + buf[midv + 1, 1]) / 2 + self.y
+            block = self.text.text_blocks[i] # use the fact blocks store in same order as vaues
+            block.set_position(x=text_x, y=text_y)
+            block.set_text(self.text_format.format(values[i]))
+        self.text.regen()
 
 
     def draw(self):
-        for a_slice in self.slices:
-            a_slice.draw()
+        self.empty.draw()
+        self.text.draw()
