@@ -110,7 +110,7 @@ subslide = None
 # configure your slides here
 autoslidetm = 10
 autoslides = []
-slides = ['overview', 'dial_thermostat', 'demo_donut', 'ical2', 'status', 'shutter',
+slides = ['overview', 'dial_thermostat', 'weather', 'ical2', 'status', 'shutter',
           'livegraph', 'amperemeter', 'rrdgraph', 'settings']
 autoslideints = []
 

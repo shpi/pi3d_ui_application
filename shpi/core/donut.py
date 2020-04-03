@@ -60,8 +60,8 @@ class Slice(pi3d.Shape):
 
 class Donut(object):
     def __init__(self, x=0, y=0, inner=100, outer=200, values=[], colors=[],
-            full_range=None, concentric=False, start=0.0, sides=36, text_format="{:.1f}",
-            camera=graphics.CAMERA, shader=graphics.MATSH):
+            full_range=None, concentric=False, start=0.0, end=None, sides=36,
+            text_format="{:.1f}", camera=graphics.CAMERA, shader=graphics.MATSH):
         self.x = x
         self.y = y
         self.inner = inner
@@ -69,7 +69,14 @@ class Donut(object):
         self.full_range = full_range
         self.concentric = concentric
         self.start = start
-        self.text_format = text_format
+        if end is None:
+            self.end = start + 360
+        else:
+            self.end = end
+        if type(text_format) in (list, tuple):
+            self.text_format = text_format
+        else:
+            self.text_format = [text_format] * len(values)
         self.slices = []
         if full_range is None:
             full_range = sum(values)
@@ -78,11 +85,11 @@ class Donut(object):
         self.empty = pi3d.Triangle(x=x, y=y, z=-1.0)
 
         self.text = pi3d.PointText(graphics.pointFont, graphics.CAMERA,
-                        max_chars=(self.n * 20), point_size=64)
+                        max_chars=(self.n * 26), point_size=64)
         tot = self.start
         step = (outer - inner) / self.n
         for i in range(self.n):
-            end = 360 * values[i] / full_range
+            end = (self.end - self.start) * values[i] / full_range
             if concentric:
                 a_slice = Slice(camera=camera, inner=inner + i * step,
                         outer=inner + (i + 1) * step, sides=sides, start=self.start,
@@ -95,8 +102,8 @@ class Donut(object):
             midv = len(buf) // 2 # text half way round curve, miday between inner and outer
             text_x = (buf[midv, 0] + buf[midv + 1, 0]) / 2 + self.x
             text_y = (buf[midv, 1] + buf[midv + 1, 1]) / 2 + self.y
-            slice_text = pi3d.TextBlock(text_x, text_y, 0.0, 0.0, 15,
-                            text_format=self.text_format.format(values[i]),
+            slice_text = pi3d.TextBlock(text_x, text_y, 0.0, 0.0, 25,
+                            text_format=self.text_format[i].format(values[i]),
                             size=0.5, spacing="C", space=0.6, justify=0.5)
             self.text.add_text_block(slice_text)
             a_slice.set_shader(shader)
@@ -112,7 +119,7 @@ class Donut(object):
         step = (self.outer - self.inner) / self.n
         full_range = sum(values) if self.full_range is None else self.full_range
         for i in range(len(values)):
-            end = 360 * values[i] / full_range
+            end = (self.end - self.start) * values[i] / full_range
             if self.concentric:
                 inner = self.inner + i * step
                 outer = inner + step
@@ -126,7 +133,7 @@ class Donut(object):
             text_y = (buf[midv, 1] + buf[midv + 1, 1]) / 2 + self.y
             block = self.text.text_blocks[i] # use the fact blocks store in same order as vaues
             block.set_position(x=text_x, y=text_y)
-            block.set_text(self.text_format.format(values[i]))
+            block.set_text(self.text_format[i].format(values[i]))
         self.text.regen()
 
 
