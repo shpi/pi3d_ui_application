@@ -60,7 +60,8 @@ ADDR_SHT = 0x44
 ADDR_AHT10 = 0x38
 ADDR_MLX = 0x5B
 ADDR_BH1750 = 0x23
-PIR = 18
+
+PIR = 18 #NB switch to 10 if zero lite detected
 # single wire backlight control needs almost realtime -> moved to atmega  (not on prototypes!)
 BACKLIGHT = 19
 TOUCHINT = 26
@@ -350,14 +351,20 @@ def write_32u4(addr, value, description, retries=0):
 def control_relay(channel, value):
     if value not in VALS:
         return (False, "unknown VAL for value {}!".format(value))
-    return write_32u4(RELAYCHANNEL[channel-1], VALS[value], "relay{}".format(channel))
+    if ADDR_32U4 != 0:
+        return write_32u4(RELAYCHANNEL[channel-1], VALS[value], "relay{}".format(channel))
+    else:
+        return zero_lite.set_relay(channel-1, VALS[value])
 
 
 def control_vent_pwm(value):
     value = int(value)  # variable int value
     if not (-1 < value < 256):
         return (False, "value outside 0..255")
-    return write_32u4(VENT_PWM, value, "vent_pwm")
+    if ADDR_32U4 != 0:
+        return write_32u4(VENT_PWM, value, "vent_pwm")
+    else:
+        return zero_lite.set_fan(value)
 
 
 def control_backlight_level(value):
@@ -367,24 +374,49 @@ def control_backlight_level(value):
         assert -1 < value <= config.MAX_BACKLIGHT, "value outside permitted range"
         # needs sudo because of timing
         os.popen('sudo chrt --rr 99 {} {}'.format(file_path, value))
-        return write_32u4(BACKLIGHT_LEVEL, value, "backlight_level")
+        if ADDR_32U4 != 0:
+            return write_32u4(BACKLIGHT_LEVEL, value, "backlight_level")
+        else:
+            return value
     except Exception as e:
         return (False, "backlight_level error: {}".format(e))
 
 
 def control_led_color(channel, rgbvalue):
-    return write_32u4(channel, int(rgbvalue), "led_color")
+    if ADDR_32U4 != 0:
+        return write_32u4(channel, int(rgbvalue), "led_color")
+    else:
+        logging.warning("trying to set LED using atmega which isn't there")
 
 
 def control_led(rgbvalues):
     if type(rgbvalues) not in (list, tuple):
         rgbvalues = rgbvalues.split(",")
     if len(rgbvalues) == 3:
-        # splitted because of i2c master  clockstretching problems
-        control_led_color(COLOR_RED, rgbvalues[0])
-        control_led_color(COLOR_GREEN, rgbvalues[1])
-        control_led_color(COLOR_BLUE, rgbvalues[2])
+        rgbvalues = [int(c) for c in rgbvalues] #TODO filter messy html inputs
+        if ADDR_32U4 != 0:
+            # splitted because of i2c master  clockstretching problems
+            control_led_color(COLOR_RED, rgbvalues[0])
+            control_led_color(COLOR_GREEN, rgbvalues[1])
+            control_led_color(COLOR_BLUE, rgbvalues[2])
+        else: # TODO this is a temp botch for testing
+            import spidev # TODO once at start
+            spi = spidev.SpiDev() # TODO once at start
+            os.popen('gpio -g mode 10 alt0')
+            spi.open(0, 0)
+            spi.mode = 0b11
+            grb = [rgbvalues[1], rgbvalues[0], rgbvalues[2]]
+            tx = [0b11000000 if ((i >> j) &1) == 0 else 0b11111000
+                    for i in grb
+                        for j in range(7,-1,-1)]
+            time.sleep(0.2) # this sleep seems essential
+            spi.xfer(tx, int(8 / 1.25e-6))
+            spi.close()
+            os.popen('gpio -g mode 10 input') # don't know if this is needed
+            gpio.setmode(gpio.BCM)
+            gpio.setup(10, gpio.IN, pull_up_down=gpio.PUD_DOWN)
         eg_object.led = rgbvalues
+        (eg_object.led_red, eg_object.led_green, eg_object.led_blue) = rgbvalues
         return (True, rgbvalues)
     else:
         return (False, "error, wrong rgbvalues for control_led")
@@ -397,7 +429,11 @@ def control_alert(value):
 
 
 def control_buzzer(value):
-    return control_relay(4, value)
+    if ADDR_32U4 != 0:
+        return control_relay(4, value)
+    else: # zero lite
+        return zero_lite.set_buzzer(value)
+
 
 
 def control_slide(value):
@@ -556,6 +592,11 @@ def get_status():
                 eg_object.led_blue = b[2]
                 eg_object.led = [eg_object.led_red,
                                  eg_object.led_green, eg_object.led_blue]
+        else: # zero_lite
+            eg_object.relay1 = zero_lite.get_relay(0)
+            eg_object.relay2 = zero_lite.get_relay(1)
+            eg_object.relay3 = zero_lite.get_relay(2)
+
     except Exception as e:
         logging.error(e)
 
@@ -704,11 +745,11 @@ class EgClass(object):
         a7 = 0
         atmega_temp = 0
         vent_rpm = 0
-        vent_pwm = 0
         atmega_ram = 0
-        buzzer = 0
         relay1current = 0.0
 
+    vent_pwm = 0
+    buzzer = 0
     # if ADDR_MLX:
     mlxamb = 0.0
     mlxobj = 0.0
@@ -789,7 +830,10 @@ try:
     time.sleep(0.001)
     bus.read(1, ADDR_32U4)
 except:
+    from ..core.zerolite import ZeroLite
+    zero_lite = ZeroLite()
     ADDR_32U4 = 0
+    PIR = zero_lite.PIR
     logging.warning('Hint: No ATmega found, seems to be a SHPI.zero lite?')
 
 # check for SHT3x
@@ -820,6 +864,9 @@ except:
 try:
     time.sleep(0.001)
     bus.write([0x01], ADDR_BH1750)  # power on BH1750
+    time.sleep(0.05)
+    data = bus.rdwr([0x23], 2, ADDR_BH1750) # and check that did something!
+    #TODO check data is valid else raise exception
 except:
     logging.warning('Hint: No BH1750')
     ADDR_BH1750 = 0

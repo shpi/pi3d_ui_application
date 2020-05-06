@@ -23,7 +23,6 @@ else:
 
 from .core import peripherals #i.e. these imports MUST happen after logging starts!
 
-
 if config.SHOW_WIFISTATUS:
    from .core import wifistatus
    wifistatus = wifistatus.WifiStatus()
@@ -227,7 +226,7 @@ if config.START_MQTT_CLIENT:
     try:
         mqttclient.init()
     except Exception as e:
-        logging.warning("cannot start mqtt client - error".format(e))
+        logging.warning(f"cannot start mqtt client - error: {e}")
 
 if config.START_HTTP_SERVER:
     try:
@@ -243,7 +242,7 @@ if config.START_HTTP_SERVER:
         #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
         littleserver.timeout = 0.1
     except Exception as e:
-        logging.warning('cannot start http server - error: ', e)
+        logging.warning(f"cannot start http server - error: {e}")
 
 slide_offset = 0  # change by touch and slide
 textchange = True  # for reloading text
