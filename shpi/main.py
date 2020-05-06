@@ -88,8 +88,7 @@ def sensor_thread():
             if config.START_HTTP_SERVER:
                 littleserver.handle_request()
 
-            if config.START_MQTT_CLIENT:
-                mqttclient.publishall()
+           
 
             peripherals.get_infrared()
 
@@ -105,6 +104,10 @@ def sensor_thread():
                         peripherals.heating()
 
                 peripherals.get_status()
+                
+                if config.START_MQTT_CLIENT:
+                     mqttclient.publishall()
+                
                 textchange = True
                 if hasattr(peripherals.eg_object, 'bmp280_temp'):
                     bmp280_temp = peripherals.eg_object.bmp280_temp
