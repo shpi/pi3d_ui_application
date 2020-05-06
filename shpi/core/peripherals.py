@@ -400,21 +400,7 @@ def control_led(rgbvalues):
             control_led_color(COLOR_GREEN, rgbvalues[1])
             control_led_color(COLOR_BLUE, rgbvalues[2])
         else: # TODO this is a temp botch for testing
-            import spidev # TODO once at start
-            spi = spidev.SpiDev() # TODO once at start
-            os.popen('gpio -g mode 10 alt0')
-            spi.open(0, 0)
-            spi.mode = 0b11
-            grb = [rgbvalues[1], rgbvalues[0], rgbvalues[2]]
-            tx = [0b11000000 if ((i >> j) &1) == 0 else 0b11111000
-                    for i in grb
-                        for j in range(7,-1,-1)]
-            time.sleep(0.2) # this sleep seems essential
-            spi.xfer(tx, int(8 / 1.25e-6))
-            spi.close()
-            os.popen('gpio -g mode 10 input') # don't know if this is needed
-            gpio.setmode(gpio.BCM)
-            gpio.setup(10, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+            zero_lite.control_led(rgbvalues)
         eg_object.led = rgbvalues
         (eg_object.led_red, eg_object.led_green, eg_object.led_blue) = rgbvalues
         return (True, rgbvalues)

@@ -1,4 +1,7 @@
 import RPi.GPIO as gpio
+import spidev
+import os
+import time
 
 class ZeroLite():
     def __init__(self):
@@ -13,6 +16,7 @@ class ZeroLite():
         self.p.start(0)
         gpio.setup(self.RELAY, gpio.OUT) # can take array argument to set several
         self.fan_factor = 100.0 / 255.0 # TODO might this need to vary?
+        self.spi = spidev.SpiDev()
 
 
     def set_fan(self, value=0.0):
@@ -34,3 +38,19 @@ class ZeroLite():
     def set_buzzer(self, value=0):
         # TODO if this needs reading and writing from i2c bus maybe keep in peripherals
         return (True, value)
+
+
+    def control_led(self, rgbvalues):
+        os.popen('gpio -g mode 10 alt0') #TODO will this always be 10
+        self.spi.open(0, 0)
+        self.spi.mode = 0b11
+        grb = [rgbvalues[1], rgbvalues[0], rgbvalues[2]]
+        tx = [0b11000000 if ((i >> j) &1) == 0 else 0b11111000
+                for i in grb
+                    for j in range(7,-1,-1)]
+        time.sleep(0.2) # this sleep seems essential
+        self.spi.xfer(tx, int(8 / 1.25e-6))
+        self.spi.close()
+        os.popen('gpio -g mode 10 input') # don't know if this is needed TODO 10?
+        gpio.setup(10, gpio.IN, pull_up_down=gpio.PUD_DOWN) #is this duplicating above? TODO 10?
+
