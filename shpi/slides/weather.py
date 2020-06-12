@@ -47,10 +47,28 @@ def init():
     global snowline, rainline, seplines, degwind, weathericon, text, line
     global windneedle, acttemp, text, error
     #global baroneedle, linemin, linemax
+    from pyowm.commons.enums import SubscriptionTypeEnum
+    languagedict = {
+    'subscription_type': SubscriptionTypeEnum.FREE,
+    'language': 'de',
+    'connection': {
+        'use_ssl': True,
+        'verify_ssl_certs': True,
+        'use_proxy': False,
+        'timeout_secs': 5
+    },
+    'proxies': {
+        'http': 'http://user:pass@host:port',
+        'https': 'socks5://user:pass@host:port'
+    }
+    }
 
-    owm = pyowm.OWM(API_key=config.OWMKEY, language=config.OWMLANGUAGE)
-    place = owm.weather_at_place(config.OWMCITY)
-    weather = place.get_weather()
+   
+
+    owm = pyowm.OWM(config.OWMKEY, config=languagedict)
+    mgr = owm.weather_manager()
+    place = mgr.weather_at_place(config.OWMCITY)
+    weather = place.weather
 
     text.text_blocks = []
     text._first_free_char = 0
@@ -63,7 +81,7 @@ def init():
                     'thursday', 'friday', 'saturday', 'sunday']
 
     file_path = resource_filename("shpi", "sprites/{}.png".format(
-        weather.get_weather_icon_name()))
+        weather.weather_icon_name))
     if os.path.exists(file_path):
         weathericon = pi3d.ImageSprite(file_path, shader=graphics.SHADER,
                             camera=graphics.CAMERA, w=150, h=150, z=2, x=-220)
@@ -72,23 +90,22 @@ def init():
     #    import urllib.request
     #    urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name(
     #    ) + "@2x.png", "sprites/" + weather.get_weather_icon_name() + ".png")
-    city = pi3d.TextBlock(-390, 180, 0.1, 0.0, 150, text_format=place.get_location(
-    ).get_name(), size=0.7, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
+    city = pi3d.TextBlock(-390, 180, 0.1, 0.0, 150, text_format=place.location.name, size=0.7, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(city)
 
     city = pi3d.TextBlock(-220, 80, 0.1, 0.0, 30, justify=0.5,
-            text_format=weather.get_detailed_status(), size=0.3, spacing="F",
+            text_format=weather.detailed_status, size=0.3, spacing="F",
             space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(city)
 
     acttemp = pi3d.TextBlock(-350, -50, 0.1, 0.0, 10,
-                text_format=str(weather.get_temperature(unit='celsius')['temp']) + u'°C',
+                text_format=str(weather.temperature('celsius')['temp']) + u'°C',
                 size=0.9, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(acttemp)
 
-    sunriset = weather.get_sunrise_time(
+    sunriset = weather.sunrise_time(
         timeformat='date') + datetime.timedelta(hours=2)
-    sunsett = weather.get_sunset_time(
+    sunsett = weather.sunset_time(
         timeformat='date') + datetime.timedelta(hours=2)
     sunset = pi3d.TextBlock(50, 100, 0.1, 0.0, 20,
                 text_format="{} {}:{:02d} {} {}:{:02d}".format(
@@ -98,13 +115,13 @@ def init():
     text.add_text_block(sunset)
 
     barometer = pi3d.TextBlock(50, -50, 0.1, 0.0, 10,
-                    text_format=unichr(0xE00B) + ' ' + str(weather.get_pressure()['press']) + ' hPa',
+                    text_format=unichr(0xE00B) + ' ' + str(weather.pressure['press']) + ' hPa',
                     size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(barometer)
     # baroneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=(
     #    (-2, 0, 0), (0, 7, 0), (2, 0, 0)), x=barometer.x+16, y=barometer.y - 6, z=0.1)
     # baroneedle.set_shader(graphics.MATSH)
-    normalizedpressure = (weather.get_pressure()['press'] - 950)
+    normalizedpressure = (weather.pressure['press'] - 950)
     if normalizedpressure < 0:
         normalizedpressure = 0
     if normalizedpressure > 100:
@@ -120,28 +137,30 @@ def init():
     #baroneedle.rotateToZ(100 - (normalizedpressure*2))
 
     humidity = pi3d.TextBlock(50, 0, 0.1, 0.0, 10,
-                text_format=unichr(0xE003) + ' ' + str(weather.get_humidity()) + '%',
+                text_format=unichr(0xE003) + ' ' + str(weather.humidity) + '%',
                 size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
     text.add_text_block(humidity)
 
-    if 'speed' in weather.get_wind():
+    if 'speed' in weather.wind():
         wind = pi3d.TextBlock(50, 50, 0.1, 0.0, 10,
-                text_format=unichr(0xE040) + ' ' + str(weather.get_wind()['speed']) + 'm/s',
+                text_format=unichr(0xE040) + ' ' + str(weather.wind()['speed']) + 'm/s',
                 size=0.3, spacing="F", space=0.05, colour=(1.0, 1.0, 1.0, 1.0))
         text.add_text_block(wind)
 
-    if 'deg' in weather.get_wind():
+    if 'deg' in weather.wind():
         degwind = True
         windneedle = pi3d.Triangle(camera=graphics.CAMERA, corners=(
             (-3, 0, 0), (0, 15, 0), (3, 0, 0)), x=wind.x+180, y=wind.y, z=0.1)
         windneedle.set_shader(graphics.MATSH)
         windneedle.set_material([1, 1, 1])
-        windneedle.rotateToZ(weather.get_wind()['deg'])
+        windneedle.rotateToZ(weather.wind()['deg'])
     else:
         degwind = False
 
-    fc = owm.three_hours_forecast(config.OWMCITY)
-    f = fc.get_forecast()
+    #fc = owm.three_hours_forecast(config.OWMCITY)
+    f = mgr.forecast_at_place(config.OWMCITY, '3h').forecast
+
+    
 
     step = 780 / (len(f))
     actualy = -400 + step
@@ -157,7 +176,7 @@ def init():
 
     for weather in f:
         file_path = resource_filename("shpi", "sprites/{}.png".format(
-            weather.get_weather_icon_name()))
+            weather.weather_icon_name))
         if not os.path.exists(file_path):
             import urllib.request  # TODO py2 py3 fix
             urllib.request.urlretrieve("http://openweathermap.org/img/wn/" + weather.get_weather_icon_name(
@@ -166,13 +185,13 @@ def init():
         icons.append(pi3d.ImageSprite(file_path, shader=graphics.SHADER,
                     camera=graphics.CAMERA, w=20, h=20, z=1, x=actualy, y=-220))
 
-        if weather.get_reference_time('iso')[11:16] == '00:00':
+        if weather.reference_time('iso')[11:16] == '00:00':
             seplinesarr.append([actualy, -50, 2])
             seplinesarr.append([actualy, 50, 2])
             seplinesarr.append([actualy, -50, 2])
 
         # if weather.get_reference_time('iso')[11:16] == '12:00':
-            day = weather.get_reference_time(timeformat='date').weekday()
+            day = weather.reference_time(timeformat='date').weekday()
             if actualy < 300:
                 city = pi3d.TextBlock(actualy+65, -100, 0.1, 0.0, 30,
                         text_format=weekdays[day], justify=0.5,  size=0.23,
@@ -191,17 +210,17 @@ def init():
             maxdaytemp = -100
             mindaytemp = 100
 
-        if '3h' in weather.get_snow():
-            snowarr.append([actualy, (-50+weather.get_snow()['3h']*30), 2])
+        if '3h' in weather.snow:
+            snowarr.append([actualy, (-50+weather.snow['3h']*30), 2])
         else:
             snowarr.append([actualy, -50, 2])
 
-        if '3h' in weather.get_rain():
-            rainarr.append([actualy, (-50+weather.get_rain()['3h']*30), 2])
+        if '3h' in weather.rain:
+            rainarr.append([actualy, (-50+weather.rain['3h']*30), 2])
         else:
             rainarr.append([actualy, -50, 2])
 
-        temperatures = weather.get_temperature(unit='celsius')
+        temperatures = weather.temperature(unit='celsius')
         if temperatures['temp_max'] > maxdaytemp:
             maxdaytemp = temperatures['temp_max']
         if temperatures['temp_min'] < mindaytemp:

@@ -157,8 +157,7 @@ def inloop(textchange=False, activity=False, offset=0):
     else:
         motiondetection.colouring.set_colour([1, 1, 1])
 
-    if peripherals.touch_pressed:
-        peripherals.touch_pressed = False
+    if peripherals.check_touch_pressed():
         if config.HEATINGRELAY != 0 or config.COOLINGRELAY != 0:
             if peripherals.clicked(increaseTemp.x, increaseTemp.y):
                 controls_alpha = 1
@@ -173,47 +172,9 @@ def inloop(textchange=False, activity=False, offset=0):
 
         if peripherals.clicked(-330, -180):
             config.subslide = 'videostream'
-            try:
-                os.popen('killall omxplayer.bin')
-            except:
-                pass
-            os.popen(
-                'omxplayer --threshold 0.5  --display 4 rtsp://username:pass@192.168.1.5:554/mpeg4cif --win "0 0 800 450"')
-            # loading time depends on keyframes in stream, only h264 recommended!
 
         if 'intercom' in config.subslides and peripherals.clicked(-230, -180):
             config.subslide = 'intercom'
-            try:
-                os.popen('killall omxplayer.bin')
-                os.popen('killall raspivid')
-            except:
-                pass
-
-            os.popen('gpio -g write 27 1')  # deactivate amplifier
-            os.popen('i2cset -y 2 0x2A 0x93 210')  # deactivate vent
-            os.popen("amixer -c 1 set 'PCM' 0%")  # deactivate soundcard out
-            os.popen("amixer -c 1 set 'Mic' 0%")  # enable mic
-            config.iip = '192.168.1.22'
-            config.iuser = 'pi'
-            config.ipw = 'raspberry'
-            os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@' + config.iip +
-                     ' "raspivid  -t 0 -w 640 -h 480 -g 10 -ih -fps 25 -l -p \'640,0,160,120\' -o  tcp://0.0.0.0:5001"')
-            os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@' + config.iip +
-                     ' "arecord -D plughw:1,0 -r 12000 -f S16_LE -c1 -B 300 -t wav | nc -l 5003"')
-
-            os.popen(
-                'raspivid  -t 0 -w 640 -h 480 -g 10  -ih -fps 25 -hf  -vf -l -p \'640,0,160,120\' -o  tcp://0.0.0.0:5002')
-            os.popen('sleep 2 && nc ' + config.iip +
-                     ' 5001 | ./videoplayer 0 0 640 480')
-            os.popen('sleep 2 && nc ' + config.iip +
-                     '  5003 | { dd bs=60K count=1 iflag=fullblock of=/dev/null; aplay -c 1 --device=plughw:1,0 -B 0 -f S16_LE -c1 -r 12000 -t wav; }')
-            os.popen(
-                'arecord -D plughw:1,0 -r 12000 -f S16_LE -c1 -B 300 -t wav | nc -l 5004')
-
-            os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@' +
-                     config.iip + ' "nc 192.168.1.33 5002 | ./videoplayer 0 0 640 480"')
-            os.popen('sshpass -p \'raspberry\' ssh -o StrictHostKeyChecking=no  pi@' + config.iip +
-                     ' "nc 192.168.1.33 5004 | { dd bs=60K count=1 iflag=fullblock of=/dev/null; aplay -c 1 --device=plughw:1,0 -B 0 -f S16_LE -c1 -r 12000 -t wav; }"')
 
     # nc 192.168.1.33 5003 | { dd bs=60K count=1 iflag=fullblock of=/dev/null; aplay -c 1 --device=plughw:1,0 -B 0 -f S16_LE -c1 -r 12000 -t wav; }
     # arecord -D plughw:1,0 -r 12000 -f S16_LE -c1 -B 300 -t wav | nc -l 5003

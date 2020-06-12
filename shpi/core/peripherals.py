@@ -60,7 +60,8 @@ ADDR_SHT = 0x44
 ADDR_AHT10 = 0x38
 ADDR_MLX = 0x5B
 ADDR_BH1750 = 0x23
-PIR = 18
+
+PIR = 18 #NB switch to 10 if zero lite detected
 # single wire backlight control needs almost realtime -> moved to atmega  (not on prototypes!)
 BACKLIGHT = 19
 TOUCHINT = 26
@@ -107,7 +108,7 @@ def touchloop():
         if code == 3 and type == 1:
             yc = -(value - 240)
         if code == 1 and type == 330:
-            if value:
+            if value == 1: # touch started
                 eg_object.lastmotion = time.time()  # wake screen up on touch
                 lasttouch = time.time()
                 touch_pressed = True
@@ -115,8 +116,6 @@ def touchloop():
                 lasty = yc
             else:
                 lastx = 0
-        #   touch_pressed = False
-        time.sleep(0.05)
 
 
 def alert(value=1):
@@ -133,6 +132,14 @@ def alert(value=1):
 
 def touched():
     return gpio.input(TOUCHINT)
+
+
+def check_touch_pressed():
+    global touch_pressed
+    if touch_pressed:
+        touch_pressed = False
+        return True
+    return False
 
 
 def motion_detected(channel):
@@ -156,7 +163,7 @@ def motion_detected(channel):
 def get_touch():
     global xc, yc, firsttouch
     #global mouse, x_off, y_off
-    if int(os_touchdriver) > 1:
+    if os_touchdriver == 1:
         return xc, yc
     elif TOUCHADDR:
         if (gpio.input(TOUCHINT)):
@@ -175,9 +182,9 @@ def get_touch():
                         # logging.debug(x1,y1)
                         return xc, yc  # compensate position to match with PI3D
                     else:
-                        print('catch bounce')
-                        print(xc-x1)
-                        print(yc-y1)
+                        #print('catch bounce')
+                        #print(xc-x1)
+                        #print(yc-y1)
                         xc = x1
                         yc = y1
                         time.sleep(0.01)
@@ -284,6 +291,14 @@ def read_two_bytes(addr_val, retries=0):  # utility function for brevity
 
 
 def control(attribute, value):
+    """ adds the attributes and values to a dict, run from main.sensor_thread on
+    periodic basis
+    """
+    global control_list
+    control_list[attribute] = value
+
+
+def do_control(attribute, value):
     """ finds and calls control function with name control_`attribute`
     if the last char of attribute is 0-9 then it's split from the name and passed as
     an argument to the function:
@@ -336,14 +351,20 @@ def write_32u4(addr, value, description, retries=0):
 def control_relay(channel, value):
     if value not in VALS:
         return (False, "unknown VAL for value {}!".format(value))
-    return write_32u4(RELAYCHANNEL[channel-1], VALS[value], "relay{}".format(channel))
+    if ADDR_32U4 != 0:
+        return write_32u4(RELAYCHANNEL[channel-1], VALS[value], "relay{}".format(channel))
+    else:
+        return zero_lite.set_relay(channel-1, VALS[value])
 
 
 def control_vent_pwm(value):
     value = int(value)  # variable int value
     if not (-1 < value < 256):
         return (False, "value outside 0..255")
-    return write_32u4(VENT_PWM, value, "vent_pwm")
+    if ADDR_32U4 != 0:
+        return write_32u4(VENT_PWM, value, "vent_pwm")
+    else:
+        return zero_lite.set_fan(value)
 
 
 def control_backlight_level(value):
@@ -353,24 +374,35 @@ def control_backlight_level(value):
         assert -1 < value <= config.MAX_BACKLIGHT, "value outside permitted range"
         # needs sudo because of timing
         os.popen('sudo chrt --rr 99 {} {}'.format(file_path, value))
-        return write_32u4(BACKLIGHT_LEVEL, value, "backlight_level")
+        if ADDR_32U4 != 0:
+            return write_32u4(BACKLIGHT_LEVEL, value, "backlight_level")
+        else:
+            return value
     except Exception as e:
         return (False, "backlight_level error: {}".format(e))
 
 
 def control_led_color(channel, rgbvalue):
-    return write_32u4(channel, int(rgbvalue), "led_color")
+    if ADDR_32U4 != 0:
+        return write_32u4(channel, int(rgbvalue), "led_color")
+    else:
+        logging.warning("trying to set LED using atmega which isn't there")
 
 
 def control_led(rgbvalues):
     if type(rgbvalues) not in (list, tuple):
         rgbvalues = rgbvalues.split(",")
     if len(rgbvalues) == 3:
-        # splitted because of i2c master  clockstretching problems
-        control_led_color(COLOR_RED, rgbvalues[0])
-        control_led_color(COLOR_GREEN, rgbvalues[1])
-        control_led_color(COLOR_BLUE, rgbvalues[2])
+        rgbvalues = [int(c) for c in rgbvalues] #TODO filter messy html inputs
+        if ADDR_32U4 != 0:
+            # splitted because of i2c master  clockstretching problems
+            control_led_color(COLOR_RED, rgbvalues[0])
+            control_led_color(COLOR_GREEN, rgbvalues[1])
+            control_led_color(COLOR_BLUE, rgbvalues[2])
+        else: # TODO this is a temp botch for testing
+            zero_lite.control_led(rgbvalues)
         eg_object.led = rgbvalues
+        (eg_object.led_red, eg_object.led_green, eg_object.led_blue) = rgbvalues
         return (True, rgbvalues)
     else:
         return (False, "error, wrong rgbvalues for control_led")
@@ -383,7 +415,11 @@ def control_alert(value):
 
 
 def control_buzzer(value):
-    return control_relay(4, value)
+    if ADDR_32U4 != 0:
+        return control_relay(4, value)
+    else: # zero lite
+        return zero_lite.set_buzzer(value)
+
 
 
 def control_slide(value):
@@ -480,6 +516,8 @@ def get_status():
         eg_object.freespace = float((s.f_bavail * s.f_frsize) / 1024 / 1024)
         eg_object.wifistrength = (os.popen(
             "/sbin/iwconfig wlan0 | grep 'Signal level' | awk '{print $4}' | cut -d= -f2 | cut -d/ -f1;").readline()).strip()
+
+
         eg_object.ipaddress = os.popen(
             "ip addr show wlan0 | grep 'inet ' | head -1 | awk '{print $2}' | cut -d/ -f1;").readline().strip()
         eg_object.ssid = (os.popen(
@@ -540,6 +578,11 @@ def get_status():
                 eg_object.led_blue = b[2]
                 eg_object.led = [eg_object.led_red,
                                  eg_object.led_green, eg_object.led_blue]
+        else: # zero_lite
+            eg_object.relay1 = zero_lite.get_relay(0)
+            eg_object.relay2 = zero_lite.get_relay(1)
+            eg_object.relay3 = zero_lite.get_relay(2)
+
     except Exception as e:
         logging.error(e)
 
@@ -688,11 +731,11 @@ class EgClass(object):
         a7 = 0
         atmega_temp = 0
         vent_rpm = 0
-        vent_pwm = 0
         atmega_ram = 0
-        buzzer = 0
         relay1current = 0.0
 
+    vent_pwm = 0
+    buzzer = 0
     # if ADDR_MLX:
     mlxamb = 0.0
     mlxobj = 0.0
@@ -741,9 +784,9 @@ class EgClass(object):
 """ End of definitions section
 """
 # checks if touchdriver is running
-os_touchdriver = os.popen('pgrep -f touchdriver.py -c').readline()
+os_touchdriver = int(os.popen('pgrep -f touchdriver.py -c').readline()) - 1
 
-if int(os_touchdriver) > 1:
+if os_touchdriver == 1: #TODO can there be more than one running
     try:
         touch_file = open("/dev/input/event1", "rb")
     except:
@@ -753,8 +796,8 @@ startmotion = time.time()
 i2cerr, i2csucc = 1, 1
 xc, yc = 0, 0
 lastx, lasty = 0, 0
-touch_pressed = 0
-lasttouch = 0
+touch_pressed = False
+lasttouch = 0.0
 
 bus = i2c.I2C(2)
 # bus.set_timeout(3)
@@ -773,7 +816,10 @@ try:
     time.sleep(0.001)
     bus.read(1, ADDR_32U4)
 except:
+    from ..core.zerolite import ZeroLite
+    zero_lite = ZeroLite()
     ADDR_32U4 = 0
+    PIR = zero_lite.PIR
     logging.warning('Hint: No ATmega found, seems to be a SHPI.zero lite?')
 
 # check for SHT3x
@@ -804,6 +850,9 @@ except:
 try:
     time.sleep(0.001)
     bus.write([0x01], ADDR_BH1750)  # power on BH1750
+    time.sleep(0.05)
+    data = bus.rdwr([0x23], 2, ADDR_BH1750) # and check that did something!
+    #TODO check data is valid else raise exception
 except:
     logging.warning('Hint: No BH1750')
     ADDR_BH1750 = 0
@@ -835,9 +884,8 @@ gpio.setwarnings(False)
 gpio.setup(TOUCHINT, gpio.IN, pull_up_down=gpio.PUD_DOWN)
 gpio.setup(PIR, gpio.IN, pull_up_down=gpio.PUD_DOWN)
 
-if int(os_touchdriver) < 2:
-    gpio.add_event_detect(TOUCHINT, gpio.RISING,
-                          callback=touch_debounce)  # touch interrupt
+if os_touchdriver == 0:
+    gpio.add_event_detect(TOUCHINT, gpio.RISING, callback=touch_debounce)  # touch interrupt
 else:
     #start_new_thread(touchloop, ())
     t = threading.Thread(target=touchloop)
@@ -847,3 +895,5 @@ else:
 gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected)
 
 infrared_vals = np.full(100, np.nan)
+
+control_list = {}

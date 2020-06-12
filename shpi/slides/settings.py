@@ -69,8 +69,7 @@ text2.add_text_block(textblock)
 def inloop(textchange=False, activity=False, offset=0):
     if textchange:
         text2.regen()
-    if peripherals.touch_pressed:
-        peripherals.touch_pressed = False
+    if peripherals.check_touch_pressed():
         if peripherals.clicked(Up.x, Up.y):
             peripherals.eg_object.max_backlight += 1
             if peripherals.eg_object.max_backlight > 31:

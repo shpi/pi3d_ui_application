@@ -74,8 +74,7 @@ def inloop(textchange=False, activity=False, offset=0):
         get_button_status()
     if httpbutton.status == 'error':
         httpbutton.colouring.set_colour([0, 0, 1])
-    if peripherals.touch_pressed:
-        peripherals.touch_pressed = False
+    peripherals.check_touch_pressed()
     if peripherals.clicked(httpbutton.x, httpbutton.y):
         if httpbutton.status == 'OFF':
             try:

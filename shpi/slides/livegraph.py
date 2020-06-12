@@ -53,7 +53,7 @@ grapharea.set_alpha(0.6)
 
 def inloop(textchange=False, activity=False, offset=0):
     global nextsensorcheck, graph
-    if offset == 0 and not peripherals.touched():
+    if offset == 0 and not peripherals.check_touch_pressed():
         nextsensorcheck = 0
         text.regen()
         i = 0

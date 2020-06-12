@@ -29,9 +29,7 @@ class ServerHandler(BaseHTTPRequestHandler):
                 logging.debug('http request from: ' + self.client_address[0])
 
                 for key, value in dict(urlparse.parse_qsl(self.path.split("?")[1], True)).items():
-
                     if key == 'screenshot':
-
                         self.send_header('Content-type', 'image/png')
                         self.end_headers()
                         try:

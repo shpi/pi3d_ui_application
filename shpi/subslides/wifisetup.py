@@ -28,7 +28,7 @@ wifinetworkstext.sprite.position(0, 200, 1)
 wifinetworks = None
 selectednetwork = None
 
-def inloop(x=0, y=0, touch_pressed=False, textchange=False, activity=False):
+def inloop(textchange=False, activity=False, x=0, y=0, touch_pressed=False):
     global wifinetworks, selectednetwork
     wifinetworkstext.draw()
     controlx.draw()
@@ -50,8 +50,7 @@ def inloop(x=0, y=0, touch_pressed=False, textchange=False, activity=False):
     else:
         for network in wifinetworks:
             network['string'].draw()
-        if peripherals.touch_pressed:
-            peripherals.touch_pressed = False
+        if peripherals.check_touch_pressed():
             activity = True
             if peripherals.clicked(335, 196):
                 config.subslide = None

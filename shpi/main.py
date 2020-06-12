@@ -15,14 +15,25 @@ from pkg_resources import resource_filename
 from . import config
 
 # start logging NOW before anything else can log something
-level = getattr(logging, config.LOG_LEVEL)
+log_level = getattr(logging, config.LOG_LEVEL)
 if config.LOG_FILE is not None:
-    logging.basicConfig(filename=config.LOG_FILE, level=level)
+    logging.basicConfig(filename=config.LOG_FILE, level=log_level)
 else:
-    logging.basicConfig(level=level)  # defaults to screen
+    logging.basicConfig(level=log_level)  # defaults to screen
 
 from .core import peripherals #i.e. these imports MUST happen after logging starts!
-from .core import graphics
+
+if config.SHOW_WIFISTATUS:
+   from .core import wifistatus
+   wifistatus = wifistatus.WifiStatus()
+
+if config.SHOW_SLIDESTATUS:
+   from .core import slidestatus
+   slidestatus = slidestatus.SlideStatus()
+
+
+if config.GUI:
+    from .core import graphics
 
 try:
     unichr
@@ -92,6 +103,13 @@ def sensor_thread():
 
             peripherals.get_infrared()
 
+            for attr in peripherals.control_list:
+                val = peripherals.control_list[attr]
+                peripherals.do_control(attr, val)
+                if config.SHOW_SLIDESTATUS and attr == 'slide':
+                   slidestatus.update(peripherals.eg_object.slide)
+            peripherals.control_list = {}
+
             if (now > nextsensorcheck):
                 peripherals.get_sensors()
                 nextsensorcheck = now + config.SENSOR_TM
@@ -105,9 +123,19 @@ def sensor_thread():
 
                 peripherals.get_status()
                 
+<<<<<<< HEAD
                 if config.START_MQTT_CLIENT:
                      mqttclient.publishall()
                 
+=======
+               
+                if config.START_MQTT_CLIENT:
+                    mqttclient.publishall()
+                    
+                if config.SHOW_WIFISTATUS:
+                    wifistatus.update(int(peripherals.eg_object.wifistrength))
+
+>>>>>>> develop
                 textchange = True
                 if hasattr(peripherals.eg_object, 'bmp280_temp'):
                     bmp280_temp = peripherals.eg_object.bmp280_temp
@@ -129,18 +157,22 @@ def sensor_thread():
                     peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
                     sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,
                     0.0, getattr(peripherals.eg_object,
-                                 'relay{}'.format(config.HEATINGRELAY)),
+                                'relay{}'.format(config.HEATINGRELAY)),
                     getattr(peripherals.eg_object,
                             'relay{}'.format(config.COOLINGRELAY)),
                     motion, peripherals.eg_object.humidity, peripherals.eg_object.a4)
 
-                # not logged - maybe check against config.LOG_LEVEL
-                sys.stdout.write('\r')
-                sys.stdout.write(temperatures_str)
-                rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
-                sys.stdout.write(
-                    ' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ')
-                sys.stdout.flush()
+                """ not logged - maybe this is because of some other issue with stdout
+                TODO check if logging would be OK.
+                log_level determined at start (int val of config.LOG_LEVEL)
+                """
+                if log_level <= logging.DEBUG: # only output if log_level is debug
+                    sys.stdout.write('\r')
+                    sys.stdout.write(temperatures_str)
+                    rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
+                    sys.stdout.write(
+                        ' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ')
+                    sys.stdout.flush()
 
                 if config.SHOW_AIRQUALITY:  # calculate rgb values for LED
                     redvalue = 255 if peripherals.eg_object.a4 > 600 else int(
@@ -204,7 +236,7 @@ if config.START_MQTT_CLIENT:
     try:
         mqttclient.init()
     except Exception as e:
-        logging.warning("cannot start mqtt client - error".format(e))
+        logging.warning(f"cannot start mqtt client - error: {e}")
 
 if config.START_HTTP_SERVER:
     try:
@@ -220,7 +252,7 @@ if config.START_HTTP_SERVER:
         #littleserver = ThreadingHTTPServer(("0.0.0.0", 9000), ServerHandler)
         littleserver.timeout = 0.1
     except Exception as e:
-        logging.warning('cannot start http server - error: ', e)
+        logging.warning(f"cannot start http server - error: {e}")
 
 slide_offset = 0  # change by touch and slide
 textchange = True  # for reloading text
@@ -233,19 +265,19 @@ peripherals.eg_object.slide = config.slide
 t = threading.Thread(target=sensor_thread)
 t.start()
 
-movesfg = 0  # variable for parallax effect in sliding
-time.sleep(1)  # wait for running sensor_thread first time, to init all variables
-f = 0
-start = time.time()
-while graphics.DISPLAY.loop_running():
-    if config.GUI:
+if config.GUI:
+    movesfg = 0  # variable for parallax effect in sliding
+    time.sleep(1)  # wait for running sensor_thread first time, to init all variables
+    f = 0
+    start = time.time()
+    while graphics.DISPLAY.loop_running(): #TODO way of stopping loop
         f += 1
         now = time.time()
         if f % 500 == 0:
             logging.debug('FPS={:.1f}'.format(f / (now - start)))
             f = 0
             start = now
-        if not config.subslide:
+        if config.subslide is None:
             if bg_alpha < 1.0:   # fade to new background
                 activity = True  # we calculate more frames, when there is activity, otherwise we add sleep.time at end
                 bg_alpha += 0.01
@@ -292,6 +324,10 @@ while graphics.DISPLAY.loop_running():
             peripherals.lastx = 0
             movex = 0
             peripherals.eg_object.slide -= 1
+
+            if config.SHOW_SLIDESTATUS:
+               slidestatus.update(peripherals.eg_object.slide)
+
             sbg.set_alpha(0)
             if config.SLIDE_SHADOW:
                 bg_alpha = 0
@@ -302,6 +338,7 @@ while graphics.DISPLAY.loop_running():
             movex = 0
             if peripherals.eg_object.slide < len(config.slides) - 1:
                 peripherals.eg_object.slide += 1
+
             else:
                 peripherals.eg_object.slide = 0
 
@@ -315,11 +352,24 @@ while graphics.DISPLAY.loop_running():
                     bg_alpha = 0
             slide_offset -= 400
 
-        if config.subslide != None:
+            if config.SHOW_SLIDESTATUS:
+               slidestatus.update(peripherals.eg_object.slide)
+
+
+
+
+        if config.subslide is not None:
             activity = subslides[config.subslide].inloop(textchange, activity)
         elif -1 < peripherals.eg_object.slide < len(config.slides):
             activity, slide_offset = slides[peripherals.eg_object.slide].inloop(
                 textchange, activity, slide_offset)
+            if config.SHOW_SLIDESTATUS:
+               slidestatus.draw()
+
+
+
+        if config.SHOW_WIFISTATUS:
+            wifistatus.draw()
 
         textchange = False
         if not activity and (movesfg == 0) and (slide_offset == 0):
@@ -328,6 +378,10 @@ while graphics.DISPLAY.loop_running():
 
         if not os.path.exists("/dev/shm/screenshot.png"):
             pi3d.screenshot("/dev/shm/screenshot.png")
-    time.sleep(0.01)
 
-graphics.DISPLAY.destroy()
+else:
+    while True: #TODO way of stopping loop 
+        time.sleep(0.5)
+
+if config.GUI:
+    graphics.DISPLAY.destroy() #TODO way of stopping loop so this has some effect

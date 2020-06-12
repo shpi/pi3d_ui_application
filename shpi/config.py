@@ -2,7 +2,7 @@ DEMO = True  # shows demo slides
 GUI = True # turn off all graphical output
 # "logfile.txt" # None logs to screen, filename logs (appends) to file
 LOG_FILE = None # NB watch out if logging to file - will keep getting bigger!
-LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
+LOG_LEVEL = "WARNING"  # DEBUG, INFO, WARNING, ERROR, CRITICAL, EXCEPTION
 
 TMDELAY = 200  # delay for changing backgrounds
 INFRARED_TM = 3  # s between checking infrared sensor
@@ -11,6 +11,8 @@ ICAL_TM = 3600  # update calenderslide every 3600 seconds
 SLIDE_PARALLAX = False # background movement while sliding, bit slow on zero
 SLIDE_SHADOW = False  # shadow effect while manually sliding
 SHOW_AIRQUALITY = True  # show airquality over LED
+SHOW_WIFISTATUS = True #show wifi indicator  (top right)
+SHOW_SLIDESTATUS = True #show slide indicator (bottom)
 # activate simple GET/POST server in python, be aware of  security issues
 START_HTTP_SERVER = True
 HTTP_PORT = 9000
@@ -43,6 +45,10 @@ VENTRELAY = 0  # off
 MIN_HUMIDITY_THRESHOLD = 0
 MAX_HUMIDITY_THRESHOLD = 0
 AIR_QUALITY_THRESHOLD = 0
+
+IIP = "192.168.0.44" #IPv4 of intercom remote RPi
+IUSER = "pi" # user name for remote RPi
+IPW = "pi" # password for remote RPi login
 
 ICALLINK = 'muellkalender.ics'  # also http possible
 
@@ -87,16 +93,16 @@ weektempdelta = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # monday
                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # tuesday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0],  # wednesday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0],  # thursday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                      0,0, 0, 0, 0, 0, 0, 0, 0, 0],  # wednesday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                      0,0, 0, 0, 0, 0, 0, 0, 0, 0],  # thursday
                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # friday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0],  # saturday
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0]]  # sunday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # saturday
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]  # sunday
 
 slide = 0
 subslide = None
@@ -104,7 +110,7 @@ subslide = None
 # configure your slides here
 autoslidetm = 10
 autoslides = []
-slides = ['overview', 'thermostat', 'weather', 'ical2', 'status', 'shutter',
+slides = ['overview', 'dial_thermostat', 'weather', 'ical2', 'status', 'shutter',
           'livegraph', 'amperemeter', 'rrdgraph', 'settings']
 autoslideints = []
 
