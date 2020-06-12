@@ -122,20 +122,14 @@ def sensor_thread():
                         peripherals.heating()
 
                 peripherals.get_status()
-                
-<<<<<<< HEAD
-                if config.START_MQTT_CLIENT:
-                     mqttclient.publishall()
-                
-=======
-               
+
                 if config.START_MQTT_CLIENT:
                     mqttclient.publishall()
-                    
+
                 if config.SHOW_WIFISTATUS:
                     wifistatus.update(int(peripherals.eg_object.wifistrength))
 
->>>>>>> develop
+
                 textchange = True
                 if hasattr(peripherals.eg_object, 'bmp280_temp'):
                     bmp280_temp = peripherals.eg_object.bmp280_temp

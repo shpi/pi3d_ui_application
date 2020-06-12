@@ -36,11 +36,12 @@ def inloop(textchange=False, activity=False, offset=0):
     amperemeter.draw()
     text5.draw()
 
-    try:
+    if peripherals.ADDR_32U4 != 0:
+     try:
         peripherals.eg_object.relay1current = FACTOR * \
             (peripherals.read_two_bytes(0x14) - 2)
         text5.regen()
-    except Exception as e:
+     except Exception as e:
         logging.error('error: {}'.format(e))
 
     return activity, offset
