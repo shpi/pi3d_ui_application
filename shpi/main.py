@@ -150,11 +150,12 @@ def sensor_thread():
                     peripherals.eg_object.act_temp, peripherals.eg_object.gputemp,
                     peripherals.eg_object.cputemp, peripherals.eg_object.atmega_temp,
                     sht_temp, bmp280_temp, peripherals.eg_object.mlxamb, peripherals.eg_object.mlxobj,
-                    0.0, getattr(peripherals.eg_object,
-                                'relay{}'.format(config.HEATINGRELAY)),
-                    getattr(peripherals.eg_object,
-                            'relay{}'.format(config.COOLINGRELAY)),
+                    0.0, getattr(peripherals.eg_object,'relay{}'.format(config.HEATINGRELAY)),
+                    getattr(peripherals.eg_object,'relay{}'.format(config.COOLINGRELAY)),
                     motion, peripherals.eg_object.humidity, peripherals.eg_object.a4)
+
+                rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
+
 
                 """ not logged - maybe this is because of some other issue with stdout
                 TODO check if logging would be OK.
@@ -163,7 +164,7 @@ def sensor_thread():
                 if log_level <= logging.DEBUG: # only output if log_level is debug
                     sys.stdout.write('\r')
                     sys.stdout.write(temperatures_str)
-                    rrdtool.update(str('temperatures.rrd'), str(temperatures_str))
+                    
                     sys.stdout.write(
                         ' i2c err:' + str(peripherals.eg_object.i2cerrorrate)+'% - ' + time.strftime("%H:%M") + ' ')
                     sys.stdout.flush()
