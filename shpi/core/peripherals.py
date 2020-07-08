@@ -410,6 +410,20 @@ def control_led_color(channel, rgbvalue):
 
 
 def control_led(rgbvalues):
+    ### Test the special LED value!
+    ### User can maniplulate the payload over mqtt
+    ### correct: <redValue>, <greenValue>, <blueValue>
+    ### each value 0-255
+    # find a pattern like {23,21,212} or [23,21,213] or 255,234,123 
+    # each value max 0-255
+    # normaly {}, [] or () are not allowed
+    pattern = re.compile("^[\[\{]?([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]),([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]),([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])[\]\}]?$")
+    match = pattern.split(rgbvalues)
+    if len(match) == 5:
+        match.remove('') # remove the first empty string
+        match.remove('') # remove the last empty string
+        rgbvalues = ','.join(match)
+        logging.info("RegExTest matched: " + str(pattern.split(rgbvalues)))
     if type(rgbvalues) not in (list, tuple):
         rgbvalues = rgbvalues.split(",")
     if len(rgbvalues) == 3:
