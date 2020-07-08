@@ -101,22 +101,24 @@ def i2crecover():
 
 def touchloop():
     global xc, yc, lastx, lasty, touch_pressed, touch_file, lasttouch, touch_active
+    touch_starty = False
+    touch_startx = False
     while True:
         event = touch_file.read(16)
         (_timestamp, _id, code, type, value) = struct.unpack('llHHI', event)
-        if code == 3 and type == 0:
-            xc = (value) - 400
-            if touch_startx:
-
-             lastx = xc
-             touch_startx = False
-
         if code == 3 and type == 1:
             yc = -((value) - 240)
             if touch_starty:
-             
+
              lasty = yc
              touch_starty = False
+
+        if code == 3 and type == 0:
+            xc = (value) - 400
+            if touch_startx:
+             
+             lastx = xc
+             touch_startx = False
             
         if code == 1 and type == 330:
             if value == 1: # touch started
@@ -184,7 +186,7 @@ def get_touch():
     if os_touchdriver == 1:
         return xc, yc
     elif TOUCHADDR:
-        if (gpio.input(TOUCHINT)):
+        if touched():
             try:
                 time.sleep(0.001)
                 data = bus.rdwr([0x40], 6, TOUCHADDR)
@@ -492,7 +494,7 @@ def coolingheating():
 def get_infrared():
     global infrared_vals, lasttouch
     # take values only if there is no motion or user touch interaction
-    if eg_object.lastmotion < (time.time() - 5) and (gpio.input(TOUCHINT) == 0 and ADDR_MLX):
+    if eg_object.lastmotion < (time.time() - 5) and (touched() == 0 and ADDR_MLX):
         # try:
         time.sleep(0.1)
         b = bus.rdwr([0x26], 2, ADDR_MLX)
@@ -509,8 +511,8 @@ def get_infrared():
 
         # compensate own self heating
         if (eg_object.mlxamb > eg_object.mlxobj):
-            infrared_vals[-1] = (eg_object.mlxobj
-                                 - (eg_object.mlxamb - eg_object.mlxobj) / 6)
+            infrared_vals[-1] = eg_object.mlxobj - ((eg_object.mlxamb - eg_object.mlxobj) / 6) - ((eg_object.gputemp - eg_object.mlxobj) / 40)
+
         else:
             infrared_vals[-1] = eg_object.mlxobj
 
@@ -620,7 +622,7 @@ def get_sensor_cputemp():
 
 
 def get_sensor_sht_temp_humidity():
-    if (gpio.input(TOUCHINT) == 0):
+    if (touched() == 0):
         if ADDR_SHT != 0:
             try:
                 time.sleep(0.001)
@@ -636,7 +638,7 @@ def get_sensor_sht_temp_humidity():
 
 
 def get_sensor_lightlevel():
-    if (gpio.input(TOUCHINT) == 0):
+    if (touched() == 0):
         if ADDR_BH1750 != 0:
             try:
                 time.sleep(0.001)
@@ -650,7 +652,7 @@ def get_sensor_lightlevel():
 
 def get_sensor_bmp_temp_pressure():
     global dig_T, dig_P
-    if (gpio.input(TOUCHINT) == 0):
+    if (touched() == 0):
         if ADDR_BMP != 0:
             try:
                 time.sleep(0.001)
@@ -687,7 +689,7 @@ def get_sensor_bmp_temp_pressure():
 
 
 def get_sensor_32u4():
-    if (gpio.input(TOUCHINT) == 0):
+    if (touched() == 0):
         if ADDR_32U4 != 0:
             time.sleep(0.07)
             factor = 5000.0 / 1024.0 / 185.0
@@ -709,7 +711,7 @@ def get_sensor_32u4():
 
 
 def get_sensor_aht10_temp_humidity():
-    if (gpio.input(TOUCHINT) == 0):
+    if (touched() == 0):
         if ADDR_AHT10 != 0:
             try:
                 time.sleep(0.001)
@@ -811,10 +813,10 @@ if (os.popen('ls /dev/input/ | grep event1').readline() == 'event1\n'):
       print('Touchscreen on event1')
 
 
-elif (os.popen('ls /dev/input/ | grep event0').readline() == 'event0\n'):
-      os_touchdriver = 1
-      touch_file = open("/dev/input/event0", "rb")
-      print('Touchscreen on event0')
+#elif (os.popen('ls /dev/input/ | grep event0').readline() == 'event0\n'):
+#      os_touchdriver = 1
+#      touch_file = open("/dev/input/event0", "rb")
+#      print('Touchscreen on event0')
 
 
 #if os_touchdriver == 0:
