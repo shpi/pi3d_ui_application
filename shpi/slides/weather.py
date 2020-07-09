@@ -50,7 +50,7 @@ def init():
     from pyowm.commons.enums import SubscriptionTypeEnum
     languagedict = {
     'subscription_type': SubscriptionTypeEnum.FREE,
-    'language': 'de',
+    'language': config.OWMLANGUAGE,
     'connection': {
         'use_ssl': True,
         'verify_ssl_certs': True,
