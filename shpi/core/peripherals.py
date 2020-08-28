@@ -420,7 +420,10 @@ def control_led(rgbvalues):
             control_led_color(COLOR_GREEN, rgbvalues[1])
             control_led_color(COLOR_BLUE, rgbvalues[2])
         else: # TODO this is a temp botch for testing
+            gpio.remove_event_detect(PIR)
             zero_lite.control_led(rgbvalues)
+            gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected)
+
         eg_object.led = rgbvalues
         (eg_object.led_red, eg_object.led_green, eg_object.led_blue) = rgbvalues
         return (True, rgbvalues)
@@ -939,6 +942,8 @@ else:
 
 # motion detector interrupt
 gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected)
+
+
 
 infrared_vals = np.full(100, np.nan)
 

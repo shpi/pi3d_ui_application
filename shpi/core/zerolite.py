@@ -53,4 +53,4 @@ class ZeroLite():
         self.spi.close()
         os.popen('gpio -g mode 10 input') # don't know if this is needed TODO 10?
         gpio.setup(10, gpio.IN, pull_up_down=gpio.PUD_DOWN) #is this duplicating above? TODO 10?
-
+        time.sleep(0.01)
