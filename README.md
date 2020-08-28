@@ -1,14 +1,4 @@
-# zero_main_application - Actual Development Status
-
-
-Warning: If an "PolygonLines" error occurs, you need to install pi3d manually, steps:
-
-```
-pip3 uninstall pi3d
-git clone https://github.com/tipam/pi3d
-cd pi3d 
-sudo python3 setup.py install
-```
+# old_main_application - Actual Development Status
 
 
 
@@ -21,7 +11,6 @@ Create your own Slides simply by rename and modify one of our samples and add th
 
 Headless Wifi Setup needs root rights.
 
-Use "sudo crontab -e" or "sudo nano /etc/rc.local" for autostart
 
 ## Slides
 
@@ -115,21 +104,7 @@ All vars from eg_object (core/peripherals.py) are accessible.
 - [ ] Vent
 
 - [ ] Mail, SMS, WhatsApp, HTTP
-## Hardware (Drivers, Interface)
 
-
-- [X] Display with Touchdriver (touchdriver.py in other demos for Desktop)
-
-- [X] ATmega 32u4 I2C Firmware
-
-- [X] CULFW Implementation for CC1101
-
-- [X] Backlight Control
-
-- [X] Reduce Power consumption: GPIO Drive Strength, disable HDMI
-
-
-- [ ] Xiaomi Bluetooth Sensors
 
 
 
