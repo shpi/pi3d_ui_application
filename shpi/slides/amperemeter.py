@@ -39,7 +39,7 @@ def inloop(textchange=False, activity=False, offset=0):
     if peripherals.ADDR_32U4 != 0:
      try:
         peripherals.eg_object.relay1current = FACTOR * \
-            (peripherals.read_two_bytes(0x14) - 2)
+            (peripherals.read_two_bytes(peripherals.READ_RELAY1CURRENT) - 1)
         text5.regen()
      except Exception as e:
         logging.error('error: {}'.format(e))

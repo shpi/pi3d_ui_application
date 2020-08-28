@@ -855,6 +855,11 @@ if os_touchdriver == 0:
 try:
     time.sleep(0.001)
     bus.read(1, ADDR_32U4)
+
+    if (read_one_byte(0x7F) == 0x01):
+        logging.info('ATmega firmware version 2.0 detected.')
+        READ_RELAY1CURRENT  = 0x17 
+
 except:
     from ..core.zerolite import ZeroLite
     zero_lite = ZeroLite()
@@ -896,6 +901,7 @@ try:
 except:
     logging.warning('Hint: No BH1750')
     ADDR_BH1750 = 0
+
 
 # check for MLX90615
 try:
