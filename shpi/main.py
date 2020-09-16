@@ -170,15 +170,21 @@ def sensor_thread():
                     sys.stdout.flush()
 
                 if config.SHOW_AIRQUALITY:  # calculate rgb values for LED
-                    redvalue = 255 if peripherals.eg_object.a4 > 600 else int(
-                        0.03 * peripherals.eg_object.a4)
-                    greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(
-                        0.02*(400 - peripherals.eg_object.a4))
-                    peripherals.control_led([redvalue, greenvalue, 0])
+                    redvalue = 255 if peripherals.eg_object.a4 > 600 else int(0.03 * peripherals.eg_object.a4)
+                    greenvalue = 0 if peripherals.eg_object.a4 > 400 else int(0.02*(400 - peripherals.eg_object.a4))
+                    #peripherals.control_led([redvalue, greenvalue, 0])
+                    peripherals.control_led_color(peripherals.COLOR_RED, redvalue)
+                    peripherals.control_led_color(peripherals.COLOR_GREEN, greenvalue)
+                    peripherals.control_led_color(peripherals.COLOR_BLUE, 0)
+
+
 
         except Exception as e:
+            exception_type, exception_object, exception_traceback = sys.exc_info()
+            line_number = exception_traceback.tb_lineno
             logging.error('sensor_thread error: {}'.format(e))
-        time.sleep(0.2)
+            logging.error('error in line: {}'.format(line_number))
+            time.sleep(0.2)
 
 
 # make 4M ramdisk for graph
@@ -217,7 +223,11 @@ if config.GUI:
     subslides = dict()
 
     for slidestring in config.slides:
-        slides.append(importlib.import_module("shpi.slides." + slidestring))
+        try:
+            slides.append(importlib.import_module("shpi.slides." + slidestring))
+        except:
+            logging.error(f"error loading slide: " + slidestring)
+            pass
 
     for slidestring in config.subslides:
         subslides[slidestring] = importlib.import_module(
