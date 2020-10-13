@@ -70,6 +70,12 @@ TOUCHINT = 26
 firsttouch = True
 touch_active = False
 
+
+BACKLIGHT_SYSFS = ""
+MAX_BACKLIGHT = 0
+BL_POWER = 0
+
+
 def crc8(crc, n):
     """ CRC checksum algorithm """
     data = crc ^ n
@@ -392,6 +398,27 @@ def control_vent_pwm(value):
 
 
 def control_backlight_level(value):
+   global BACKLIGHT_SYSFS, MAX_BACKLIGHT, BL_POWER
+
+   if ((len(BACKLIGHT_SYSFS) > 0) & (MAX_BACKLIGHT > 0)):
+      try:
+        with open(BACKLIGHT_SYSFS + "/brightness","w") as bright:
+
+            bright.write(str(int(value)))
+
+            if (BL_POWER > 0):
+                if (brightness < 1):
+                    bright.write("4")
+                else:
+                    bright.write("0")
+
+            if 'bright' in locals():
+                    bright.close()
+      except:
+       pass
+
+   else:
+
     file_path = resource_filename("shpi", "bin/backlight")
     try:
         value = int(value)
@@ -960,6 +987,24 @@ else:
 
 # motion detector interrupt
 gpio.add_event_detect(PIR, gpio.BOTH, callback=motion_detected)
+
+
+# check for backlight sysfs
+backlightpath = "/sys/class/backlight/"
+
+if os.path.isdir(backlightpath):
+        dirs = os.listdir(backlightpath)
+        for file in dirs:
+                if os.path.exists(backlightpath + file + "/brightness"):
+                        BACKLIGHT_SYSFS = backlightpath + file
+
+                if os.path.exists(backlightpath + file + "/max_brightness"):
+
+                        with open(backlightpath + file + "/max_brightness") as max_backlight:
+                                MAX_BACKLIGHT = (int)(max_backlight.readline())
+
+                if os.path.exists(backlightpath + file + "/bl_power"):
+                        BL_POWER = 1
 
 
 
