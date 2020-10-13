@@ -163,22 +163,25 @@ def check_touch_pressed():
     return False
 
 
+
 def motion_detected(channel):
     global startmotion
+    time.sleep(0.05)
     if gpio.input(channel):
         startmotion = time.time()
         logging.info('Motion detected!')
         eg_object.motion = True
+        eg_object.lastmotion = time.time()
         if config.START_MQTT_CLIENT:
             mqttclient.publish("motion", 'ON')
     else:
-        logging.info('Motion time: ' +
-                     str(round(time.time() - startmotion, 2)) + 's')
-        eg_object.motion = False
-        if config.START_MQTT_CLIENT:
-            mqttclient.publish("motion", 'OFF')
+        if eg_object.motion:
+            logging.info('Motion time: ' +  str(round(time.time() - startmotion, 2)) + 's')
+            eg_object.motion = False
+            if config.START_MQTT_CLIENT:
+                mqttclient.publish("motion", 'OFF')
+            eg_object.lastmotion = time.time()
 
-    eg_object.lastmotion = time.time()
 
 
 def get_touch():
