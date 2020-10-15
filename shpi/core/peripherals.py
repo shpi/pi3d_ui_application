@@ -861,6 +861,17 @@ if (os.popen('ls /dev/input/ | grep event1').readline() == 'event1\n'):
       print('Touchscreen on event1')
 
 
+
+if (os.popen('ls /dev/input/by-path | grep platform-20805000.i2c-event').readline() == 'platform-20805000.i2c-event\n'):
+      os_touchdriver = 1
+      touch_file = open("/dev/input/by-path/platform-20805000.i2c-event", "rb")
+      print('Touchscreen on platform-20805000.i2c-event')
+
+
+
+
+
+
 #elif (os.popen('ls /dev/input/ | grep event0').readline() == 'event0\n'):
 #      os_touchdriver = 1
 #      touch_file = open("/dev/input/event0", "rb")
