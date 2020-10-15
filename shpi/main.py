@@ -127,7 +127,7 @@ def sensor_thread():
                     mqttclient.publishall()
 
                 if config.SHOW_WIFISTATUS:
-                    wifistatus.update(int(peripherals.eg_object.wifistrength))
+                    wifistatus.update()
 
 
                 textchange = True
