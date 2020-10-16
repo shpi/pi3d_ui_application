@@ -226,6 +226,7 @@ if config.GUI:
         try:
             slides.append(importlib.import_module("shpi.slides." + slidestring))
         except:
+            slides = slides[:-1]
             logging.error(f"error loading slide: " + slidestring)
             pass
 
@@ -341,7 +342,7 @@ if config.GUI:
         if movex > 200 and peripherals.lasttouch < (now - 0.1):
             peripherals.lastx = 0
             movex = 0
-            if peripherals.eg_object.slide < len(config.slides) - 1:
+            if peripherals.eg_object.slide < len(slides) - 1:
                 peripherals.eg_object.slide += 1
 
             else:
@@ -365,7 +366,7 @@ if config.GUI:
 
         if config.subslide is not None:
             activity = subslides[config.subslide].inloop(textchange, activity)
-        elif -1 < peripherals.eg_object.slide < len(config.slides):
+        elif -1 < peripherals.eg_object.slide < len(slides):
             activity, slide_offset = slides[peripherals.eg_object.slide].inloop(
                 textchange, activity, slide_offset)
             if config.SHOW_SLIDESTATUS:

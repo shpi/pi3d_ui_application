@@ -335,8 +335,11 @@ def do_control(attribute, value):
       relay2 => control_relay(2,...
     """
     if attribute[-1].isnumeric() and not attribute[-2].isnumeric():
-        num = int(attribute[-1])
-        attribute = attribute[:-1]
+        try:
+         num = int(attribute[-1])
+         attribute = attribute[:-1]
+        except:
+          raise Exception("attribute cant be converted to int(do_control)")
     else:
         num = -1
     func_name = 'control_{}'.format(attribute)
@@ -388,14 +391,16 @@ def control_relay(channel, value):
 
 
 def control_vent_pwm(value):
-    value = int(value)  # variable int value
-    if not (-1 < value < 256):
+    try:
+     value = int(value)  # variable int value
+     if not (-1 < value < 256):
         return (False, "value outside 0..255")
-    if ADDR_32U4 != 0:
+     if ADDR_32U4 != 0:
         return write_32u4(VENT_PWM, value, "vent_pwm")
-    else:
+     else:
         return zero_lite.set_fan(value)
-
+    except:
+        raise Exception("control vent pwm needs integer")
 
 def control_backlight_level(value):
    global BACKLIGHT_SYSFS, MAX_BACKLIGHT, BL_POWER
@@ -434,31 +439,22 @@ def control_backlight_level(value):
 
 
 def control_led_color(channel, rgbvalue):
-    if ADDR_32U4 != 0:
+    try:
+     if ADDR_32U4 != 0:
         return write_32u4(channel, int(rgbvalue), "led_color")
-    else:
+     else:
         logging.warning("trying to set LED using atmega which isn't there")
-
+    except:
+      raise Exception("RGB value needs to be integer")
 
 def control_led(rgbvalues):
-    ### Test the special LED value!
-    ### User can maniplulate the payload over mqtt
-    ### correct: <redValue>, <greenValue>, <blueValue>
-    ### each value 0-255
-    # find a pattern like {23,21,212} or [23,21,213] or 255,234,123 
-    # each value max 0-255
-    # normaly {}, [] or () are not allowed
-    pattern = re.compile("^[\[\{]?([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]),([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]),([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])[\]\}]?$")
-    match = pattern.split(rgbvalues)
-    if len(match) == 5:
-        match.remove('') # remove the first empty string, added by pattern [\[\{]?
-        match.remove('') # remove the last empty string, added by pattern [\]\}]?
-        rgbvalues = ', '.join(match)
-        logging.info("RegExTest matched: " + str(pattern.split(rgbvalues)))
+   try:
     if type(rgbvalues) not in (list, tuple):
+        rgbvalues.replace(';', ',')
         rgbvalues = rgbvalues.split(",")
     if len(rgbvalues) == 3:
-        rgbvalues = [int(c) for c in rgbvalues] #TODO filter messy html inputs
+       try:
+        rgbvalues = [int(c.strip()) for c in rgbvalues] #TODO filter messy html inputs
         if ADDR_32U4 != 0:
             # splitted because of i2c master  clockstretching problems
             control_led_color(COLOR_RED, rgbvalues[0])
@@ -472,14 +468,21 @@ def control_led(rgbvalues):
         eg_object.led = rgbvalues
         (eg_object.led_red, eg_object.led_green, eg_object.led_blue) = rgbvalues
         return (True, rgbvalues)
+       except:
+           raise Exception("rgb values in wrong format")
     else:
         return (False, "error, wrong rgbvalues for control_led")
-
+   except:
+        return (False, "error in control-led")
 
 def control_alert(value):
-    value = int(value)
-    eg_object.alert = value  # TODO error catching?
-    return(True, value)
+    try:
+     value = int(value)
+     eg_object.alert = value  # TODO error catching?
+     return(True, value)
+    except:
+     return (False, "control_alert")
+
 
 
 def control_buzzer(value):
