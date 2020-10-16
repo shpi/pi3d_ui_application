@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from math import sin, cos, radians
 from pkg_resources import resource_filename
 
+import os
 import pi3d
 
 from .. import config
@@ -17,6 +18,7 @@ class WifiStatus(object):
 
       shape = [[],[],[]]
       self.wifi_lines = []
+      self.wifistrength = -100
 
       for x1 in range(-45, 45, step):
           s, c = sin(radians(x1)), cos(radians(x1))
@@ -36,23 +38,25 @@ class WifiStatus(object):
 
   def update(self,value = None):
 
-
       try:
-          if value is None:
-              wifistrength = int((os.popen("/sbin/iwconfig wlan0 | grep 'Signal level' | awk '{print $4}' | cut -d= -f2 | cut -d/ -f1;").readline()).strip())
-          else:
-              wifistrength = value
 
-          assert -100 < wifistrength <= 0, "value outside permitted range"
+           if value is None:
+               self.wifistrength = int(os.popen("/sbin/iwconfig wlan0 | grep 'Signal level' | awk '{print $4}' | cut -d= -f2 | cut -d/ -f1;").readline().strip())
+           else:
+               self.wifistrength = int(value)
 
       except:
-          wifistrength = -100
+               self.wifistrength = -100
+               pass
+
+
+
 
       DBMTOPERCENT = [-100,-83,-70,-53]
 
       for dbm in range(0,4):
 
-        if int(wifistrength) > DBMTOPERCENT[dbm]:
+        if self.wifistrength > DBMTOPERCENT[dbm]:
             self.wifi_lines[dbm].set_alpha(1)
         else:
             self.wifi_lines[dbm].set_alpha(0.3)
