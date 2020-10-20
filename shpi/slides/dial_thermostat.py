@@ -86,11 +86,12 @@ def inloop(textchange=False, activity=False, offset=0):
 
     if textchange:
         offset = dial.check_touch(False, offset)
-        if peripherals.eg_object.tempoffset > 0:
+        if config.HEATINGRELAY != 0:
+         if peripherals.eg_object.tempoffset > 0:
             offset_val_block.colouring.set_colour([1, 0, 0])
-        elif peripherals.eg_object.tempoffset < 0:
+         elif peripherals.eg_object.tempoffset < 0:
             offset_val_block.colouring.set_colour([0, 0, 1])
-        else:
+         else:
             offset_val_block.colouring.set_colour([1, 1, 1])
 
         red = (0.01 * (peripherals.eg_object.a4/4))
