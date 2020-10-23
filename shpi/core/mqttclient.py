@@ -39,6 +39,12 @@ def publish(path, value):
 
 def on_connect(client, userdata, flags, rc):
     logging.debug("Connected to MQTT broker")
+    
+    
+    
+def on_disconnect(client, userdata, flags, rc):
+    if rc != 0:
+         logging.debug("Lost conncetion to MQTT broker")    
 
 
 def on_message(client, userdata, message):
