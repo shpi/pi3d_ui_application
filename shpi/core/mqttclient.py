@@ -32,9 +32,20 @@ def publishall():
 def publish(path, value):
     global client
     try:
-        client.publish(config.MQTT_PATH + "/" + path, value)
-    except:
-        pass
+        result, mid = client.publish(config.MQTT_PATH + "/" + path, value)
+        if result == mqtt.MQTT_ERR_SUCCESS:
+                        logging.info("Message {} queued successfully.".format(mid))
+        else:
+                        logging.error("Failed to publish message. Error: {}".format(result))
+                
+    except Exception as e:
+                    logging.error("EXCEPTION RAISED: {}".format(e))
+    
+              
+    
+    
+    
+    
 
 
 def on_connect(client, userdata, flags, rc):
