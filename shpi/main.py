@@ -105,7 +105,11 @@ def sensor_thread():
 
             for attr in peripherals.control_list:
                 val = peripherals.control_list[attr]
-                peripherals.do_control(attr, val)
+                try:
+                 peripherals.do_control(attr, val)
+                except:
+                 logging.error('error: ' + attr + ' value:' + val)
+                 pass
                 if config.SHOW_SLIDESTATUS and attr == 'slide':
                    slidestatus.update(peripherals.eg_object.slide)
             peripherals.control_list = {}
