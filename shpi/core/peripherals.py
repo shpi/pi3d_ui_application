@@ -406,19 +406,19 @@ def control_backlight_level(value):
    global BACKLIGHT_SYSFS, MAX_BACKLIGHT, BL_POWER
 
    if ((len(BACKLIGHT_SYSFS) > 0) & (MAX_BACKLIGHT > 0)):
+      print('use backlight sysfs')
       try:
+        if (BL_POWER > 0):
+                print('control bl power')
+                with open(BACKLIGHT_SYSFS + "/bl_power", "w") as bright:
+                    if (value < 1):
+                        bright.write("4")
+                    else:
+                        bright.write("0")
+
         with open(BACKLIGHT_SYSFS + "/brightness","w") as bright:
+           bright.write(str(int(value)))
 
-            bright.write(str(int(value)))
-
-            if (BL_POWER > 0):
-                if (brightness < 1):
-                    bright.write("4")
-                else:
-                    bright.write("0")
-
-            if 'bright' in locals():
-                    bright.close()
       except:
        pass
 
@@ -1019,8 +1019,9 @@ if os.path.isdir(backlightpath):
 
                 if os.path.exists(backlightpath + file + "/bl_power"):
                         BL_POWER = 1
+                        print('bl power found')
 
-
+                print(BACKLIGHT_SYSFS)
 
 infrared_vals = np.full(100, np.nan)
 
