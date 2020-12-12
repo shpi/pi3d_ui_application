@@ -86,7 +86,7 @@ def sensor_thread():
                 if config.BACKLIGHT_AUTO:
                     if now < peripherals.eg_object.lastmotion + config.BACKLIGHT_AUTO:
                         peripherals.eg_object.backlight_level = peripherals.eg_object.max_backlight
-                    else:
+                    elif peripherals.eg_object.motion == False:
                         peripherals.eg_object.backlight_level = config.MIN_BACKLIGHT
 
                 if peripherals.eg_object.backlight_level != last_backlight_level:
